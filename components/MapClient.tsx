@@ -1,10 +1,29 @@
 'use client';
 
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
+import {
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  Filter,
+  Globe,
+  Layers,
+  MapPin,
+  Search,
+  X,
+} from 'lucide-react';
 import type { CollectionObject, GeoLocation } from '@/types/collection';
+import ObjectImage from './ObjectImage';
 
+/* ---- SSR-safe mount check ---- */
 const emptySubscribe = () => () => {};
 function useIsMounted() {
   return useSyncExternalStore(
@@ -14,56 +33,462 @@ function useIsMounted() {
   );
 }
 
-interface MapClientProps {
-  locations: {
-    keyword: string;
-    geo: GeoLocation;
-    objects: CollectionObject[];
-  }[];
+/* ---- Types ---- */
+interface LocationGroup {
+  keyword: string;
+  geo: GeoLocation;
+  objects: CollectionObject[];
 }
 
+interface MapClientProps {
+  locations: LocationGroup[];
+}
+
+/* ---- Helpers ---- */
+function countByRegion(locations: LocationGroup[], region: string) {
+  return locations
+    .filter((l) => l.geo.region === region)
+    .reduce((sum, l) => sum + l.objects.length, 0);
+}
+
+function getAllObjectTypes(
+  locations: LocationGroup[],
+): { name: string; count: number }[] {
+  const counts = new Map<string, number>();
+  for (const loc of locations) {
+    for (const obj of loc.objects) {
+      for (const t of obj.objectTypes) {
+        counts.set(t, (counts.get(t) || 0) + 1);
+      }
+    }
+  }
+  return Array.from(counts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+/* ==================================================================
+   MAIN COMPONENT
+   ================================================================== */
 export default function MapClient({ locations }: MapClientProps) {
   const t = useTranslations('map');
   const locale = useLocale();
   const mounted = useIsMounted();
-  const [showSuriname, setShowSuriname] = useState(true);
-  const [showNetherlands, setShowNetherlands] = useState(false);
+
+  /* ---- Region filter ---- */
+  const [regionFilter, setRegionFilter] = useState<
+    'suriname' | 'netherlands' | 'both'
+  >('suriname');
+
+  /* ---- Object type filter ---- */
+  const allObjectTypes = useMemo(
+    () => getAllObjectTypes(locations),
+    [locations],
+  );
+  const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
+  const [showTypeFilter, setShowTypeFilter] = useState(false);
+
+  /* ---- Location search ---- */
+  const [searchQuery, setSearchQuery] = useState('');
+
+  /* ---- Selected location ---- */
+  const [selectedLocation, setSelectedLocation] =
+    useState<LocationGroup | null>(null);
+
+  /* ---- Filter logic ---- */
+  const filteredLocations = useMemo(() => {
+    return locations.filter((loc) => {
+      // Region filter
+      if (regionFilter !== 'both' && loc.geo.region !== regionFilter)
+        return false;
+
+      // Object type filter: at least one object must match
+      if (selectedTypes.size > 0) {
+        const hasMatch = loc.objects.some((obj) =>
+          obj.objectTypes.some((ot) => selectedTypes.has(ot)),
+        );
+        if (!hasMatch) return false;
+      }
+
+      return true;
+    });
+  }, [locations, regionFilter, selectedTypes]);
+
+  /* ---- Filtered objects within a location (considering type filter) ---- */
+  const getFilteredObjects = useCallback(
+    (loc: LocationGroup) => {
+      if (selectedTypes.size === 0) return loc.objects;
+      return loc.objects.filter((obj) =>
+        obj.objectTypes.some((ot) => selectedTypes.has(ot)),
+      );
+    },
+    [selectedTypes],
+  );
+
+  /* ---- Sidebar search ---- */
+  const searchedLocations = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    const locs = q
+      ? filteredLocations.filter((l) => l.geo.name.toLowerCase().includes(q))
+      : filteredLocations;
+    return [...locs].sort(
+      (a, b) => getFilteredObjects(b).length - getFilteredObjects(a).length,
+    );
+  }, [filteredLocations, searchQuery, getFilteredObjects]);
+
+  /* ---- Stats ---- */
+  const totalFilteredObjects = filteredLocations.reduce(
+    (sum, l) => sum + getFilteredObjects(l).length,
+    0,
+  );
+
+  /* ---- Toggle object type ---- */
+  const toggleType = (typeName: string) => {
+    setSelectedTypes((prev) => {
+      const next = new Set(prev);
+      if (next.has(typeName)) next.delete(typeName);
+      else next.add(typeName);
+      return next;
+    });
+    setSelectedLocation(null);
+  };
+
+  const clearTypeFilter = () => {
+    setSelectedTypes(new Set());
+    setSelectedLocation(null);
+  };
 
   if (!mounted) {
     return (
       <div className="w-full h-150 bg-(--color-cream-dark) flex items-center justify-center">
-        <p className="text-(--color-warm-gray)">Loading map…</p>
+        <Globe
+          size={32}
+          className="text-(--color-warm-gray-light) animate-pulse"
+        />
       </div>
     );
   }
 
   return (
-    <MapInner
-      locations={locations}
-      showSuriname={showSuriname}
-      setShowSuriname={setShowSuriname}
-      showNetherlands={showNetherlands}
-      setShowNetherlands={setShowNetherlands}
-      locale={locale}
-      t={t}
-    />
+    <div className="space-y-4">
+      {/* ---- Summary stats ---- */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-(--color-warm-gray)">
+        <span className="flex items-center gap-1.5">
+          <MapPin size={14} className="text-(--color-charcoal-light)" />
+          <strong className="text-(--color-charcoal)">
+            {filteredLocations.length}
+          </strong>{' '}
+          {t('locations')}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <Layers size={14} className="text-(--color-charcoal-light)" />
+          <strong className="text-(--color-charcoal)">
+            {totalFilteredObjects.toLocaleString()}
+          </strong>{' '}
+          {t('objects')}
+        </span>
+        {selectedTypes.size > 0 && (
+          <button
+            onClick={clearTypeFilter}
+            className="flex items-center gap-1 text-xs text-(--color-rijks-red) hover:underline"
+          >
+            <X size={12} />
+            {t('clearFilters')}
+          </button>
+        )}
+      </div>
+
+      {/* ---- Region toggle ---- */}
+      <div className="flex flex-wrap items-center gap-2">
+        {(['suriname', 'netherlands', 'both'] as const).map((region) => {
+          const isActive = regionFilter === region;
+          const label =
+            region === 'both'
+              ? t('showBoth')
+              : region === 'suriname'
+                ? t('suriname')
+                : t('netherlands');
+          const count =
+            region === 'both'
+              ? locations.reduce((s, l) => s + l.objects.length, 0)
+              : countByRegion(locations, region);
+
+          return (
+            <button
+              key={region}
+              onClick={() => {
+                setRegionFilter(region);
+                setSelectedLocation(null);
+              }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm font-medium border transition-colors ${
+                isActive
+                  ? 'bg-(--color-charcoal) text-white border-(--color-charcoal)'
+                  : 'bg-(--color-card) text-(--color-charcoal-light) border-(--color-border) hover:border-(--color-warm-gray-light)'
+              }`}
+            >
+              {label}
+              <span
+                className={`text-xs ${isActive ? 'text-white/70' : 'text-(--color-warm-gray-light)'}`}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+
+        {/* Object type filter toggle */}
+        <button
+          onClick={() => setShowTypeFilter(!showTypeFilter)}
+          className={`flex items-center gap-1.5 px-3 py-2 text-sm border transition-colors ml-auto ${
+            selectedTypes.size > 0
+              ? 'bg-(--color-rijks-red)/10 text-(--color-rijks-red) border-(--color-rijks-red)/30'
+              : 'bg-(--color-card) text-(--color-charcoal-light) border-(--color-border) hover:border-(--color-warm-gray-light)'
+          }`}
+        >
+          <Filter size={14} />
+          {t('objectType')}
+          {selectedTypes.size > 0 && (
+            <span className="w-5 h-5 bg-(--color-rijks-red) text-white text-xs flex items-center justify-center">
+              {selectedTypes.size}
+            </span>
+          )}
+          {showTypeFilter ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </button>
+      </div>
+
+      {/* ---- Object type filter chips ---- */}
+      {showTypeFilter && (
+        <div className="flex flex-wrap gap-2 p-4 bg-(--color-card) border border-(--color-border)">
+          {allObjectTypes.slice(0, 20).map((type) => {
+            const isActive = selectedTypes.has(type.name);
+            return (
+              <button
+                key={type.name}
+                onClick={() => toggleType(type.name)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border transition-colors ${
+                  isActive
+                    ? 'bg-(--color-charcoal) text-white border-(--color-charcoal)'
+                    : 'bg-white text-(--color-charcoal-light) border-(--color-border) hover:border-(--color-warm-gray-light)'
+                }`}
+              >
+                {type.name}
+                <span
+                  className={`${isActive ? 'text-white/60' : 'text-(--color-warm-gray-light)'}`}
+                >
+                  {type.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ---- Main layout: sidebar + map ---- */}
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Sidebar: location list */}
+        <div className="lg:w-72 shrink-0 space-y-3">
+          {/* Search */}
+          <div className="relative">
+            <Search
+              size={14}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-warm-gray-light)"
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder={t('searchLocations')}
+              className="w-full pl-8 pr-3 py-2 bg-(--color-card) border border-(--color-border) text-sm text-(--color-charcoal) placeholder:text-(--color-warm-gray-light) focus:outline-none focus:ring-2 focus:ring-(--color-charcoal-light)/20 focus:border-(--color-charcoal-light)"
+            />
+          </div>
+
+          {/* Location list */}
+          <div className="h-135 overflow-y-auto border border-(--color-border) bg-(--color-card)">
+            {searchedLocations.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-sm text-(--color-warm-gray)">
+                {t('noLocations')}
+              </div>
+            ) : (
+              searchedLocations.map((loc) => {
+                const objCount = getFilteredObjects(loc).length;
+                const isSelected = selectedLocation?.keyword === loc.keyword;
+                return (
+                  <button
+                    key={loc.keyword}
+                    onClick={() => setSelectedLocation(isSelected ? null : loc)}
+                    className={`w-full text-left px-3 py-2.5 border-b border-(--color-border) last:border-b-0 transition-colors ${
+                      isSelected
+                        ? 'bg-(--color-charcoal) text-white'
+                        : 'hover:bg-(--color-cream-dark)'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span
+                        className={`text-sm font-medium truncate ${isSelected ? 'text-white' : 'text-(--color-charcoal)'}`}
+                      >
+                        {loc.geo.name}
+                      </span>
+                      <span
+                        className={`text-xs shrink-0 ml-2 ${isSelected ? 'text-white/70' : 'text-(--color-warm-gray-light)'}`}
+                      >
+                        {objCount}
+                      </span>
+                    </div>
+                    <span
+                      className={`text-xs ${isSelected ? 'text-white/50' : 'text-(--color-warm-gray-light)'}`}
+                    >
+                      {loc.geo.region === 'suriname'
+                        ? t('suriname')
+                        : t('netherlands')}
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Map + detail panel */}
+        <div className="flex-1 min-w-0 space-y-4">
+          <MapInner
+            locations={filteredLocations}
+            selectedLocation={selectedLocation}
+            onSelectLocation={setSelectedLocation}
+            regionFilter={regionFilter}
+            locale={locale}
+            t={t}
+          />
+
+          {/* Selected location detail panel */}
+          {selectedLocation && (
+            <SelectedLocationPanel
+              location={selectedLocation}
+              objects={getFilteredObjects(selectedLocation)}
+              locale={locale}
+              t={t}
+              onClose={() => setSelectedLocation(null)}
+            />
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
-function MapInner({
-  locations,
-  showSuriname,
-  setShowSuriname,
-  showNetherlands,
-  setShowNetherlands,
+/* ==================================================================
+   SELECTED LOCATION PANEL
+   ================================================================== */
+function SelectedLocationPanel({
+  location,
+  objects,
   locale,
   t,
+  onClose,
 }: {
-  locations: MapClientProps['locations'];
-  showSuriname: boolean;
-  setShowSuriname: (v: boolean) => void;
-  showNetherlands: boolean;
-  setShowNetherlands: (v: boolean) => void;
+  location: LocationGroup;
+  objects: CollectionObject[];
+  locale: string;
+  t: ReturnType<typeof useTranslations>;
+  onClose: () => void;
+}) {
+  const [showAll, setShowAll] = useState(false);
+  const displayObjects = showAll ? objects : objects.slice(0, 12);
+
+  return (
+    <div className="border border-(--color-border) bg-(--color-card) corner-fold">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-4 border-b border-(--color-border)">
+        <div>
+          <h3 className="font-serif text-lg font-bold text-(--color-charcoal)">
+            {location.geo.name}
+          </h3>
+          <p className="text-sm text-(--color-warm-gray)">
+            {t('objectsAtLocation', {
+              count: objects.length,
+              location: location.geo.name,
+            })}
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/${locale}/gallery?location=${encodeURIComponent(location.keyword)}`}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-(--color-charcoal) text-white hover:bg-(--color-charcoal-light) transition-colors"
+          >
+            {t('viewInGallery')}
+            <ExternalLink size={12} />
+          </Link>
+          <button
+            onClick={onClose}
+            className="p-1.5 text-(--color-warm-gray) hover:text-(--color-charcoal) hover:bg-(--color-cream-dark) transition-colors"
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Object grid */}
+      <div className="p-5">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+          {displayObjects.map((obj) => (
+            <Link
+              key={obj.objectnummer}
+              href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}`}
+              className="group block border border-(--color-border) hover:shadow-md transition-all duration-200 corner-fold"
+            >
+              <div className="relative aspect-square bg-(--color-cream-dark) overflow-hidden">
+                <ObjectImage
+                  src={obj.thumbnailUrl}
+                  alt={obj.titles[0] || obj.objectnummer}
+                  fill
+                  sizes="120px"
+                  className="group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+              <div className="p-1.5">
+                <p className="text-xs text-(--color-charcoal) line-clamp-2 font-medium leading-tight">
+                  {obj.titles[0] || obj.objectnummer}
+                </p>
+                <p className="text-xs text-(--color-warm-gray-light) mt-0.5">
+                  {obj.year || 'n.d.'}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* Show more/less */}
+        {objects.length > 12 && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setShowAll(!showAll)}
+              className="text-sm font-medium text-(--color-rijks-red) hover:underline"
+            >
+              {showAll
+                ? t('showLess')
+                : t('showMore', { remaining: objects.length - 12 })}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ==================================================================
+   MAP INNER (dynamic leaflet)
+   ================================================================== */
+function MapInner({
+  locations,
+  selectedLocation,
+  onSelectLocation,
+  regionFilter,
+  t,
+}: {
+  locations: LocationGroup[];
+  selectedLocation: LocationGroup | null;
+  onSelectLocation: (loc: LocationGroup | null) => void;
+  regionFilter: 'suriname' | 'netherlands' | 'both';
   locale: string;
   t: ReturnType<typeof useTranslations>;
 }) {
@@ -76,135 +501,115 @@ function MapInner({
   const [CircleMarker, setCircleMarker] = useState<
     typeof import('react-leaflet').CircleMarker | null
   >(null);
-  const [Popup, setPopup] = useState<
-    typeof import('react-leaflet').Popup | null
+  const [Tooltip, setTooltip] = useState<
+    typeof import('react-leaflet').Tooltip | null
   >(null);
 
   useEffect(() => {
-    // Dynamically import react-leaflet and leaflet CSS
     import('react-leaflet').then((mod) => {
       setMapContainer(() => mod.MapContainer);
       setTileLayer(() => mod.TileLayer);
       setCircleMarker(() => mod.CircleMarker);
-      setPopup(() => mod.Popup);
+      setTooltip(() => mod.Tooltip);
     });
     // @ts-expect-error -- CSS import has no type declarations
     import('leaflet/dist/leaflet.css');
   }, []);
 
-  if (!MapContainer || !TileLayer || !CircleMarker || !Popup) {
+  if (!MapContainer || !TileLayer || !CircleMarker || !Tooltip) {
     return (
-      <div className="w-full h-150 bg-(--color-cream-dark) flex items-center justify-center">
-        <p className="text-(--color-warm-gray)">Loading map…</p>
+      <div className="w-full h-135 bg-(--color-cream-dark) flex items-center justify-center">
+        <Globe
+          size={32}
+          className="text-(--color-warm-gray-light) animate-pulse"
+        />
       </div>
     );
   }
 
-  const filtered = locations.filter((loc) => {
-    if (loc.geo.region === 'suriname' && showSuriname) return true;
-    if (loc.geo.region === 'netherlands' && showNetherlands) return true;
-    return false;
-  });
+  const maxCount = Math.max(...locations.map((l) => l.objects.length), 1);
 
-  const maxCount = Math.max(...filtered.map((l) => l.objects.length), 1);
-
-  // Center on Suriname by default
-  const center: [number, number] = showSuriname ? [5.5, -55.2] : [52.2, 4.9];
-  const zoom = showSuriname ? 7 : 8;
+  // Map center and zoom based on region
+  let center: [number, number];
+  let zoom: number;
+  if (regionFilter === 'both') {
+    center = [25, -25];
+    zoom = 3;
+  } else if (regionFilter === 'netherlands') {
+    center = [52.2, 4.9];
+    zoom = 8;
+  } else {
+    center = [5.5, -55.2];
+    zoom = 7;
+  }
 
   return (
-    <div className="space-y-4">
-      {/* Controls */}
-      <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showSuriname}
-            onChange={(e) => setShowSuriname(e.target.checked)}
-            className="rounded border-(--color-border) text-(--color-rijks-red)"
-          />
-          {t('showSuriname')}
-        </label>
-        <label className="flex items-center gap-2 text-sm cursor-pointer">
-          <input
-            type="checkbox"
-            checked={showNetherlands}
-            onChange={(e) => setShowNetherlands(e.target.checked)}
-            className="rounded border-(--color-border) text-(--color-rijks-red)"
-          />
-          {t('showNetherlands')}
-        </label>
-      </div>
-
+    <div className="relative">
       <MapContainer
         center={center}
         zoom={zoom}
-        className="w-full h-150 border border-(--color-border)"
-        key={`${showSuriname}-${showNetherlands}`}
+        className="w-full h-135 border border-(--color-border)"
+        key={`${regionFilter}`}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {filtered.map((loc) => {
+        {locations.map((loc) => {
+          const isSelected = selectedLocation?.keyword === loc.keyword;
           const radius = Math.max(
             6,
             Math.min(30, (loc.objects.length / maxCount) * 30),
           );
+          const isSuriname = loc.geo.region === 'suriname';
+
           return (
             <CircleMarker
               key={loc.keyword}
               center={[loc.geo.lat, loc.geo.lng]}
-              radius={radius}
+              radius={isSelected ? radius + 3 : radius}
               pathOptions={{
-                fillColor:
-                  loc.geo.region === 'suriname' ? '#c0503e' : '#c99a2e',
-                fillOpacity: 0.6,
-                color: loc.geo.region === 'suriname' ? '#9a3e31' : '#a07d20',
-                weight: 1,
+                fillColor: isSuriname ? '#c0503e' : '#c99a2e',
+                fillOpacity: isSelected ? 0.9 : 0.6,
+                color: isSelected
+                  ? '#1b3a35'
+                  : isSuriname
+                    ? '#9a3e31'
+                    : '#a07d20',
+                weight: isSelected ? 3 : 1,
+              }}
+              eventHandlers={{
+                click: () => {
+                  onSelectLocation(isSelected ? null : loc);
+                },
               }}
             >
-              <Popup>
-                <div className="max-w-xs">
-                  <h3 className="font-bold text-sm mb-1">{loc.geo.name}</h3>
-                  <p className="text-xs text-gray-600 mb-2">
-                    {loc.objects.length} objects
-                  </p>
-                  <div className="grid grid-cols-3 gap-1 mb-2">
-                    {loc.objects.slice(0, 3).map((obj) => (
-                      <Link
-                        key={obj.objectnummer}
-                        href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}`}
-                        className="text-xs text-blue-600 hover:underline truncate"
-                      >
-                        {obj.titles[0]?.slice(0, 30) || obj.objectnummer}
-                      </Link>
-                    ))}
-                  </div>
-                  <Link
-                    href={`/${locale}/gallery?location=${encodeURIComponent(loc.keyword)}`}
-                    className="text-xs text-blue-600 hover:underline font-medium"
-                  >
-                    View all →
-                  </Link>
-                </div>
-              </Popup>
+              <Tooltip direction="top" offset={[0, -radius]}>
+                <span className="font-semibold">{loc.geo.name}</span>
+                <br />
+                <span className="text-xs text-gray-500">
+                  {loc.objects.length}{' '}
+                  {loc.objects.length === 1 ? 'object' : 'objects'}
+                </span>
+              </Tooltip>
             </CircleMarker>
           );
         })}
       </MapContainer>
 
-      {/* Legend */}
-      <div className="flex items-center gap-6 text-sm text-(--color-warm-gray)">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-(--color-rijks-red)" />
+      {/* Legend overlay */}
+      <div className="absolute bottom-3 left-3 z-1000 bg-white/90 backdrop-blur-sm border border-(--color-border) px-3 py-2 text-xs text-(--color-warm-gray) flex items-center gap-4">
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-(--color-rijks-red)" />
           {t('suriname')}
         </div>
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-(--color-gold)" />
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-(--color-gold)" />
           {t('netherlands')}
         </div>
-        <span className="text-xs">Marker size = number of objects</span>
+        <span className="text-(--color-warm-gray-light)">
+          {t('markerSize')}
+        </span>
       </div>
     </div>
   );

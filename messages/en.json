@@ -86,7 +86,18 @@
     "netherlands": "Netherlands",
     "showSuriname": "Show Suriname",
     "showNetherlands": "Show Netherlands",
-    "objectsAtLocation": "{count, plural, =1 {1 object} other {# objects}} at {location}"
+    "showBoth": "Both Regions",
+    "objectsAtLocation": "{count, plural, =1 {1 object} other {# objects}} at {location}",
+    "locations": "locations",
+    "objects": "objects",
+    "objectType": "Object Type",
+    "clearFilters": "Clear filters",
+    "searchLocations": "Search locations…",
+    "noLocations": "No locations found",
+    "viewInGallery": "View in Gallery",
+    "showMore": "Show {remaining} more…",
+    "showLess": "Show less",
+    "markerSize": "Size = object count"
   },
   "statistics": {
     "title": "Statistics",
