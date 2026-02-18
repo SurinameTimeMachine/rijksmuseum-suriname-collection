@@ -76,11 +76,11 @@ export default function TimelineClient({
               onClick={() =>
                 setExpandedDecade(isExpanded ? null : group.decade)
               }
-              className="w-full flex items-center gap-4 py-4 px-4 hover:bg-(--color-cream-dark) rounded-lg transition-colors group"
+              className="w-full flex items-center gap-4 py-5 px-4 hover:bg-(--color-cream-dark) rounded-xl transition-colors group"
             >
               {/* Timeline dot */}
               <div className="relative flex items-center">
-                <div className="w-3 h-3 rounded-full bg-(--color-charcoal) group-hover:bg-(--color-rijks-red) transition-colors shrink-0" />
+                <div className="w-4 h-4 rounded-full bg-(--color-charcoal) group-hover:bg-(--color-rijks-red) transition-colors shrink-0" />
                 <div className="absolute left-1.5 top-3 w-px h-8 bg-(--color-border) -z-10" />
               </div>
 
@@ -128,7 +128,7 @@ export default function TimelineClient({
                     {relevantEvents.map((evt) => (
                       <div
                         key={evt.year}
-                        className="flex items-center gap-2 px-3 py-2 bg-(--color-gold)/10 rounded-lg"
+                        className="flex items-center gap-2 px-3 py-2 bg-(--color-gold)/10 rounded-xl"
                       >
                         <span className="text-xs font-bold text-(--color-gold)">
                           {evt.year}
@@ -146,7 +146,7 @@ export default function TimelineClient({
                     <Link
                       key={obj.objectnummer}
                       href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}`}
-                      className="group/card block rounded-lg overflow-hidden border border-(--color-border) hover:shadow-md transition-all"
+                      className="group/card block rounded-xl overflow-hidden border border-(--color-border) hover:shadow-lg transition-all duration-300"
                     >
                       <div className="relative aspect-square bg-(--color-cream-dark)">
                         <ObjectImage

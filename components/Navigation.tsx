@@ -34,7 +34,7 @@ export default function Navigation() {
   const switchLocalePath = pathname.replace(`/${locale}`, `/${otherLocale}`);
 
   return (
-    <header className="sticky top-0 z-50 bg-(--color-cream)/95 backdrop-blur-sm border-b border-(--color-border)">
+    <header className="sticky top-0 z-50 bg-(--color-cream)/95 backdrop-blur-md border-b border-(--color-border)">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo / Home */}
@@ -42,8 +42,10 @@ export default function Navigation() {
             href={`/${locale}`}
             className="flex items-center gap-3 group shrink-0"
           >
-            <div className="w-8 h-8 bg-(--color-rijks-red) rounded-sm flex items-center justify-center">
-              <span className="text-white font-serif font-bold text-sm">R</span>
+            <div className="w-9 h-9 bg-(--color-charcoal) rounded-lg flex items-center justify-center">
+              <span className="text-white font-serif font-bold text-sm">
+                SC
+              </span>
             </div>
             <div className="hidden sm:block">
               <span className="font-serif font-bold text-lg text-(--color-charcoal) group-hover:text-(--color-rijks-red) transition-colors">
@@ -62,7 +64,7 @@ export default function Navigation() {
                   key={item.href}
                   href={href}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                    'flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-(--color-charcoal) text-white'
                       : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark) hover:text-(--color-charcoal)',
@@ -79,7 +81,7 @@ export default function Navigation() {
           <div className="flex items-center gap-2">
             <Link
               href={switchLocalePath}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
               title={t('language')}
             >
               <Globe size={16} />
@@ -88,7 +90,7 @@ export default function Navigation() {
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-md text-(--color-charcoal-light) hover:bg-(--color-cream-dark)"
+              className="md:hidden p-2 rounded-lg text-(--color-charcoal-light) hover:bg-(--color-cream-dark)"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -108,7 +110,7 @@ export default function Navigation() {
                   href={href}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors',
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-(--color-charcoal) text-white'
                       : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)',

@@ -158,9 +158,9 @@ function MapInner({
               radius={radius}
               pathOptions={{
                 fillColor:
-                  loc.geo.region === 'suriname' ? '#E30613' : '#C8A951',
+                  loc.geo.region === 'suriname' ? '#c0503e' : '#c99a2e',
                 fillOpacity: 0.6,
-                color: loc.geo.region === 'suriname' ? '#B50510' : '#A08930',
+                color: loc.geo.region === 'suriname' ? '#9a3e31' : '#a07d20',
                 weight: 1,
               }}
             >

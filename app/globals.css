@@ -2,32 +2,35 @@
 
 /*
  * Rijksmuseum Suriname Collection — Design System
- * Museum-inspired: warm neutrals, serif headings, generous whitespace
+ * Inspired by Suriname Tijdmachine: earthy, warm, editorial
+ * Forest teal, terracotta accents, parchment textures
  */
 
 :root {
-  /* Warm neutral palette */
-  --color-cream: #faf7f2;
-  --color-cream-dark: #f0ebe3;
-  --color-charcoal: #2c2c2c;
-  --color-charcoal-light: #4a4a4a;
-  --color-warm-gray: #8b8178;
-  --color-warm-gray-light: #b8afa6;
+  /* Parchment palette */
+  --color-cream: #f4eee4;
+  --color-cream-dark: #e9dfd1;
+  --color-charcoal: #1b3a35;
+  --color-charcoal-light: #2a5c52;
 
-  /* Accent colors */
-  --color-rijks-red: #e30613;
-  --color-rijks-red-dark: #b50510;
-  --color-gold: #c8a951;
-  --color-gold-light: #e8d59a;
+  /* Sage & muted greens */
+  --color-warm-gray: #7d8c80;
+  --color-warm-gray-light: #a5b0a4;
+
+  /* Accent colors — terracotta & amber */
+  --color-rijks-red: #c0503e;
+  --color-rijks-red-dark: #9a3e31;
+  --color-gold: #c99a2e;
+  --color-gold-light: #e4c560;
 
   /* Semantic */
   --color-background: var(--color-cream);
   --color-foreground: var(--color-charcoal);
   --color-muted: var(--color-warm-gray);
   --color-muted-light: var(--color-warm-gray-light);
-  --color-border: #e5ded5;
-  --color-card: #ffffff;
-  --color-card-hover: #fdfcfa;
+  --color-border: #d2c8b8;
+  --color-card: #fdfaf5;
+  --color-card-hover: #f8f3ea;
   --color-accent: var(--color-rijks-red);
   --color-accent-hover: var(--color-rijks-red-dark);
 }
@@ -35,8 +38,8 @@
 @theme inline {
   --color-background: var(--color-background);
   --color-foreground: var(--color-foreground);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-playfair);
+  --font-sans: var(--font-nunito);
+  --font-serif: var(--font-lora);
 }
 
 /* Base styles */
@@ -47,7 +50,19 @@ html {
 body {
   background-color: var(--color-cream);
   color: var(--color-charcoal);
-  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+/* Subtle parchment texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
 }
 
 /* Typography scale */
@@ -55,7 +70,7 @@ h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-playfair), Georgia, 'Times New Roman', serif;
+  font-family: var(--font-lora), Georgia, 'Times New Roman', serif;
   font-weight: 700;
   letter-spacing: -0.01em;
   line-height: 1.2;
@@ -104,11 +119,60 @@ h4 {
 
 /* Leaflet overrides for museum feel */
 .leaflet-container {
-  font-family: var(--font-inter), system-ui, sans-serif;
-  border-radius: 0.5rem;
+  font-family: var(--font-nunito), system-ui, sans-serif;
+  border-radius: 0.75rem;
 }
 
 .leaflet-popup-content-wrapper {
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ---- Scroll-reveal animations ---- */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Stagger children */
+.scroll-reveal-stagger > .scroll-reveal:nth-child(2) {
+  transition-delay: 0.08s;
+}
+.scroll-reveal-stagger > .scroll-reveal:nth-child(3) {
+  transition-delay: 0.16s;
+}
+.scroll-reveal-stagger > .scroll-reveal:nth-child(4) {
+  transition-delay: 0.24s;
+}
+.scroll-reveal-stagger > .scroll-reveal:nth-child(5) {
+  transition-delay: 0.32s;
+}
+.scroll-reveal-stagger > .scroll-reveal:nth-child(6) {
+  transition-delay: 0.4s;
+}
+
+/* Section number badge */
+.section-number {
+  font-family: var(--font-lora), Georgia, serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-warm-gray);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.section-number::before {
+  content: '';
+  display: inline-block;
+  width: 1.5rem;
+  height: 1px;
+  background: var(--color-warm-gray-light);
 }

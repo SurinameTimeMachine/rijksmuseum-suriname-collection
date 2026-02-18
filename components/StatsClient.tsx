@@ -18,6 +18,16 @@ interface StatsClientProps {
   stats: CollectionStats;
 }
 
+// Chart color constants (kept in sync with CSS custom properties)
+const C = {
+  border: '#d2c8b8',
+  sage: '#7d8c80',
+  teal: '#1b3a35',
+  tealLight: '#2a5c52',
+  terracotta: '#c0503e',
+  gold: '#c99a2e',
+} as const;
+
 export default function StatsClient({ stats }: StatsClientProps) {
   const t = useTranslations('statistics');
 
@@ -62,21 +72,21 @@ export default function StatsClient({ stats }: StatsClientProps) {
       <ChartSection title={t('objectsByDecade')}>
         <ResponsiveContainer width="100%" height={350}>
           <AreaChart data={decadeData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5DED5" />
+            <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
             <XAxis
               dataKey="decade"
-              tick={{ fontSize: 11, fill: '#8B8178' }}
+              tick={{ fontSize: 11, fill: C.sage }}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 11, fill: '#8B8178' }}
+              tick={{ fontSize: 11, fill: C.sage }}
               tickLine={false}
               axisLine={false}
             />
             <Tooltip
               contentStyle={{
                 background: 'white',
-                border: '1px solid #E5DED5',
+                border: `1px solid ${C.border}`,
                 borderRadius: '8px',
                 fontSize: '13px',
               }}
@@ -84,8 +94,8 @@ export default function StatsClient({ stats }: StatsClientProps) {
             <Area
               type="monotone"
               dataKey="count"
-              stroke="#E30613"
-              fill="#E30613"
+              stroke={C.terracotta}
+              fill={C.terracotta}
               fillOpacity={0.1}
               strokeWidth={2}
             />
@@ -102,14 +112,14 @@ export default function StatsClient({ stats }: StatsClientProps) {
           <BarChart data={typeData} layout="vertical" margin={{ left: 120 }}>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#E5DED5"
+              stroke={C.border}
               horizontal={false}
             />
-            <XAxis type="number" tick={{ fontSize: 11, fill: '#8B8178' }} />
+            <XAxis type="number" tick={{ fontSize: 11, fill: C.sage }} />
             <YAxis
               dataKey="name"
               type="category"
-              tick={{ fontSize: 11, fill: '#4A4A4A' }}
+              tick={{ fontSize: 11, fill: C.tealLight }}
               tickLine={false}
               axisLine={false}
               width={120}
@@ -117,12 +127,12 @@ export default function StatsClient({ stats }: StatsClientProps) {
             <Tooltip
               contentStyle={{
                 background: 'white',
-                border: '1px solid #E5DED5',
+                border: `1px solid ${C.border}`,
                 borderRadius: '8px',
                 fontSize: '13px',
               }}
             />
-            <Bar dataKey="count" fill="#2C2C2C" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="count" fill={C.teal} radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </ChartSection>
@@ -140,14 +150,14 @@ export default function StatsClient({ stats }: StatsClientProps) {
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#E5DED5"
+              stroke={C.border}
               horizontal={false}
             />
-            <XAxis type="number" tick={{ fontSize: 11, fill: '#8B8178' }} />
+            <XAxis type="number" tick={{ fontSize: 11, fill: C.sage }} />
             <YAxis
               dataKey="name"
               type="category"
-              tick={{ fontSize: 11, fill: '#4A4A4A' }}
+              tick={{ fontSize: 11, fill: C.tealLight }}
               tickLine={false}
               axisLine={false}
               width={160}
@@ -155,12 +165,12 @@ export default function StatsClient({ stats }: StatsClientProps) {
             <Tooltip
               contentStyle={{
                 background: 'white',
-                border: '1px solid #E5DED5',
+                border: `1px solid ${C.border}`,
                 borderRadius: '8px',
                 fontSize: '13px',
               }}
             />
-            <Bar dataKey="count" fill="#C8A951" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="count" fill={C.gold} radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </ChartSection>
@@ -214,14 +224,14 @@ export default function StatsClient({ stats }: StatsClientProps) {
           >
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="#E5DED5"
+              stroke={C.border}
               horizontal={false}
             />
-            <XAxis type="number" tick={{ fontSize: 11, fill: '#8B8178' }} />
+            <XAxis type="number" tick={{ fontSize: 11, fill: C.sage }} />
             <YAxis
               dataKey="name"
               type="category"
-              tick={{ fontSize: 11, fill: '#4A4A4A' }}
+              tick={{ fontSize: 11, fill: C.tealLight }}
               tickLine={false}
               axisLine={false}
               width={100}
@@ -229,12 +239,12 @@ export default function StatsClient({ stats }: StatsClientProps) {
             <Tooltip
               contentStyle={{
                 background: 'white',
-                border: '1px solid #E5DED5',
+                border: `1px solid ${C.border}`,
                 borderRadius: '8px',
                 fontSize: '13px',
               }}
             />
-            <Bar dataKey="count" fill="#8B8178" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="count" fill={C.sage} radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </ChartSection>
@@ -244,7 +254,7 @@ export default function StatsClient({ stats }: StatsClientProps) {
 
 function SummaryCard({ value, label }: { value: string; label: string }) {
   return (
-    <div className="bg-white border border-(--color-border) rounded-xl p-5 text-center">
+    <div className="bg-(--color-card) border border-(--color-border) rounded-2xl p-6 text-center shadow-sm">
       <p className="font-serif text-3xl font-bold text-(--color-charcoal)">
         {value}
       </p>
@@ -261,7 +271,7 @@ function ChartSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white border border-(--color-border) rounded-xl p-6">
+    <div className="bg-(--color-card) border border-(--color-border) rounded-2xl p-7 shadow-sm">
       <h3 className="font-serif text-xl font-bold text-(--color-charcoal) mb-6">
         {title}
       </h3>

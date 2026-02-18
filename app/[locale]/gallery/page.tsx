@@ -1,6 +1,7 @@
 import FilterSidebar from '@/components/FilterSidebar';
 import ObjectCard from '@/components/ObjectCard';
 import Pagination from '@/components/Pagination';
+import ScrollReveal from '@/components/ScrollReveal';
 import { getFacets, getFilteredObjects } from '@/lib/collection';
 import type { SortOption } from '@/types/collection';
 import { ImageOff } from 'lucide-react';
@@ -67,12 +68,14 @@ export default async function GalleryPage({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1>{t('title')}</h1>
-        <p className="mt-2 text-(--color-warm-gray)">
-          {t('results', { count: total })}
-        </p>
-      </div>
+      <ScrollReveal>
+        <div className="mb-8">
+          <h1>{t('title')}</h1>
+          <p className="mt-2 text-(--color-warm-gray)">
+            {t('results', { count: total })}
+          </p>
+        </div>
+      </ScrollReveal>
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar */}

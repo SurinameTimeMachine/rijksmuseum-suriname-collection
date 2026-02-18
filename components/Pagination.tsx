@@ -54,13 +54,13 @@ export default function Pagination({
       {currentPage > 1 ? (
         <Link
           href={buildHref(currentPage - 1)}
-          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) rounded-md transition-colors"
+          className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) rounded-lg transition-colors"
         >
           <ChevronLeft size={16} />
           {tc('previous')}
         </Link>
       ) : (
-        <span className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-(--color-warm-gray-light) cursor-not-allowed">
+        <span className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-warm-gray-light) cursor-not-allowed">
           <ChevronLeft size={16} />
           {tc('previous')}
         </span>
@@ -80,7 +80,7 @@ export default function Pagination({
             key={page}
             href={buildHref(page)}
             className={cn(
-              'px-3 py-2 text-sm font-medium rounded-md transition-colors',
+              'px-3.5 py-2.5 text-sm font-medium rounded-full transition-colors',
               page === currentPage
                 ? 'bg-(--color-charcoal) text-white'
                 : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)',
@@ -95,13 +95,13 @@ export default function Pagination({
       {currentPage < totalPages ? (
         <Link
           href={buildHref(currentPage + 1)}
-          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) rounded-md transition-colors"
+          className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) rounded-lg transition-colors"
         >
           {tc('next')}
           <ChevronRight size={16} />
         </Link>
       ) : (
-        <span className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-(--color-warm-gray-light) cursor-not-allowed">
+        <span className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-warm-gray-light) cursor-not-allowed">
           {tc('next')}
           <ChevronRight size={16} />
         </span>
