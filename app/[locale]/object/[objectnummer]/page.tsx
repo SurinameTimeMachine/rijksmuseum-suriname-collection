@@ -1,11 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import {
-  getObjectByNumber,
-  getCollection,
-  getRelatedObjects,
-} from '@/lib/collection';
+import { getObjectByNumber, getRelatedObjects } from '@/lib/collection';
 import ObjectImage from '@/components/ObjectImage';
 import ObjectCard from '@/components/ObjectCard';
 import {
@@ -19,12 +15,13 @@ import {
   Layers,
 } from 'lucide-react';
 
-export async function generateStaticParams() {
-  const collection = await getCollection();
-  return collection.map((obj) => ({
-    objectnummer: obj.objectnummer,
-  }));
+// Return empty array so pages are rendered on-demand instead of at build time.
+// This avoids exceeding Vercel's 75 MB deploy size limit (~7 300+ objects × 2 locales).
+export function generateStaticParams() {
+  return [];
 }
+
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
