@@ -1,0 +1,114 @@
+@import 'tailwindcss';
+
+/*
+ * Rijksmuseum Suriname Collection — Design System
+ * Museum-inspired: warm neutrals, serif headings, generous whitespace
+ */
+
+:root {
+  /* Warm neutral palette */
+  --color-cream: #faf7f2;
+  --color-cream-dark: #f0ebe3;
+  --color-charcoal: #2c2c2c;
+  --color-charcoal-light: #4a4a4a;
+  --color-warm-gray: #8b8178;
+  --color-warm-gray-light: #b8afa6;
+
+  /* Accent colors */
+  --color-rijks-red: #e30613;
+  --color-rijks-red-dark: #b50510;
+  --color-gold: #c8a951;
+  --color-gold-light: #e8d59a;
+
+  /* Semantic */
+  --color-background: var(--color-cream);
+  --color-foreground: var(--color-charcoal);
+  --color-muted: var(--color-warm-gray);
+  --color-muted-light: var(--color-warm-gray-light);
+  --color-border: #e5ded5;
+  --color-card: #ffffff;
+  --color-card-hover: #fdfcfa;
+  --color-accent: var(--color-rijks-red);
+  --color-accent-hover: var(--color-rijks-red-dark);
+}
+
+@theme inline {
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --font-sans: var(--font-inter);
+  --font-serif: var(--font-playfair);
+}
+
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-charcoal);
+  font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+}
+
+/* Typography scale */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-playfair), Georgia, 'Times New Roman', serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--color-charcoal);
+}
+
+h1 {
+  font-size: 2.5rem;
+}
+h2 {
+  font-size: 1.875rem;
+}
+h3 {
+  font-size: 1.5rem;
+}
+h4 {
+  font-size: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 3.5rem;
+  }
+  h2 {
+    font-size: 2.25rem;
+  }
+  h3 {
+    font-size: 1.75rem;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-cream-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-warm-gray-light);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-warm-gray);
+}
+
+/* Leaflet overrides for museum feel */
+.leaflet-container {
+  font-family: var(--font-inter), system-ui, sans-serif;
+  border-radius: 0.5rem;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}

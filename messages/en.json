@@ -1,0 +1,113 @@
+{
+  "metadata": {
+    "title": "Rijksmuseum Suriname Collection",
+    "description": "Explore the Suriname collection of the Rijksmuseum — paintings, prints, photographs, maps and objects connected to the colonial history of Suriname."
+  },
+  "nav": {
+    "home": "Home",
+    "gallery": "Gallery",
+    "timeline": "Timeline",
+    "map": "Map",
+    "statistics": "Statistics",
+    "language": "Language"
+  },
+  "home": {
+    "title": "Suriname Collection",
+    "subtitle": "Rijksmuseum Amsterdam",
+    "intro": "Explore {count} objects from the Rijksmuseum connected to Suriname — from 17th-century plantation paintings to 20th-century documentary photography.",
+    "browseGallery": "Browse Gallery",
+    "exploreTimeline": "Explore Timeline",
+    "viewMap": "View Map",
+    "viewStatistics": "View Statistics",
+    "featuredObjects": "Featured Objects",
+    "objectTypes": "Object Types",
+    "dateRange": "Date Range",
+    "withImages": "With Images"
+  },
+  "gallery": {
+    "title": "Gallery",
+    "searchPlaceholder": "Search titles, descriptions, creators…",
+    "filters": "Filters",
+    "clearFilters": "Clear all",
+    "objectType": "Object Type",
+    "dateRange": "Date Range",
+    "creator": "Creator",
+    "location": "Location",
+    "subject": "Subject",
+    "material": "Material",
+    "hasImage": "Has Image",
+    "showAll": "Show all",
+    "showWithImage": "With image",
+    "showWithoutImage": "Without image",
+    "sortBy": "Sort by",
+    "sortDateDesc": "Newest first",
+    "sortDateAsc": "Oldest first",
+    "sortTitle": "Title A — Z",
+    "results": "{count, plural, =0 {No objects found} =1 {1 object} other {# objects}}",
+    "page": "Page {current} of {total}",
+    "noResults": "No objects match your filters.",
+    "noResultsSuggestion": "Try adjusting your filters or search terms."
+  },
+  "object": {
+    "description": "Description",
+    "creators": "Creator(s)",
+    "date": "Date",
+    "objectType": "Object Type",
+    "materials": "Materials",
+    "locations": "Locations",
+    "subjects": "Subjects",
+    "persons": "People",
+    "classification": "Classification",
+    "viewOnRijksmuseum": "View on Rijksmuseum website",
+    "relatedObjects": "Related Objects",
+    "noImage": "No image available",
+    "anonymous": "Anonymous",
+    "back": "Back"
+  },
+  "timeline": {
+    "title": "Timeline",
+    "subtitle": "Objects through time — from {start} to {end}",
+    "objects": "{count, plural, =1 {1 object} other {# objects}}",
+    "decade": "{decade}",
+    "events": {
+      "1667": "Treaty of Breda — Suriname becomes Dutch",
+      "1683": "Cornelis van Aerssen becomes Governor",
+      "1863": "Abolition of slavery in Suriname",
+      "1873": "End of mandatory labour period",
+      "1883": "Colonial Exhibition in Amsterdam",
+      "1954": "Suriname becomes autonomous within the Kingdom",
+      "1975": "Independence of Suriname"
+    }
+  },
+  "map": {
+    "title": "Map",
+    "subtitle": "Geographic distribution of the collection",
+    "suriname": "Suriname",
+    "netherlands": "Netherlands",
+    "showSuriname": "Show Suriname",
+    "showNetherlands": "Show Netherlands",
+    "objectsAtLocation": "{count, plural, =1 {1 object} other {# objects}} at {location}"
+  },
+  "statistics": {
+    "title": "Statistics",
+    "subtitle": "Data overview of the collection",
+    "totalObjects": "Total Objects",
+    "withImages": "With Images",
+    "uniqueCreators": "Creators",
+    "uniqueLocations": "Locations",
+    "objectsByType": "Objects by Type",
+    "objectsByDecade": "Objects by Decade",
+    "topCreators": "Most Represented Creators",
+    "topLocations": "Most Mentioned Locations",
+    "topSubjects": "Most Common Subjects",
+    "topMaterials": "Most Used Materials"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "previous": "Previous",
+    "next": "Next",
+    "of": "of",
+    "viewAll": "View all"
+  }
+}
