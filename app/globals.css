@@ -120,12 +120,87 @@ h4 {
 /* Leaflet overrides for museum feel */
 .leaflet-container {
   font-family: var(--font-nunito), system-ui, sans-serif;
-  border-radius: 0.75rem;
+  border-radius: 0;
 }
 
 .leaflet-popup-content-wrapper {
-  border-radius: 0.75rem;
+  border-radius: 0;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* ---- Dog-ear / folded corner ---- */
+.corner-fold {
+  --fold-size: 14px;
+  --fold-bg: var(--color-cream);
+  position: relative;
+}
+/* Triangle mask: parent bg color covering the top-left corner */
+.corner-fold::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: calc(var(--fold-size) + 2px);
+  height: calc(var(--fold-size) + 2px);
+  background: linear-gradient(
+    to bottom right,
+    var(--fold-bg) 50%,
+    transparent 50%
+  );
+  z-index: 10;
+  pointer-events: none;
+}
+/* Fold triangle: the "underside" of the page */
+.corner-fold::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--fold-size);
+  height: var(--fold-size);
+  background: linear-gradient(
+    to bottom right,
+    transparent 50%,
+    var(--color-cream-dark) 50%
+  );
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(-1px 1px 1px rgba(27, 58, 53, 0.08));
+}
+/* Variant for cards sitting on cream-dark backgrounds */
+.corner-fold-alt {
+  --fold-bg: var(--color-cream-dark);
+}
+.corner-fold-alt::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  width: calc(14px + 2px);
+  height: calc(14px + 2px);
+  background: linear-gradient(
+    to bottom right,
+    var(--color-cream-dark) 50%,
+    transparent 50%
+  );
+  z-index: 10;
+  pointer-events: none;
+}
+.corner-fold-alt::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  background: linear-gradient(
+    to bottom right,
+    transparent 50%,
+    var(--color-border) 50%
+  );
+  z-index: 10;
+  pointer-events: none;
+  filter: drop-shadow(-1px 1px 1px rgba(27, 58, 53, 0.08));
 }
 
 /* ---- Scroll-reveal animations ---- */

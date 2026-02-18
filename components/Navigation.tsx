@@ -42,7 +42,7 @@ export default function Navigation() {
             href={`/${locale}`}
             className="flex items-center gap-3 group shrink-0"
           >
-            <div className="w-9 h-9 bg-(--color-charcoal) rounded-lg flex items-center justify-center">
+            <div className="w-9 h-9 bg-(--color-charcoal) flex items-center justify-center">
               <span className="text-white font-serif font-bold text-sm">
                 SC
               </span>
@@ -64,7 +64,7 @@ export default function Navigation() {
                   key={item.href}
                   href={href}
                   className={cn(
-                    'flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-colors',
+                    'flex items-center gap-2 px-3.5 py-2 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-(--color-charcoal) text-white'
                       : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark) hover:text-(--color-charcoal)',
@@ -81,7 +81,7 @@ export default function Navigation() {
           <div className="flex items-center gap-2">
             <Link
               href={switchLocalePath}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
               title={t('language')}
             >
               <Globe size={16} />
@@ -90,7 +90,7 @@ export default function Navigation() {
 
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 rounded-lg text-(--color-charcoal-light) hover:bg-(--color-cream-dark)"
+              className="md:hidden p-2 text-(--color-charcoal-light) hover:bg-(--color-cream-dark)"
               aria-label="Toggle menu"
             >
               {mobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -110,7 +110,7 @@ export default function Navigation() {
                   href={href}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                    'flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-colors',
                     isActive
                       ? 'bg-(--color-charcoal) text-white'
                       : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)',

@@ -181,7 +181,7 @@ export default function StatsClient({ stats }: StatsClientProps) {
           {stats.topLocations.map((loc) => (
             <div
               key={loc.name}
-              className="flex items-center justify-between px-4 py-3 bg-(--color-cream-dark) rounded-lg"
+              className="flex items-center justify-between px-4 py-3 bg-(--color-cream-dark)"
             >
               <span className="text-sm text-(--color-charcoal) truncate">
                 {loc.name}
@@ -200,7 +200,7 @@ export default function StatsClient({ stats }: StatsClientProps) {
           {stats.topSubjects.map((sub) => (
             <span
               key={sub.name}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-(--color-border) rounded-full text-sm"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-(--color-border) text-sm"
             >
               <span className="text-(--color-charcoal)">{sub.name}</span>
               <span className="text-xs text-(--color-warm-gray-light)">
@@ -254,7 +254,7 @@ export default function StatsClient({ stats }: StatsClientProps) {
 
 function SummaryCard({ value, label }: { value: string; label: string }) {
   return (
-    <div className="bg-(--color-card) border border-(--color-border) rounded-2xl p-6 text-center shadow-sm">
+    <div className="bg-(--color-card) border border-(--color-border) p-6 text-center shadow-sm corner-fold">
       <p className="font-serif text-3xl font-bold text-(--color-charcoal)">
         {value}
       </p>
@@ -271,7 +271,7 @@ function ChartSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-(--color-card) border border-(--color-border) rounded-2xl p-7 shadow-sm">
+    <div className="bg-(--color-card) border border-(--color-border) p-7 shadow-sm corner-fold">
       <h3 className="font-serif text-xl font-bold text-(--color-charcoal) mb-6">
         {title}
       </h3>

@@ -31,7 +31,7 @@ export default function MapClient({ locations }: MapClientProps) {
 
   if (!mounted) {
     return (
-      <div className="w-full h-150 bg-(--color-cream-dark) rounded-xl flex items-center justify-center">
+      <div className="w-full h-150 bg-(--color-cream-dark) flex items-center justify-center">
         <p className="text-(--color-warm-gray)">Loading map…</p>
       </div>
     );
@@ -94,7 +94,7 @@ function MapInner({
 
   if (!MapContainer || !TileLayer || !CircleMarker || !Popup) {
     return (
-      <div className="w-full h-150 bg-(--color-cream-dark) rounded-xl flex items-center justify-center">
+      <div className="w-full h-150 bg-(--color-cream-dark) flex items-center justify-center">
         <p className="text-(--color-warm-gray)">Loading map…</p>
       </div>
     );
@@ -139,7 +139,7 @@ function MapInner({
       <MapContainer
         center={center}
         zoom={zoom}
-        className="w-full h-150 rounded-xl border border-(--color-border)"
+        className="w-full h-150 border border-(--color-border)"
         key={`${showSuriname}-${showNetherlands}`}
       >
         <TileLayer

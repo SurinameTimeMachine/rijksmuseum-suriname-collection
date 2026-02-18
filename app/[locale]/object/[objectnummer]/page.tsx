@@ -77,7 +77,7 @@ export default async function ObjectPage({
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
         {/* Image */}
         <div className="lg:col-span-3">
-          <div className="relative aspect-4/3 rounded-2xl overflow-hidden bg-(--color-cream-dark) border border-(--color-border)">
+          <div className="relative aspect-4/3 overflow-hidden bg-(--color-cream-dark) border border-(--color-border) corner-fold">
             <ObjectImage
               src={obj.imageUrl || obj.thumbnailUrl}
               alt={title}
@@ -187,7 +187,7 @@ export default async function ObjectPage({
             href={rijksUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-3 bg-(--color-charcoal) text-white text-sm font-semibold rounded-xl hover:bg-(--color-charcoal-light) transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-(--color-charcoal) text-white text-sm font-semibold hover:bg-(--color-charcoal-light) transition-colors"
           >
             <ExternalLink size={14} />
             {t('viewOnRijksmuseum')}
@@ -229,7 +229,7 @@ function MetadataRow({
         {values.map((v) => (
           <span
             key={v}
-            className="inline-block px-3 py-1.5 bg-(--color-cream-dark) rounded-lg text-xs text-(--color-charcoal-light)"
+            className="inline-block px-3 py-1.5 bg-(--color-cream-dark) text-xs text-(--color-charcoal-light)"
           >
             {v}
           </span>

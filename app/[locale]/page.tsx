@@ -44,10 +44,6 @@ export default async function HomePage({
     .filter((obj) => obj.hasImage && obj.titles[0])
     .slice(0, 6);
 
-  // Hero card — the most prominent featured object
-  const heroObj = featured[0];
-  const sideObjs = featured.slice(1, 4);
-
   return (
     <div>
       {/* Hero Section */}
@@ -72,7 +68,7 @@ export default async function HomePage({
             <div className="mt-10 flex flex-wrap gap-4">
               <Link
                 href={`/${locale}/gallery`}
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-(--color-rijks-red) text-white font-semibold rounded-xl hover:bg-(--color-rijks-red-dark) transition-all hover:shadow-lg hover:shadow-(--color-rijks-red)/20"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-(--color-rijks-red) text-white font-semibold hover:bg-(--color-rijks-red-dark) transition-all hover:shadow-lg hover:shadow-(--color-rijks-red)/20"
               >
                 <Grid3X3 size={18} />
                 {t('browseGallery')}
@@ -80,7 +76,7 @@ export default async function HomePage({
               </Link>
               <Link
                 href={`/${locale}/timeline`}
-                className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all backdrop-blur-sm border border-white/10"
+                className="inline-flex items-center gap-2 px-7 py-3.5 bg-white/10 text-white font-semibold hover:bg-white/20 transition-all backdrop-blur-sm border border-white/10"
               >
                 <Clock size={18} />
                 {t('exploreTimeline')}
@@ -174,28 +170,12 @@ export default async function HomePage({
             </Link>
           </div>
 
-          {/* Asymmetric: large hero card + side cards on larger screens */}
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-            {heroObj && (
-              <div className="lg:col-span-3">
-                <ObjectCard object={heroObj} />
-              </div>
-            )}
-            <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-5">
-              {sideObjs.map((obj) => (
-                <ObjectCard key={obj.objectnummer} object={obj} />
-              ))}
-            </div>
+          {/* Clean 3-column grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {featured.map((obj) => (
+              <ObjectCard key={obj.objectnummer} object={obj} />
+            ))}
           </div>
-
-          {/* Second row — remaining featured */}
-          {featured.length > 4 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-5">
-              {featured.slice(4).map((obj) => (
-                <ObjectCard key={obj.objectnummer} object={obj} />
-              ))}
-            </div>
-          )}
         </section>
       </ScrollReveal>
 
@@ -252,7 +232,7 @@ function StatCard({
 }) {
   return (
     <div className="text-center">
-      <div className="inline-flex items-center justify-center w-11 h-11 bg-(--color-cream) rounded-xl text-(--color-charcoal-light) mb-3">
+      <div className="inline-flex items-center justify-center w-11 h-11 bg-(--color-cream) text-(--color-charcoal-light) mb-3">
         {icon}
       </div>
       <p className="font-serif text-2xl font-bold text-(--color-charcoal)">
@@ -280,9 +260,9 @@ function ExploreCard({
   return (
     <Link
       href={href}
-      className="group flex items-start gap-5 p-7 bg-(--color-card) rounded-2xl border border-(--color-border) hover:border-(--color-warm-gray-light) hover:shadow-lg transition-all duration-300"
+      className="group flex items-start gap-5 p-7 bg-(--color-card) border border-(--color-border) hover:border-(--color-warm-gray-light) hover:shadow-lg transition-all duration-300 corner-fold corner-fold-alt"
     >
-      <div className="shrink-0 w-14 h-14 bg-(--color-cream) rounded-xl flex items-center justify-center text-(--color-charcoal) group-hover:bg-(--color-charcoal) group-hover:text-white transition-colors duration-300">
+      <div className="shrink-0 w-14 h-14 bg-(--color-cream) flex items-center justify-center text-(--color-charcoal) group-hover:bg-(--color-charcoal) group-hover:text-white transition-colors duration-300">
         {icon}
       </div>
       <div>

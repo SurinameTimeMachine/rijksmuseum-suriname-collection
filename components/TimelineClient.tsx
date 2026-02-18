@@ -76,7 +76,7 @@ export default function TimelineClient({
               onClick={() =>
                 setExpandedDecade(isExpanded ? null : group.decade)
               }
-              className="w-full flex items-center gap-4 py-5 px-4 hover:bg-(--color-cream-dark) rounded-xl transition-colors group"
+              className="w-full flex items-center gap-4 py-5 px-4 hover:bg-(--color-cream-dark) transition-colors group"
             >
               {/* Timeline dot */}
               <div className="relative flex items-center">
@@ -128,7 +128,7 @@ export default function TimelineClient({
                     {relevantEvents.map((evt) => (
                       <div
                         key={evt.year}
-                        className="flex items-center gap-2 px-3 py-2 bg-(--color-gold)/10 rounded-xl"
+                        className="flex items-center gap-2 px-3 py-2 bg-(--color-gold)/10"
                       >
                         <span className="text-xs font-bold text-(--color-gold)">
                           {evt.year}
@@ -146,7 +146,7 @@ export default function TimelineClient({
                     <Link
                       key={obj.objectnummer}
                       href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}`}
-                      className="group/card block rounded-xl overflow-hidden border border-(--color-border) hover:shadow-lg transition-all duration-300"
+                      className="group/card block overflow-hidden border border-(--color-border) hover:shadow-lg transition-all duration-300 corner-fold"
                     >
                       <div className="relative aspect-square bg-(--color-cream-dark)">
                         <ObjectImage

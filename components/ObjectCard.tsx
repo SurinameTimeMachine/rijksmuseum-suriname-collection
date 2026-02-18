@@ -17,7 +17,7 @@ export default async function ObjectCard({ object }: ObjectCardProps) {
   return (
     <Link
       href={`/${locale}/object/${encodeURIComponent(object.objectnummer)}`}
-      className="group block bg-(--color-card) rounded-xl overflow-hidden border border-(--color-border) shadow-sm hover:border-(--color-warm-gray-light) hover:shadow-lg transition-all duration-300"
+      className="group block bg-(--color-card) overflow-hidden border border-(--color-border) shadow-sm hover:border-(--color-warm-gray-light) hover:shadow-lg transition-all duration-300 corner-fold"
     >
       {/* Image */}
       <div className="relative aspect-4/3 overflow-hidden bg-(--color-cream-dark)">
@@ -29,7 +29,7 @@ export default async function ObjectCard({ object }: ObjectCardProps) {
         />
         {/* Object type badge */}
         {object.objectTypes[0] && (
-          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-(--color-charcoal)/75 text-white text-xs rounded-lg backdrop-blur-sm">
+          <span className="absolute top-2.5 left-2.5 px-2.5 py-0.5 bg-(--color-charcoal)/75 text-white text-xs backdrop-blur-sm">
             {object.objectTypes[0]}
           </span>
         )}

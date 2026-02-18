@@ -99,7 +99,7 @@ export default function FilterSidebar({ facets }: FilterSidebarProps) {
                 updateParams({ q: val || null });
               }
             }}
-            className="w-full pl-9 pr-3 py-2.5 bg-(--color-card) border border-(--color-border) rounded-xl text-sm text-(--color-charcoal) placeholder:text-(--color-warm-gray-light) focus:outline-none focus:ring-2 focus:ring-(--color-charcoal-light)/20 focus:border-(--color-charcoal-light)"
+            className="w-full pl-9 pr-3 py-2.5 bg-(--color-card) border border-(--color-border) text-sm text-(--color-charcoal) placeholder:text-(--color-warm-gray-light) focus:outline-none focus:ring-2 focus:ring-(--color-charcoal-light)/20 focus:border-(--color-charcoal-light)"
           />
         </div>
       </div>
@@ -112,7 +112,7 @@ export default function FilterSidebar({ facets }: FilterSidebarProps) {
         <select
           value={currentSort}
           onChange={(e) => updateParams({ sort: e.target.value })}
-          className="w-full px-3 py-2 bg-(--color-card) border border-(--color-border) rounded-xl text-sm text-(--color-charcoal) focus:outline-none focus:ring-2 focus:ring-(--color-charcoal-light)/20"
+          className="w-full px-3 py-2 bg-(--color-card) border border-(--color-border) text-sm text-(--color-charcoal) focus:outline-none focus:ring-2 focus:ring-(--color-charcoal-light)/20"
         >
           <option value="date-desc">{t('sortDateDesc')}</option>
           <option value="date-asc">{t('sortDateAsc')}</option>
@@ -148,7 +148,7 @@ export default function FilterSidebar({ facets }: FilterSidebarProps) {
       {hasFilters && (
         <button
           onClick={clearAll}
-          className="w-full py-2.5 text-sm font-semibold text-(--color-rijks-red) hover:bg-(--color-rijks-red)/5 rounded-xl transition-colors"
+          className="w-full py-2.5 text-sm font-semibold text-(--color-rijks-red) hover:bg-(--color-rijks-red)/5 transition-colors"
         >
           {t('clearFilters')}
         </button>
@@ -161,12 +161,12 @@ export default function FilterSidebar({ facets }: FilterSidebarProps) {
       {/* Mobile toggle */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-(--color-card) border border-(--color-border) rounded-xl text-sm font-medium text-(--color-charcoal) mb-4"
+        className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-(--color-card) border border-(--color-border) text-sm font-medium text-(--color-charcoal) mb-4"
       >
         <SlidersHorizontal size={16} />
         {t('filters')}
         {hasFilters && (
-          <span className="w-5 h-5 bg-(--color-rijks-red) text-white rounded-full text-xs flex items-center justify-center">
+          <span className="w-5 h-5 bg-(--color-rijks-red) text-white text-xs flex items-center justify-center">
             {currentTypes.length +
               currentLocations.length +
               currentSubjects.length +

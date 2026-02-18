@@ -54,7 +54,7 @@ export default function Pagination({
       {currentPage > 1 ? (
         <Link
           href={buildHref(currentPage - 1)}
-          className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) rounded-lg transition-colors"
+          className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
         >
           <ChevronLeft size={16} />
           {tc('previous')}
@@ -80,7 +80,7 @@ export default function Pagination({
             key={page}
             href={buildHref(page)}
             className={cn(
-              'px-3.5 py-2.5 text-sm font-medium rounded-full transition-colors',
+              'px-3.5 py-2.5 text-sm font-medium transition-colors',
               page === currentPage
                 ? 'bg-(--color-charcoal) text-white'
                 : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)',
@@ -95,7 +95,7 @@ export default function Pagination({
       {currentPage < totalPages ? (
         <Link
           href={buildHref(currentPage + 1)}
-          className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) rounded-lg transition-colors"
+          className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
         >
           {tc('next')}
           <ChevronRight size={16} />
