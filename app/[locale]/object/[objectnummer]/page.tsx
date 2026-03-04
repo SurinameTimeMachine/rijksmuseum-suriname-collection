@@ -2,8 +2,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getObjectByNumber, getRelatedObjects } from '@/lib/collection';
+import { getApprovedPosition } from '@/lib/geo-positions';
 import ObjectImage from '@/components/ObjectImage';
 import ObjectCard from '@/components/ObjectCard';
+import GeoPositionPreview from '@/components/GeoPositionPreview';
 import {
   ArrowLeft,
   Calendar,
@@ -13,6 +15,7 @@ import {
   Users,
   ExternalLink,
   Layers,
+  Camera,
 } from 'lucide-react';
 
 // Return empty array so pages are rendered on-demand instead of at build time.
@@ -49,7 +52,9 @@ export default async function ObjectPage({
   if (!obj) notFound();
 
   const t = await getTranslations({ locale, namespace: 'object' });
+  const tGeo = await getTranslations({ locale, namespace: 'geoposition' });
   const related = await getRelatedObjects(obj, 6);
+  const geoPosition = await getApprovedPosition(obj.objectnummer);
 
   const title = obj.titles[0] || obj.objectnummer;
   const alternativeTitles = obj.titles.slice(1);
@@ -179,6 +184,40 @@ export default async function ObjectPage({
                 label={t('persons')}
                 values={obj.persons}
               />
+            )}
+          </div>
+
+          {/* Geo-positioning */}
+          <div className="space-y-3">
+            {geoPosition ? (
+              <div className="border border-(--color-border) p-3 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) flex items-center gap-1.5">
+                    <Camera size={12} />
+                    {tGeo('positioned')}
+                  </span>
+                  <Link
+                    href={`/${locale}/geoposition?object=${encodeURIComponent(obj.objectnummer)}`}
+                    className="text-xs text-(--color-charcoal-light) hover:text-(--color-charcoal) underline"
+                  >
+                    {tGeo('updatePosition')}
+                  </Link>
+                </div>
+                <GeoPositionPreview
+                  lat={geoPosition.lat}
+                  lng={geoPosition.lng}
+                  bearing={geoPosition.bearing}
+                  fieldOfView={geoPosition.fieldOfView}
+                />
+              </div>
+            ) : (
+              <Link
+                href={`/${locale}/geoposition?object=${encodeURIComponent(obj.objectnummer)}`}
+                className="inline-flex items-center gap-2 px-5 py-3 bg-(--color-rijks-red) text-white text-sm font-semibold hover:opacity-90 transition-opacity w-full justify-center"
+              >
+                <MapPin size={14} />
+                {tGeo('placeOnMap')}
+              </Link>
             )}
           </div>
 

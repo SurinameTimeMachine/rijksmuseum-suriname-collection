@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getObjectsByLocation } from '@/lib/collection';
+import { getCollection, getObjectsByLocation } from '@/lib/collection';
+import { getPositionedObjects } from '@/lib/geo-positions';
 import { geoCoordinates } from '@/data/geo-coordinates';
 import MapClient from '@/components/MapClient';
 import ScrollReveal from '@/components/ScrollReveal';
@@ -24,6 +25,8 @@ export default async function MapPage({
 
   const t = await getTranslations({ locale, namespace: 'map' });
   const objectsByLocation = await getObjectsByLocation();
+  const collection = await getCollection();
+  const geoPositions = await getPositionedObjects(collection);
 
   // Match geographic keywords to coordinates
   const locations = Object.entries(objectsByLocation)
@@ -43,7 +46,7 @@ export default async function MapPage({
         </div>
       </ScrollReveal>
 
-      <MapClient locations={locations} />
+      <MapClient locations={locations} geoPositions={geoPositions} />
     </div>
   );
 }

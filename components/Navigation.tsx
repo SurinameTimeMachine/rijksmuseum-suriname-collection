@@ -9,6 +9,7 @@ import {
   MapPin,
   Menu,
   X,
+  Crosshair,
 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
@@ -19,6 +20,7 @@ const navItems = [
   { href: '/gallery', labelKey: 'gallery' as const, icon: Grid3X3 },
   { href: '/timeline', labelKey: 'timeline' as const, icon: Clock },
   { href: '/map', labelKey: 'map' as const, icon: MapPin },
+  { href: '/geoposition', labelKey: 'geoposition' as const, icon: Crosshair },
   { href: '/statistics', labelKey: 'statistics' as const, icon: BarChart3 },
 ];
 

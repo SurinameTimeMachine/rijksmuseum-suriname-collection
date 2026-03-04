@@ -21,6 +21,7 @@ import {
   X,
 } from 'lucide-react';
 import type { CollectionObject, GeoLocation } from '@/types/collection';
+import type { GeoPositionWithObject } from '@/types/geo-position';
 import ObjectImage from './ObjectImage';
 
 /* ---- SSR-safe mount check ---- */
@@ -42,6 +43,7 @@ interface LocationGroup {
 
 interface MapClientProps {
   locations: LocationGroup[];
+  geoPositions?: GeoPositionWithObject[];
 }
 
 /* ---- Helpers ---- */
@@ -70,10 +72,13 @@ function getAllObjectTypes(
 /* ==================================================================
    MAIN COMPONENT
    ================================================================== */
-export default function MapClient({ locations }: MapClientProps) {
+export default function MapClient({ locations, geoPositions = [] }: MapClientProps) {
   const t = useTranslations('map');
   const locale = useLocale();
   const mounted = useIsMounted();
+
+  /* ---- View mode: collection locations vs positioned images ---- */
+  const [viewMode, setViewMode] = useState<'locations' | 'positioned'>('locations');
 
   /* ---- Region filter ---- */
   const [regionFilter, setRegionFilter] = useState<
@@ -171,6 +176,32 @@ export default function MapClient({ locations }: MapClientProps) {
 
   return (
     <div className="space-y-4">
+      {/* ---- View mode toggle ---- */}
+      {geoPositions.length > 0 && (
+        <div className="flex border border-(--color-border) w-fit">
+          <button
+            onClick={() => setViewMode('locations')}
+            className={`px-4 py-2 text-sm font-medium transition-colors ${
+              viewMode === 'locations'
+                ? 'bg-(--color-charcoal) text-white'
+                : 'bg-(--color-card) text-(--color-charcoal-light) hover:bg-(--color-cream-dark)'
+            }`}
+          >
+            {t('locations')}
+          </button>
+          <button
+            onClick={() => setViewMode('positioned')}
+            className={`px-4 py-2 text-sm font-medium transition-colors border-l border-(--color-border) ${
+              viewMode === 'positioned'
+                ? 'bg-(--color-charcoal) text-white'
+                : 'bg-(--color-card) text-(--color-charcoal-light) hover:bg-(--color-cream-dark)'
+            }`}
+          >
+            {t('positionedImages') ?? 'Positioned Images'} ({geoPositions.length})
+          </button>
+        </div>
+      )}
+
       {/* ---- Summary stats ---- */}
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-(--color-warm-gray)">
         <span className="flex items-center gap-1.5">
@@ -371,6 +402,11 @@ export default function MapClient({ locations }: MapClientProps) {
           )}
         </div>
       </div>
+
+      {/* ---- Positioned images view ---- */}
+      {viewMode === 'positioned' && geoPositions.length > 0 && (
+        <PositionedImagesMap geoPositions={geoPositions} locale={locale} />
+      )}
     </div>
   );
 }
@@ -611,6 +647,142 @@ function MapInner({
           {t('markerSize')}
         </span>
       </div>
+    </div>
+  );
+}
+
+/* ==================================================================
+   POSITIONED IMAGES MAP — shows per-object camera positions with cones
+   ================================================================== */
+function PositionedImagesMap({
+  geoPositions,
+  locale,
+}: {
+  geoPositions: GeoPositionWithObject[];
+  locale: string;
+}) {
+  const [MapContainer, setMapContainer] = useState<
+    typeof import('react-leaflet').MapContainer | null
+  >(null);
+  const [TileLayer, setTileLayer] = useState<
+    typeof import('react-leaflet').TileLayer | null
+  >(null);
+  const [CircleMarker, setCircleMarker] = useState<
+    typeof import('react-leaflet').CircleMarker | null
+  >(null);
+  const [Popup, setPopup] = useState<
+    typeof import('react-leaflet').Popup | null
+  >(null);
+  const [Polygon, setPolygon] = useState<
+    typeof import('react-leaflet').Polygon | null
+  >(null);
+
+  useEffect(() => {
+    import('react-leaflet').then((mod) => {
+      setMapContainer(() => mod.MapContainer);
+      setTileLayer(() => mod.TileLayer);
+      setCircleMarker(() => mod.CircleMarker);
+      setPopup(() => mod.Popup);
+      setPolygon(() => mod.Polygon);
+    });
+  }, []);
+
+  const [conePointsModule, setConePointsModule] = useState<
+    typeof import('./ViewingCone').generateConePoints | null
+  >(null);
+
+  useEffect(() => {
+    import('./ViewingCone').then((mod) => {
+      setConePointsModule(() => mod.generateConePoints);
+    });
+  }, []);
+
+  if (!MapContainer || !TileLayer || !CircleMarker || !Popup || !Polygon || !conePointsModule) {
+    return (
+      <div className="w-full h-135 bg-(--color-cream-dark) flex items-center justify-center">
+        <Globe
+          size={32}
+          className="text-(--color-warm-gray-light) animate-pulse"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <MapContainer
+        center={[5.5, -55.2]}
+        zoom={7}
+        className="w-full h-135 border border-(--color-border)"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        {geoPositions.map((pos) => {
+          const cone = conePointsModule(
+            pos.lat,
+            pos.lng,
+            pos.bearing,
+            pos.fieldOfView,
+            120,
+          );
+          const isPending = pos.status === 'pending';
+
+          return (
+            <span key={pos.objectnummer}>
+              {/* Viewing cone */}
+              <Polygon
+                positions={cone}
+                pathOptions={{
+                  color: '#c0503e',
+                  fillColor: '#c0503e',
+                  fillOpacity: isPending ? 0.1 : 0.2,
+                  weight: isPending ? 1 : 2,
+                  dashArray: isPending ? '4 4' : undefined,
+                }}
+              />
+              {/* Camera marker */}
+              <CircleMarker
+                center={[pos.lat, pos.lng]}
+                radius={6}
+                pathOptions={{
+                  color: '#1a1a1a',
+                  fillColor: isPending ? '#999' : '#c0503e',
+                  fillOpacity: 1,
+                  weight: 1.5,
+                }}
+              >
+                <Popup>
+                  <div className="w-48">
+                    {pos.thumbnailUrl && (
+                      <div className="w-full h-28 mb-2 overflow-hidden bg-gray-100">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={pos.thumbnailUrl}
+                          alt={pos.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <p className="font-semibold text-sm line-clamp-2">{pos.title}</p>
+                    <p className="text-xs text-gray-500">{pos.creator}</p>
+                    {pos.year && (
+                      <p className="text-xs text-gray-400">{pos.year}</p>
+                    )}
+                    <a
+                      href={`/${locale}/object/${encodeURIComponent(pos.objectnummer)}`}
+                      className="mt-2 inline-block text-xs text-blue-600 hover:underline"
+                    >
+                      View object →
+                    </a>
+                  </div>
+                </Popup>
+              </CircleMarker>
+            </span>
+          );
+        })}
+      </MapContainer>
     </div>
   );
 }
