@@ -48,7 +48,8 @@ function destinationPoint(
   const lng1 = toRad(lng);
 
   const lat2 = Math.asin(
-    Math.sin(lat1) * Math.cos(d) + Math.cos(lat1) * Math.sin(d) * Math.cos(brng),
+    Math.sin(lat1) * Math.cos(d) +
+      Math.cos(lat1) * Math.sin(d) * Math.cos(brng),
   );
   const lng2 =
     lng1 +
@@ -155,7 +156,6 @@ export default function ViewingCone({
   radiusMeters = 150,
   color = '#c0503e',
   fillOpacity = 0.2,
-  onPositionChange,
   onBearingChange,
   onFieldOfViewChange,
 }: ViewingConeProps) {
@@ -171,18 +171,35 @@ export default function ViewingCone({
   useEffect(() => {
     import('react-leaflet').then((mod) => {
       setLeafletModules({
-        Polygon: mod.Polygon as unknown as React.ComponentType<Record<string, unknown>>,
-        CircleMarker: mod.CircleMarker as unknown as React.ComponentType<Record<string, unknown>>,
-        useMapEvents: mod.useMapEvents as unknown as (events: Record<string, unknown>) => unknown,
+        Polygon: mod.Polygon as unknown as React.ComponentType<
+          Record<string, unknown>
+        >,
+        CircleMarker: mod.CircleMarker as unknown as React.ComponentType<
+          Record<string, unknown>
+        >,
+        useMapEvents: mod.useMapEvents as unknown as (
+          events: Record<string, unknown>,
+        ) => unknown,
       });
     });
   }, []);
 
   // Generate cone polygon
-  const conePoints = generateConePoints(lat, lng, bearing, fieldOfView, radiusMeters);
+  const conePoints = generateConePoints(
+    lat,
+    lng,
+    bearing,
+    fieldOfView,
+    radiusMeters,
+  );
 
   // Handle positions for edit mode
-  const bearingHandlePos = destinationPoint(lat, lng, bearing, radiusMeters * 0.8);
+  const bearingHandlePos = destinationPoint(
+    lat,
+    lng,
+    bearing,
+    radiusMeters * 0.8,
+  );
   const leftEdgePos = destinationPoint(
     lat,
     lng,

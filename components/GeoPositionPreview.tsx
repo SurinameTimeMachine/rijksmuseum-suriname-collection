@@ -41,13 +41,13 @@ export default function GeoPositionPreview({
       import('react-leaflet').then((mod) => {
         setMapModules(mod as unknown as Record<string, unknown>);
       });
+      // @ts-expect-error -- CSS import has no type declarations
+      import('leaflet/dist/leaflet.css');
     }
   }, [mounted]);
 
   if (!mounted || !mapModules) {
-    return (
-      <div className="h-[200px] bg-(--color-cream-dark) animate-pulse" />
-    );
+    return <div className="h-[200px] bg-(--color-cream-dark) animate-pulse" />;
   }
 
   const MapContainer = mapModules.MapContainer as React.ComponentType<

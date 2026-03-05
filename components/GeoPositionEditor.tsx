@@ -13,6 +13,27 @@
  * - Single mode: positions a specific object (via ?object= param)
  */
 
+import { geoCoordinates } from '@/data/geo-coordinates';
+import type { CollectionObject } from '@/types/collection';
+import type { ContributionPayload, GeoSession } from '@/types/geo-position';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Check,
+  ChevronRight,
+  Crosshair,
+  Eye,
+  Flag,
+  Github,
+  LogOut,
+  MapPin,
+  Move,
+  SkipForward,
+  X,
+} from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import Link from 'next/link';
 import {
   useCallback,
   useEffect,
@@ -21,27 +42,6 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import Link from 'next/link';
-import { useLocale, useTranslations } from 'next-intl';
-import {
-  ArrowLeft,
-  ArrowRight,
-  Camera,
-  Check,
-  ChevronRight,
-  Eye,
-  Flag,
-  MapPin,
-  SkipForward,
-  X,
-  Crosshair,
-  Move,
-  Github,
-  LogOut,
-} from 'lucide-react';
-import type { CollectionObject } from '@/types/collection';
-import type { ContributionPayload, GeoSession } from '@/types/geo-position';
-import { geoCoordinates } from '@/data/geo-coordinates';
 import ObjectImage from './ObjectImage';
 
 /* ---- SSR-safe mount check ---- */
@@ -121,7 +121,9 @@ export default function GeoPositionEditor({
   const [fieldOfView, setFieldOfView] = useState(60);
 
   /* ---- Map modules (lazy loaded) ---- */
-  const [mapModules, setMapModules] = useState<Record<string, unknown> | null>(null);
+  const [mapModules, setMapModules] = useState<Record<string, unknown> | null>(
+    null,
+  );
   const mapRef = useRef<unknown>(null);
 
   useEffect(() => {
@@ -133,35 +135,30 @@ export default function GeoPositionEditor({
   }, [step]);
 
   /* ---- Reset state when moving to a new object ---- */
-  const resetForObject = useCallback(
-    (obj: CollectionObject) => {
-      setStep('triage');
-      setReportingProblem(false);
-      setProblemText('');
-      setSubmitError(null);
+  const resetForObject = useCallback((obj: CollectionObject) => {
+    setStep('triage');
+    setReportingProblem(false);
+    setProblemText('');
+    setSubmitError(null);
 
-      // Pre-populate keywords
-      setConfirmedKeywords([]);
-      setRejectedKeywords([]);
-      setLocationType('building');
+    // Pre-populate keywords
+    setConfirmedKeywords([]);
+    setRejectedKeywords([]);
+    setLocationType('building');
 
-      // Set initial camera position from geographic keywords
-      const firstGeoMatch = obj.geographicKeywords.find(
-        (k) => geoCoordinates[k] && k !== 'Suriname (Zuid-Amerika)',
-      );
-      const fallback = geoCoordinates['Suriname (Zuid-Amerika)'] ||
-        geoCoordinates['Paramaribo (stad)'] || { lat: 5.852, lng: -55.2038 };
-      const initial = firstGeoMatch
-        ? geoCoordinates[firstGeoMatch]
-        : fallback;
+    // Set initial camera position from geographic keywords
+    const firstGeoMatch = obj.geographicKeywords.find(
+      (k) => geoCoordinates[k] && k !== 'Suriname (Zuid-Amerika)',
+    );
+    const fallback = geoCoordinates['Suriname (Zuid-Amerika)'] ||
+      geoCoordinates['Paramaribo (stad)'] || { lat: 5.852, lng: -55.2038 };
+    const initial = firstGeoMatch ? geoCoordinates[firstGeoMatch] : fallback;
 
-      setCameraLat(initial.lat);
-      setCameraLng(initial.lng);
-      setBearing(0);
-      setFieldOfView(60);
-    },
-    [],
-  );
+    setCameraLat(initial.lat);
+    setCameraLng(initial.lng);
+    setBearing(0);
+    setFieldOfView(60);
+  }, []);
 
   // Initialize on first load
   useEffect(() => {
@@ -297,7 +294,9 @@ export default function GeoPositionEditor({
       <div className="text-center py-16">
         <Check size={48} className="mx-auto mb-4 text-green-600" />
         <h2 className="text-xl mb-2">{t('allDone')}</h2>
-        <p className="text-(--color-warm-gray) mb-6">{t('allDoneDescription')}</p>
+        <p className="text-(--color-warm-gray) mb-6">
+          {t('allDoneDescription')}
+        </p>
         <Link
           href={`/${locale}/map`}
           className="inline-flex items-center gap-2 px-5 py-3 bg-(--color-charcoal) text-white text-sm font-semibold hover:bg-(--color-charcoal-light) transition-colors"
@@ -311,7 +310,8 @@ export default function GeoPositionEditor({
 
   const title = currentObject.titles[0] || currentObject.objectnummer;
   const creator =
-    currentObject.creators.filter((c) => c !== 'anoniem').join(', ') || t('anonymous');
+    currentObject.creators.filter((c) => c !== 'anoniem').join(', ') ||
+    t('anonymous');
 
   return (
     <div className="space-y-6">
@@ -348,7 +348,9 @@ export default function GeoPositionEditor({
                 alt={session.username}
                 className="w-6 h-6 rounded-full"
               />
-              <span className="text-(--color-charcoal)">{session.username}</span>
+              <span className="text-(--color-charcoal)">
+                {session.username}
+              </span>
               <button
                 onClick={handleSignOut}
                 className="p-1 text-(--color-warm-gray) hover:text-(--color-charcoal)"
@@ -374,13 +376,17 @@ export default function GeoPositionEditor({
         {(['triage', 'location', 'camera'] as const).map((s, i) => (
           <div key={s} className="flex items-center gap-2">
             {i > 0 && (
-              <ChevronRight size={14} className="text-(--color-warm-gray-light)" />
+              <ChevronRight
+                size={14}
+                className="text-(--color-warm-gray-light)"
+              />
             )}
             <span
               className={
                 step === s
                   ? 'font-semibold text-(--color-charcoal)'
-                  : step === 'success' || (['triage', 'location', 'camera'].indexOf(step) > i)
+                  : step === 'success' ||
+                      ['triage', 'location', 'camera'].indexOf(step) > i
                     ? 'text-(--color-warm-gray)'
                     : 'text-(--color-warm-gray-light)'
               }
@@ -572,7 +578,9 @@ export default function GeoPositionEditor({
           {/* Location identification */}
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold mb-2">{t('locationTitle')}</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                {t('locationTitle')}
+              </h3>
               <p className="text-sm text-(--color-warm-gray) leading-relaxed">
                 {t('locationDescription')}
               </p>
@@ -640,7 +648,13 @@ export default function GeoPositionEditor({
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {(
-                  ['street', 'building', 'landscape', 'waterway', 'other'] as const
+                  [
+                    'street',
+                    'building',
+                    'landscape',
+                    'waterway',
+                    'other',
+                  ] as const
                 ).map((type) => (
                   <button
                     key={type}
@@ -694,7 +708,7 @@ export default function GeoPositionEditor({
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             {/* Map (3/5) */}
             <div className="lg:col-span-3">
-              <div className="relative h-[500px] border border-(--color-border) bg-(--color-cream-dark)">
+              <div className="relative h-[500px] border border-(--color-border) bg-(--color-cream-dark) overflow-hidden">
                 {mapModules ? (
                   <CameraMap
                     mapModules={mapModules}
@@ -721,7 +735,10 @@ export default function GeoPositionEditor({
                 {/* Map overlay instructions */}
                 <div className="absolute top-3 left-3 z-[1000] bg-white/90 backdrop-blur-sm px-3 py-2 text-xs text-(--color-charcoal) max-w-[240px] shadow-sm border border-(--color-border)">
                   <div className="flex items-start gap-2">
-                    <Crosshair size={14} className="shrink-0 mt-0.5 text-(--color-rijks-red)" />
+                    <Crosshair
+                      size={14}
+                      className="shrink-0 mt-0.5 text-(--color-rijks-red)"
+                    />
                     <p>{t('cameraInstructions')}</p>
                   </div>
                 </div>
@@ -731,20 +748,27 @@ export default function GeoPositionEditor({
               <div className="flex flex-wrap gap-4 mt-3 px-1 text-sm">
                 <div className="flex items-center gap-2">
                   <Move size={14} className="text-(--color-warm-gray)" />
-                  <span className="text-(--color-warm-gray)">{t('position')}:</span>
+                  <span className="text-(--color-warm-gray)">
+                    {t('position')}:
+                  </span>
                   <span className="font-mono text-xs">
                     {cameraLat.toFixed(5)}, {cameraLng.toFixed(5)}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Camera size={14} className="text-(--color-warm-gray)" />
-                  <span className="text-(--color-warm-gray)">{t('bearingLabel')}:</span>
+                  <span className="text-(--color-warm-gray)">
+                    {t('bearingLabel')}:
+                  </span>
                   <input
                     type="number"
                     value={bearing}
                     onChange={(e) =>
                       setBearing(
-                        Math.max(0, Math.min(360, parseInt(e.target.value) || 0)),
+                        Math.max(
+                          0,
+                          Math.min(360, parseInt(e.target.value) || 0),
+                        ),
                       )
                     }
                     className="w-16 px-2 py-1 text-xs font-mono border border-(--color-border) bg-(--color-cream)"
@@ -755,7 +779,9 @@ export default function GeoPositionEditor({
                 </div>
                 <div className="flex items-center gap-2">
                   <Eye size={14} className="text-(--color-warm-gray)" />
-                  <span className="text-(--color-warm-gray)">{t('fovLabel')}:</span>
+                  <span className="text-(--color-warm-gray)">
+                    {t('fovLabel')}:
+                  </span>
                   <input
                     type="range"
                     value={fieldOfView}
@@ -905,15 +931,25 @@ function CameraMap({
   onBearingChange,
   onFieldOfViewChange,
 }: CameraMapProps) {
-  const MapContainer = mapModules.MapContainer as React.ComponentType<Record<string, unknown>>;
-  const TileLayer = mapModules.TileLayer as React.ComponentType<Record<string, unknown>>;
-  const Marker = mapModules.Marker as React.ComponentType<Record<string, unknown>>;
-  const useMapEvents = mapModules.useMapEvents as (events: Record<string, unknown>) => unknown;
+  const MapContainer = mapModules.MapContainer as React.ComponentType<
+    Record<string, unknown>
+  >;
+  const TileLayer = mapModules.TileLayer as React.ComponentType<
+    Record<string, unknown>
+  >;
+  const Marker = mapModules.Marker as React.ComponentType<
+    Record<string, unknown>
+  >;
+  const useMapEvents = mapModules.useMapEvents as (
+    events: Record<string, unknown>,
+  ) => unknown;
 
   const [L, setL] = useState<typeof import('leaflet') | null>(null);
 
   useEffect(() => {
     import('leaflet').then(setL);
+    // @ts-expect-error -- CSS import has no type declarations
+    import('leaflet/dist/leaflet.css');
   }, []);
 
   if (!L) return null;
@@ -954,7 +990,9 @@ function CameraMap({
         icon={cameraIcon}
         draggable={true}
         eventHandlers={{
-          dragend: (e: { target: { getLatLng: () => { lat: number; lng: number } } }) => {
+          dragend: (e: {
+            target: { getLatLng: () => { lat: number; lng: number } };
+          }) => {
             const pos = e.target.getLatLng();
             onPositionChange(pos.lat, pos.lng);
           },
@@ -1002,9 +1040,10 @@ function ViewingConeInner({
   onFieldOfViewChange: (fov: number) => void;
 }) {
   // Import ViewingCone dynamically (it imports from react-leaflet internally)
-  const [ViewingConeComponent, setViewingConeComponent] = useState<React.ComponentType<
-    import('./ViewingCone').ViewingConeProps
-  > | null>(null);
+  const [ViewingConeComponent, setViewingConeComponent] =
+    useState<React.ComponentType<
+      import('./ViewingCone').ViewingConeProps
+    > | null>(null);
 
   useEffect(() => {
     import('./ViewingCone').then((mod) => {
@@ -1042,7 +1081,10 @@ function MapClickHandler({
   onPositionChange: (lat: number, lng: number) => void;
 }) {
   useMapEvents({
-    contextmenu: (e: { latlng: { lat: number; lng: number }; originalEvent: Event }) => {
+    contextmenu: (e: {
+      latlng: { lat: number; lng: number };
+      originalEvent: Event;
+    }) => {
       e.originalEvent.preventDefault();
       onPositionChange(e.latlng.lat, e.latlng.lng);
     },

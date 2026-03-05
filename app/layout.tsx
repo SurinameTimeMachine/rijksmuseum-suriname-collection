@@ -1,6 +1,6 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Nunito, Lora } from 'next/font/google';
+import { Lora, Nunito } from 'next/font/google';
 
 const nunito = Nunito({
   variable: '--font-nunito',
@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html suppressHydrationWarning>
+    <html suppressHydrationWarning data-scroll-behavior="smooth">
       <body
         className={`${nunito.variable} ${lora.variable} font-sans antialiased`}
       >
