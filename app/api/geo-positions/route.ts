@@ -1,8 +1,13 @@
+import type {
+  ContributionPayload,
+  GeoPosition,
+  GeoPositionStore,
+} from '@/types/geo-position';
 import { NextRequest, NextResponse } from 'next/server';
-import type { GeoPosition, GeoPositionStore, ContributionPayload } from '@/types/geo-position';
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-const GITHUB_REPO = process.env.GITHUB_REPO || 'jonaschlegel/rijksmuseum-suriname-collection';
+const GITHUB_REPO =
+  process.env.GITHUB_REPO || 'jonaschlegel/rijksmuseum-suriname-collection';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 const FILE_PATH = 'data/geo-positions.json';
 
@@ -58,14 +63,20 @@ export async function POST(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for') || 'unknown';
   if (!checkRateLimit(ip)) {
     return NextResponse.json(
-      { error: 'Rate limit exceeded. Please wait a moment before contributing again.' },
+      {
+        error:
+          'Rate limit exceeded. Please wait a moment before contributing again.',
+      },
       { status: 429 },
     );
   }
 
   if (!GITHUB_TOKEN) {
     return NextResponse.json(
-      { error: 'GitHub integration not configured. Set the GITHUB_TOKEN environment variable.' },
+      {
+        error:
+          'GitHub integration not configured. Set the GITHUB_TOKEN environment variable.',
+      },
       { status: 503 },
     );
   }
@@ -84,6 +95,8 @@ export async function POST(request: NextRequest) {
     lng,
     bearing,
     fieldOfView,
+    radiusMeters,
+    uncertainty,
     isOutdoor,
     locationType,
     confirmedKeywords,
@@ -95,6 +108,9 @@ export async function POST(request: NextRequest) {
     typeof lng !== 'number' ||
     typeof bearing !== 'number' ||
     typeof fieldOfView !== 'number' ||
+    typeof radiusMeters !== 'number' ||
+    !uncertainty ||
+    !['exact', 'approximate', 'rough'].includes(uncertainty) ||
     typeof isOutdoor !== 'boolean' ||
     !locationType
   ) {
@@ -107,6 +123,13 @@ export async function POST(request: NextRequest) {
   if (bearing < 0 || bearing > 360 || fieldOfView < 1 || fieldOfView > 180) {
     return NextResponse.json(
       { error: 'bearing must be 0–360, fieldOfView must be 1–180' },
+      { status: 400 },
+    );
+  }
+
+  if (radiusMeters < 10 || radiusMeters > 2000) {
+    return NextResponse.json(
+      { error: 'radiusMeters must be 10–2000' },
       { status: 400 },
     );
   }
@@ -130,6 +153,8 @@ export async function POST(request: NextRequest) {
     lng,
     bearing,
     fieldOfView,
+    radiusMeters,
+    uncertainty,
     isOutdoor,
     locationType,
     confirmedKeywords: confirmedKeywords || [],
@@ -164,10 +189,7 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  return NextResponse.json(
-    { error: 'Failed after retries' },
-    { status: 500 },
-  );
+  return NextResponse.json({ error: 'Failed after retries' }, { status: 500 });
 }
 
 /**

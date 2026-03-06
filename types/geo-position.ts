@@ -17,6 +17,10 @@ export interface GeoPosition {
   bearing: number;
   /** Field-of-view cone width in degrees (e.g. 60°) */
   fieldOfView: number;
+  /** Viewing cone radius / distance in meters */
+  radiusMeters: number;
+  /** How confident the contributor is about this placement */
+  uncertainty: 'exact' | 'approximate' | 'rough';
   /** Whether the image depicts a recognisable outdoor scene */
   isOutdoor: boolean;
   /** What kind of location is depicted */
@@ -53,6 +57,8 @@ export interface ContributionPayload {
   lng: number;
   bearing: number;
   fieldOfView: number;
+  radiusMeters: number;
+  uncertainty: GeoPosition['uncertainty'];
   isOutdoor: boolean;
   locationType: GeoPosition['locationType'];
   confirmedKeywords: string[];

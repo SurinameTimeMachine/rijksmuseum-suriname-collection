@@ -14,6 +14,10 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+type LeafletMap = {
+  dragging: { disable: () => void; enable: () => void };
+};
+
 /* ---- Geometry helpers ---- */
 
 /** Convert degrees to radians */
@@ -163,9 +167,11 @@ export default function ViewingCone({
     Polygon: React.ComponentType<Record<string, unknown>>;
     CircleMarker: React.ComponentType<Record<string, unknown>>;
     useMapEvents: (events: Record<string, unknown>) => unknown;
+    useMap: () => LeafletMap;
   } | null>(null);
 
   const isDragging = useRef<'bearing' | 'fov-left' | 'fov-right' | null>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
 
   // Dynamic import of react-leaflet
   useEffect(() => {
@@ -180,6 +186,7 @@ export default function ViewingCone({
         useMapEvents: mod.useMapEvents as unknown as (
           events: Record<string, unknown>,
         ) => unknown,
+        useMap: mod.useMap as unknown as () => LeafletMap,
       });
     });
   }, []);
@@ -247,7 +254,10 @@ export default function ViewingCone({
   );
 
   const handleMouseUp = useCallback(() => {
-    isDragging.current = null;
+    if (isDragging.current) {
+      isDragging.current = null;
+      mapRef.current?.dragging.enable();
+    }
   }, []);
 
   if (!leafletModules) return null;
@@ -275,6 +285,8 @@ export default function ViewingCone({
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             useMapEvents={leafletModules.useMapEvents}
+            useMap={leafletModules.useMap}
+            mapRef={mapRef}
           />
 
           {/* Camera position marker */}
@@ -308,6 +320,7 @@ export default function ViewingCone({
             eventHandlers={{
               mousedown: () => {
                 isDragging.current = 'bearing';
+                mapRef.current?.dragging.disable();
               },
             }}
           />
@@ -326,6 +339,7 @@ export default function ViewingCone({
             eventHandlers={{
               mousedown: () => {
                 isDragging.current = 'fov-left';
+                mapRef.current?.dragging.disable();
               },
             }}
           />
@@ -344,6 +358,7 @@ export default function ViewingCone({
             eventHandlers={{
               mousedown: () => {
                 isDragging.current = 'fov-right';
+                mapRef.current?.dragging.disable();
               },
             }}
           />
@@ -374,11 +389,17 @@ function DragHandler({
   onMouseMove,
   onMouseUp,
   useMapEvents,
+  useMap,
+  mapRef,
 }: {
   onMouseMove: (e: { latlng: { lat: number; lng: number } }) => void;
   onMouseUp: () => void;
   useMapEvents: (events: Record<string, unknown>) => unknown;
+  useMap: () => LeafletMap;
+  mapRef: React.MutableRefObject<LeafletMap | null>;
 }) {
+  const map = useMap();
+  mapRef.current = map;
   useMapEvents({
     mousemove: onMouseMove,
     mouseup: onMouseUp,

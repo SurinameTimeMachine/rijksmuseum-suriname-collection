@@ -29,6 +29,7 @@ import {
   LogOut,
   MapPin,
   Move,
+  Ruler,
   SkipForward,
   X,
 } from 'lucide-react';
@@ -119,6 +120,10 @@ export default function GeoPositionEditor({
   const [cameraLng, setCameraLng] = useState(-55.2038);
   const [bearing, setBearing] = useState(0);
   const [fieldOfView, setFieldOfView] = useState(60);
+  const [radiusMeters, setRadiusMeters] = useState(150);
+  const [uncertainty, setUncertainty] = useState<
+    'exact' | 'approximate' | 'rough'
+  >('approximate');
 
   /* ---- Map modules (lazy loaded) ---- */
   const [mapModules, setMapModules] = useState<Record<string, unknown> | null>(
@@ -158,6 +163,8 @@ export default function GeoPositionEditor({
     setCameraLng(initial.lng);
     setBearing(0);
     setFieldOfView(60);
+    setRadiusMeters(150);
+    setUncertainty('approximate');
   }, []);
 
   // Initialize on first load
@@ -231,6 +238,8 @@ export default function GeoPositionEditor({
       lng: cameraLng,
       bearing,
       fieldOfView,
+      radiusMeters,
+      uncertainty,
       isOutdoor: true,
       locationType,
       confirmedKeywords,
@@ -708,7 +717,7 @@ export default function GeoPositionEditor({
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
             {/* Map (3/5) */}
             <div className="lg:col-span-3">
-              <div className="relative h-[500px] border border-(--color-border) bg-(--color-cream-dark) overflow-hidden">
+              <div className="relative z-0 h-[500px] border border-(--color-border) bg-(--color-cream-dark) overflow-hidden">
                 {mapModules ? (
                   <CameraMap
                     mapModules={mapModules}
@@ -717,6 +726,7 @@ export default function GeoPositionEditor({
                     lng={cameraLng}
                     bearing={bearing}
                     fieldOfView={fieldOfView}
+                    radiusMeters={radiusMeters}
                     onPositionChange={(lat, lng) => {
                       setCameraLat(lat);
                       setCameraLng(lng);
@@ -791,6 +801,48 @@ export default function GeoPositionEditor({
                     max={170}
                   />
                   <span className="text-xs font-mono">{fieldOfView}°</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Ruler size={14} className="text-(--color-warm-gray)" />
+                  <span className="text-(--color-warm-gray)">
+                    {t('distanceLabel')}:
+                  </span>
+                  <input
+                    type="range"
+                    value={radiusMeters}
+                    onChange={(e) => setRadiusMeters(parseInt(e.target.value))}
+                    className="w-24"
+                    min={10}
+                    max={500}
+                    step={10}
+                  />
+                  <span className="text-xs font-mono">{radiusMeters}m</span>
+                </div>
+              </div>
+
+              {/* Uncertainty selector */}
+              <div className="flex items-center gap-3 mt-2 px-1">
+                <span className="text-sm text-(--color-warm-gray)">
+                  {t('uncertaintyLabel')}:
+                </span>
+                <div className="flex gap-1.5">
+                  {(['exact', 'approximate', 'rough'] as const).map((level) => (
+                    <button
+                      key={level}
+                      onClick={() => setUncertainty(level)}
+                      className={`px-3 py-1 text-xs transition-colors ${
+                        uncertainty === level
+                          ? level === 'exact'
+                            ? 'bg-green-700 text-white'
+                            : level === 'approximate'
+                              ? 'bg-amber-600 text-white'
+                              : 'bg-orange-700 text-white'
+                          : 'bg-(--color-cream-dark) text-(--color-charcoal-light) hover:bg-(--color-cream) border border-(--color-border)'
+                      }`}
+                    >
+                      {t(`uncertainty_${level}`)}
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
@@ -916,6 +968,7 @@ interface CameraMapProps {
   lng: number;
   bearing: number;
   fieldOfView: number;
+  radiusMeters: number;
   onPositionChange: (lat: number, lng: number) => void;
   onBearingChange: (bearing: number) => void;
   onFieldOfViewChange: (fov: number) => void;
@@ -927,6 +980,7 @@ function CameraMap({
   lng,
   bearing,
   fieldOfView,
+  radiusMeters,
   onPositionChange,
   onBearingChange,
   onFieldOfViewChange,
@@ -1007,6 +1061,7 @@ function CameraMap({
         lng={lng}
         bearing={bearing}
         fieldOfView={fieldOfView}
+        radiusMeters={radiusMeters}
         onBearingChange={onBearingChange}
         onFieldOfViewChange={onFieldOfViewChange}
       />
@@ -1027,6 +1082,7 @@ function ViewingConeInner({
   lng,
   bearing,
   fieldOfView,
+  radiusMeters,
   onBearingChange,
   onFieldOfViewChange,
 }: {
@@ -1036,6 +1092,7 @@ function ViewingConeInner({
   lng: number;
   bearing: number;
   fieldOfView: number;
+  radiusMeters: number;
   onBearingChange: (bearing: number) => void;
   onFieldOfViewChange: (fov: number) => void;
 }) {
@@ -1064,7 +1121,7 @@ function ViewingConeInner({
       bearing={bearing}
       fieldOfView={fieldOfView}
       editable
-      radiusMeters={150}
+      radiusMeters={radiusMeters}
       color="#c0503e"
       fillOpacity={0.25}
       onBearingChange={onBearingChange}
