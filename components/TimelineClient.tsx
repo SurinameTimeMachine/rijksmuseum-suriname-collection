@@ -154,6 +154,7 @@ export default function TimelineClient({
                           alt={obj.titles[0] || ''}
                           fill
                           className="group-hover/card:scale-105 transition-transform"
+                          isPublicDomain={obj.isPublicDomain}
                         />
                       </div>
                       <div className="p-2">

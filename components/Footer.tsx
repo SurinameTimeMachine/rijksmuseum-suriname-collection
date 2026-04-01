@@ -47,8 +47,9 @@ export default async function Footer() {
                 rel="noopener noreferrer"
                 className="underline hover:text-(--color-charcoal) transition-colors"
               >
-                Public Domain (CC0)
+                Rijksmuseum Image Policy
               </a>
+              {' — mostly Public Domain (CC0)'}
             </p>
           </div>
         </div>

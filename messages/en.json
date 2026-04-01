@@ -61,6 +61,9 @@
     "viewOnRijksmuseum": "View on Rijksmuseum website",
     "relatedObjects": "Related Objects",
     "noImage": "No image available",
+    "imageRestricted": "Image not available due to copyright restrictions",
+    "license": "License",
+    "licenseUnknown": "License unknown — needs review",
     "anonymous": "Anonymous",
     "back": "Back"
   },

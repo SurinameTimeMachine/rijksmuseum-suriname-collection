@@ -1,4 +1,6 @@
 import type { CollectionObject } from '@/types/collection';
+import { getLicenseShortName } from '@/lib/utils';
+import { AlertTriangle } from 'lucide-react';
 import { getLocale } from 'next-intl/server';
 import Link from 'next/link';
 import ObjectImage from './ObjectImage';
@@ -13,6 +15,7 @@ export default async function ObjectCard({ object }: ObjectCardProps) {
   const creator =
     object.creators.filter((c) => c !== 'anoniem').join(', ') || 'Anonymous';
   const dateDisplay = object.year || 'n.d.';
+  const licenseInfo = getLicenseShortName(object.license, object.licenseLabel);
 
   return (
     <Link
@@ -26,6 +29,7 @@ export default async function ObjectCard({ object }: ObjectCardProps) {
           alt={title}
           fill
           className="group-hover:scale-105 transition-transform duration-500 ease-out"
+          isPublicDomain={object.isPublicDomain}
         />
         {/* Object type badge */}
         {object.objectTypes[0] && (
@@ -41,9 +45,24 @@ export default async function ObjectCard({ object }: ObjectCardProps) {
           {title}
         </h3>
         <p className="mt-1.5 text-xs text-(--color-warm-gray)">{creator}</p>
-        <p className="mt-0.5 text-xs text-(--color-warm-gray-light)">
-          {dateDisplay}
-        </p>
+        <div className="mt-0.5 flex items-center gap-2 text-xs text-(--color-warm-gray-light)">
+          <span>{dateDisplay}</span>
+          {licenseInfo.isUnknown ? (
+            <span
+              className="inline-flex items-center gap-0.5 text-amber-600"
+              title="License unknown — needs review"
+            >
+              <AlertTriangle size={10} />
+              <span className="font-medium">?</span>
+            </span>
+          ) : (
+            <span
+              className={`font-mono ${object.isPublicDomain ? 'text-(--color-warm-gray-light)' : 'text-amber-700'}`}
+            >
+              {licenseInfo.name}
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );

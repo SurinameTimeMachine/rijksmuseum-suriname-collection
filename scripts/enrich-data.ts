@@ -46,11 +46,16 @@ interface CsvRow {
   'PID_werk.URI': string;
 }
 
+interface ImageCacheEntry {
+  thumbnailUrl: string | null;
+  imageUrl: string | null;
+  copyrightHolder: string | null;
+  license: string | null;
+  licenseLabel: string | null;
+}
+
 interface ImageCache {
-  [pidDataId: string]: {
-    thumbnailUrl: string | null;
-    imageUrl: string | null;
-  };
+  [pidDataId: string]: ImageCacheEntry;
 }
 
 function splitMultiValue(value: string): string[] {
@@ -96,17 +101,153 @@ const LA_HEADERS = {
   Profile: 'https://linked.art/ns/v1/linked-art.json',
 };
 
+const EMPTY_RESULT: ImageCacheEntry = {
+  thumbnailUrl: null,
+  imageUrl: null,
+  copyrightHolder: null,
+  license: null,
+  licenseLabel: null,
+};
+
 /**
- * Resolve IIIF image URL via 2-hop Linked Art traversal:
+ * Extract rights / license information from a VisualItem Linked Art response.
+ *
+ * Looks for:
+ * - `referred_to_by[]` with classified_as aat:300435434 → copyright/license statement text
+ * - `subject_to[]` with type "Right" → classified_as URI (e.g. CC0)
+ * - Copyright holder from referred_to_by classified as aat:300055292 or aat:300026687
+ */
+function extractRightsInfo(viData: Record<string, unknown>): {
+  copyrightHolder: string | null;
+  license: string | null;
+  licenseLabel: string | null;
+} {
+  let copyrightHolder: string | null = null;
+  let license: string | null = null;
+  let licenseLabel: string | null = null;
+
+  // --- referred_to_by: license/rights statements ---
+  const rArr = Array.isArray(viData.referred_to_by)
+    ? viData.referred_to_by
+    : viData.referred_to_by
+      ? [viData.referred_to_by]
+      : [];
+
+  for (const ref of rArr) {
+    const classIds = (Array.isArray(ref.classified_as) ? ref.classified_as : [])
+      .map((c: { id?: string }) => c.id)
+      .filter(Boolean);
+
+    // aat:300435434 = Copyright/License Statement
+    if (classIds.some((id: string) => id.includes('300435434'))) {
+      licenseLabel = ref.content || licenseLabel;
+    }
+
+    // aat:300055292 = copyright holder / aat:300026687 = acknowledgements
+    if (
+      classIds.some(
+        (id: string) => id.includes('300055292') || id.includes('300026687'),
+      )
+    ) {
+      copyrightHolder = ref.content || copyrightHolder;
+    }
+  }
+
+  // --- subject_to: structured Rights ---
+  const stArr = Array.isArray(viData.subject_to)
+    ? viData.subject_to
+    : viData.subject_to
+      ? [viData.subject_to]
+      : [];
+
+  for (const right of stArr) {
+    if (right.type !== 'Right') continue;
+
+    const rightClassIds = (
+      Array.isArray(right.classified_as) ? right.classified_as : []
+    )
+      .map((c: { id?: string }) => c.id)
+      .filter(Boolean);
+
+    for (const id of rightClassIds) {
+      if (typeof id === 'string' && id.includes('creativecommons.org')) {
+        license = id;
+      }
+    }
+
+    // Also extract the right's name if we don't have a label yet
+    if (!licenseLabel && right.identified_by) {
+      const names = Array.isArray(right.identified_by)
+        ? right.identified_by
+        : [right.identified_by];
+      for (const n of names) {
+        if (n.content) {
+          licenseLabel = n.content;
+          break;
+        }
+      }
+    }
+  }
+
+  return { copyrightHolder, license, licenseLabel };
+}
+
+/**
+ * Determine if an object's image is public domain based on its license data.
+ *
+ * Public domain when:
+ * - licenseLabel is "Public Domain" or "Publieke domein" (Dutch equivalent)
+ * - license URI is a CC public domain mark or CC0
+ * - No license data at all (Rijksmuseum default — own digitizations are CC0)
+ *
+ * NOT public domain when licenseLabel contains a person/entity name
+ * (copyright holder names are returned in the licenseLabel field by the API).
+ */
+function isPublicDomainLicense(
+  license: string | null,
+  licenseLabel: string | null,
+  copyrightHolder: string | null,
+): boolean {
+  // If there's a named copyright holder, it's not public domain
+  if (copyrightHolder) return false;
+
+  // No license data at all — assume public domain (Rijksmuseum default)
+  if (!licenseLabel && !license) return true;
+
+  // Check the label for known public domain strings
+  if (licenseLabel) {
+    const lower = licenseLabel.toLowerCase();
+    if (lower === 'public domain' || lower === 'publieke domein') return true;
+    // If the label is a name (copyright holder), it's not public domain
+    // Known PD labels are exact matches above; anything else is a rights holder
+    if (lower !== 'copyright' && lower !== 'auteursrecht') {
+      // "Copyright" / "Auteursrecht" without a holder name — check the URI
+      return false;
+    }
+  }
+
+  // Check the license URI
+  if (license) {
+    if (license.includes('publicdomain') || license.includes('zero')) {
+      return true;
+    }
+    // Has a license URI that isn't public domain
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * Resolve IIIF image URL and rights via 2-hop Linked Art traversal:
  *   1. Compute VisualItem ID:  PID "200xxxxx" → "202xxxxx"
  *   2. Fetch VisualItem → digitally_shown_by[].id  → DigitalObject URL
+ *      Also extract rights info from the VisualItem.
  *   3. Fetch DigitalObject → access_point[].id      → IIIF image URL
  */
-async function resolveImageUrl(
-  pidDataUri: string,
-): Promise<{ thumbnailUrl: string | null; imageUrl: string | null }> {
+async function resolveImageUrl(pidDataUri: string): Promise<ImageCacheEntry> {
   const pidId = extractPidId(pidDataUri);
-  if (!pidId) return { thumbnailUrl: null, imageUrl: null };
+  if (!pidId) return EMPTY_RESULT;
 
   try {
     // --- Hop 1: Compute VisualItem ID (replace "200" prefix with "202") ---
@@ -117,10 +258,13 @@ async function resolveImageUrl(
       { headers: LA_HEADERS, redirect: 'follow' },
     );
     if (!viResponse.ok) {
-      return { thumbnailUrl: null, imageUrl: null };
+      return EMPTY_RESULT;
     }
 
     const viData = await viResponse.json();
+
+    // Extract rights info from the VisualItem response
+    const rightsInfo = extractRightsInfo(viData);
 
     // Extract DigitalObject reference from digitally_shown_by
     const dsbArr = Array.isArray(viData.digitally_shown_by)
@@ -131,7 +275,7 @@ async function resolveImageUrl(
     const digitalObjectUrl = dsbArr[0]?.id;
 
     if (!digitalObjectUrl) {
-      return { thumbnailUrl: null, imageUrl: null };
+      return { ...EMPTY_RESULT, ...rightsInfo };
     }
 
     // --- Hop 2: Fetch DigitalObject to get the IIIF access_point ---
@@ -143,7 +287,7 @@ async function resolveImageUrl(
       },
     );
     if (!doResponse.ok) {
-      return { thumbnailUrl: null, imageUrl: null };
+      return { ...EMPTY_RESULT, ...rightsInfo };
     }
 
     const doData = await doResponse.json();
@@ -164,7 +308,7 @@ async function resolveImageUrl(
     }
 
     if (!iiifBaseUrl) {
-      return { thumbnailUrl: null, imageUrl: null };
+      return { ...EMPTY_RESULT, ...rightsInfo };
     }
 
     // Extract IIIF image ID from URL
@@ -175,12 +319,13 @@ async function resolveImageUrl(
       return {
         thumbnailUrl: `https://iiif.micr.io/${imageId}/full/400,/0/default.jpg`,
         imageUrl: `https://iiif.micr.io/${imageId}/full/1920,/0/default.jpg`,
+        ...rightsInfo,
       };
     }
 
-    return { thumbnailUrl: null, imageUrl: null };
+    return { ...EMPTY_RESULT, ...rightsInfo };
   } catch {
-    return { thumbnailUrl: null, imageUrl: null };
+    return EMPTY_RESULT;
   }
 }
 
@@ -192,7 +337,7 @@ async function processBatch(
 
   const imagePromises = rows.map(async (row) => {
     const pidId = extractPidId(row['PID_data.URI']);
-    if (pidId && cache[pidId]) {
+    if (pidId && cache[pidId] && 'license' in cache[pidId]) {
       return cache[pidId];
     }
     const imageData = await resolveImageUrl(row['PID_data.URI']);
@@ -234,6 +379,14 @@ async function processBatch(
       thumbnailUrl: imageData.thumbnailUrl,
       imageUrl: imageData.imageUrl,
       hasImage: !!imageData.thumbnailUrl,
+      copyrightHolder: imageData.copyrightHolder,
+      license: imageData.license,
+      licenseLabel: imageData.licenseLabel,
+      isPublicDomain: isPublicDomainLicense(
+        imageData.license,
+        imageData.licenseLabel,
+        imageData.copyrightHolder,
+      ),
     };
 
     results.push(obj);

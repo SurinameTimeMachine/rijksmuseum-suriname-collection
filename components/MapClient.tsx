@@ -443,6 +443,7 @@ function SelectedLocationPanel({
                   fill
                   sizes="120px"
                   className="group-hover:scale-105 transition-transform duration-300"
+                  isPublicDomain={obj.isPublicDomain}
                 />
               </div>
               <div className="p-1.5">

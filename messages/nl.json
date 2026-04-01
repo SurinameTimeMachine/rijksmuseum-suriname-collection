@@ -61,6 +61,9 @@
     "viewOnRijksmuseum": "Bekijk op de Rijksmuseum website",
     "relatedObjects": "Gerelateerde Objecten",
     "noImage": "Geen afbeelding beschikbaar",
+    "imageRestricted": "Afbeelding niet beschikbaar vanwege auteursrechtelijke beperkingen",
+    "license": "Licentie",
+    "licenseUnknown": "Licentie onbekend — moet gecontroleerd worden",
     "anonymous": "Anoniem",
     "back": "Terug"
   },

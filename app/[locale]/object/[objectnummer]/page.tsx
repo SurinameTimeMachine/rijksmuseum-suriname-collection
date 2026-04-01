@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getObjectByNumber, getRelatedObjects } from '@/lib/collection';
+import { getLicenseShortName } from '@/lib/utils';
 import ObjectImage from '@/components/ObjectImage';
 import ObjectCard from '@/components/ObjectCard';
 import {
@@ -13,6 +14,8 @@ import {
   Users,
   ExternalLink,
   Layers,
+  Scale,
+  AlertTriangle,
 } from 'lucide-react';
 
 // Return empty array so pages are rendered on-demand instead of at build time.
@@ -85,10 +88,18 @@ export default async function ObjectPage({
               priority
               className="object-contain"
               sizes="(max-width: 1024px) 100vw, 60vw"
+              isPublicDomain={obj.isPublicDomain}
             />
             {!obj.hasImage && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <p className="text-(--color-warm-gray)">{t('noImage')}</p>
+              </div>
+            )}
+            {obj.hasImage && !obj.isPublicDomain && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <p className="text-(--color-warm-gray) text-sm text-center px-4">
+                  {t('imageRestricted')}
+                </p>
               </div>
             )}
           </div>
@@ -180,6 +191,60 @@ export default async function ObjectPage({
                 values={obj.persons}
               />
             )}
+            {(() => {
+              const licenseInfo = getLicenseShortName(
+                obj.license,
+                obj.licenseLabel,
+              );
+              return (
+                <div className="flex items-start gap-2">
+                  <div className="mt-0.5 text-(--color-warm-gray)">
+                    <Scale size={14} />
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray)">
+                      {t('license')}
+                    </span>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      {licenseInfo.isUnknown ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 border border-amber-300 text-amber-800 text-xs font-medium">
+                          <AlertTriangle size={12} />
+                          {t('licenseUnknown')}
+                        </span>
+                      ) : (
+                        <>
+                          {licenseInfo.url ? (
+                            <a
+                              href={licenseInfo.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium border ${
+                                obj.isPublicDomain
+                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                                  : 'bg-amber-50 border-amber-300 text-amber-800'
+                              }`}
+                            >
+                              {licenseInfo.name}
+                              <ExternalLink size={10} />
+                            </a>
+                          ) : (
+                            <span
+                              className={`inline-flex items-center px-2.5 py-1 text-xs font-medium border ${
+                                obj.isPublicDomain
+                                  ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                                  : 'bg-amber-50 border-amber-300 text-amber-800'
+                              }`}
+                            >
+                              {licenseInfo.name}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* External link */}

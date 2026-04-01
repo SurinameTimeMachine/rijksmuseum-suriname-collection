@@ -21,6 +21,10 @@ export interface CollectionObject {
   thumbnailUrl: string | null;
   imageUrl: string | null;
   hasImage: boolean;
+  copyrightHolder: string | null;
+  license: string | null;
+  licenseLabel: string | null;
+  isPublicDomain: boolean;
 }
 
 export interface FilterOptions {

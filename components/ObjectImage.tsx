@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { ImageOff } from 'lucide-react';
+import { ImageOff, Lock } from 'lucide-react';
 import Image from 'next/image';
 
 interface ObjectImageProps {
@@ -11,6 +11,7 @@ interface ObjectImageProps {
   className?: string;
   priority?: boolean;
   sizes?: string;
+  isPublicDomain?: boolean;
 }
 
 export default function ObjectImage({
@@ -22,8 +23,9 @@ export default function ObjectImage({
   className,
   priority = false,
   sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  isPublicDomain = true,
 }: ObjectImageProps) {
-  if (!src) {
+  if (!src || !isPublicDomain) {
     return (
       <div
         className={cn(
@@ -34,7 +36,7 @@ export default function ObjectImage({
         style={!fill ? { width, height } : undefined}
       >
         <div className="flex flex-col items-center gap-2 text-(--color-warm-gray-light)">
-          <ImageOff size={32} />
+          {!isPublicDomain && src ? <Lock size={32} /> : <ImageOff size={32} />}
         </div>
       </div>
     );
