@@ -4,7 +4,16 @@ import type {
   FilterOptions,
   SortOption,
 } from '@/types/collection';
+import { getLicenseShortName } from '@/lib/utils';
 import { cache } from 'react';
+
+function getObjectLicenseStatus(
+  obj: CollectionObject,
+): 'public-domain' | 'copyrighted' | 'unknown' {
+  const licenseInfo = getLicenseShortName(obj.license, obj.licenseLabel);
+  if (licenseInfo.isUnknown) return 'unknown';
+  return obj.isPublicDomain ? 'public-domain' : 'copyrighted';
+}
 
 /**
  * Load the full collection dataset.
@@ -98,6 +107,13 @@ export async function getFilteredObjects(
   if (filters.materials && filters.materials.length > 0) {
     filtered = filtered.filter((obj) =>
       obj.materials.some((m) => filters.materials!.includes(m)),
+    );
+  }
+
+  // License status filter
+  if (filters.licenseStatuses && filters.licenseStatuses.length > 0) {
+    filtered = filtered.filter((obj) =>
+      filters.licenseStatuses!.includes(getObjectLicenseStatus(obj)),
     );
   }
 
@@ -220,6 +236,7 @@ export async function getFacets() {
   const geographicKeywords = new Map<string, number>();
   const subjects = new Map<string, number>();
   const materials = new Map<string, number>();
+  const licenseStatuses = new Map<string, number>();
 
   for (const obj of collection) {
     for (const t of obj.objectTypes)
@@ -230,6 +247,11 @@ export async function getFacets() {
     for (const s of obj.subjects) subjects.set(s, (subjects.get(s) || 0) + 1);
     for (const m of obj.materials)
       materials.set(m, (materials.get(m) || 0) + 1);
+    const licenseStatus = getObjectLicenseStatus(obj);
+    licenseStatuses.set(
+      licenseStatus,
+      (licenseStatuses.get(licenseStatus) || 0) + 1,
+    );
   }
 
   const mapToSorted = (map: Map<string, number>) =>
@@ -243,7 +265,18 @@ export async function getFacets() {
     geographicKeywords: mapToSorted(geographicKeywords),
     subjects: mapToSorted(subjects),
     materials: mapToSorted(materials),
+    licenseStatuses: mapToSorted(licenseStatuses),
   };
+}
+
+/**
+ * Return objects with unresolved location interpretation for QA review.
+ */
+export async function getLocationQaObjects(): Promise<CollectionObject[]> {
+  const collection = await getCollection();
+  return collection.filter((obj) =>
+    obj.geoKeywordDetails.some((d) => d.source === 'unresolved'),
+  );
 }
 
 /**

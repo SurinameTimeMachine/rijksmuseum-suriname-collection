@@ -16,6 +16,7 @@ import {
   Layers,
   Scale,
   AlertTriangle,
+  Globe,
 } from 'lucide-react';
 
 // Return empty array so pages are rendered on-demand instead of at build time.
@@ -62,6 +63,12 @@ export default async function ObjectPage({
     obj.dateStart === obj.dateEnd
       ? obj.dateStart
       : `${obj.dateStart} — ${obj.dateEnd}`;
+  const mappableDetail = obj.geoKeywordDetails.find(
+    (d) => d.lat !== null && d.lng !== null,
+  );
+  const mapLocation = mappableDetail
+    ? { lat: mappableDetail.lat as number, lng: mappableDetail.lng as number }
+    : null;
 
   // Rijksmuseum website link
   const rijksUrl = `https://www.rijksmuseum.nl/nl/collectie/${obj.objectnummer}`;
@@ -170,12 +177,114 @@ export default async function ObjectPage({
                 values={obj.materials}
               />
             )}
-            {obj.geographicKeywords.length > 0 && (
-              <MetadataRow
-                icon={<MapPin size={14} />}
-                label={t('locations')}
-                values={obj.geographicKeywords}
-              />
+            {obj.geoKeywordDetails.length > 0 && (
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-1.5">
+                  <MapPin size={14} />
+                  {t('locations')}
+                </div>
+                <div className="space-y-2">
+                  {obj.geoKeywordDetails.map((detail) => {
+                    return (
+                      <div
+                        key={`${detail.term}-${detail.source}`}
+                        className="px-3 py-2 bg-(--color-cream-dark) text-xs"
+                      >
+                        <span className="text-(--color-charcoal-light) font-medium">
+                          {detail.term}
+                        </span>
+                        {detail?.broaderTerm && (
+                          <span className="text-(--color-warm-gray)">
+                            {' '}
+                            — {detail.broaderTerm}
+                          </span>
+                        )}
+                        <div className="mt-1">
+                          <span className="inline-flex items-center px-2 py-0.5 border border-(--color-border) text-(--color-warm-gray) text-[10px] uppercase tracking-wider">
+                            {t(`locationSource.${detail.source}`)}
+                          </span>
+                        </div>
+                        {detail.lat !== null && detail.lng !== null && (
+                          <div className="text-(--color-warm-gray) mt-1">
+                            {detail.lat.toFixed(4)}, {detail.lng.toFixed(4)}
+                          </div>
+                        )}
+                        {detail.source === 'unresolved' && (
+                          <div className="text-amber-700 mt-1">
+                            {t('locationNeedsReview')}
+                          </div>
+                        )}
+                        {detail &&
+                          (detail.wikidataUri ||
+                            detail.gettyUri ||
+                            detail.geonamesUri) && (
+                            <div className="flex flex-wrap gap-2 mt-1">
+                              {detail.wikidataUri && (
+                                <a
+                                  href={detail.wikidataUri}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-0.5 text-blue-700 hover:underline"
+                                >
+                                  Wikidata
+                                  <ExternalLink size={9} />
+                                </a>
+                              )}
+                              {detail.gettyUri && (
+                                <a
+                                  href={detail.gettyUri}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-0.5 text-blue-700 hover:underline"
+                                >
+                                  Getty TGN
+                                  <ExternalLink size={9} />
+                                </a>
+                              )}
+                              {detail.geonamesUri && (
+                                <a
+                                  href={detail.geonamesUri}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-0.5 text-blue-700 hover:underline"
+                                >
+                                  GeoNames
+                                  <ExternalLink size={9} />
+                                </a>
+                              )}
+                            </div>
+                          )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {mapLocation && (
+              <div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-1.5">
+                  <Globe size={14} />
+                  {t('locationMap')}
+                </div>
+                <div className="border border-(--color-border) bg-(--color-cream-dark)">
+                  <iframe
+                    title={`${title} map`}
+                    className="w-full h-52"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${mapLocation.lng - 0.1}%2C${mapLocation.lat - 0.1}%2C${mapLocation.lng + 0.1}%2C${mapLocation.lat + 0.1}&layer=mapnik&marker=${mapLocation.lat}%2C${mapLocation.lng}`}
+                  />
+                </div>
+                <a
+                  href={`https://www.openstreetmap.org/?mlat=${mapLocation.lat}&mlon=${mapLocation.lng}#map=10/${mapLocation.lat}/${mapLocation.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-blue-700 hover:underline mt-1"
+                >
+                  {t('openInMap')}
+                  <ExternalLink size={10} />
+                </a>
+              </div>
             )}
             {obj.subjects.length > 0 && (
               <MetadataRow
@@ -247,16 +356,40 @@ export default async function ObjectPage({
             })()}
           </div>
 
-          {/* External link */}
-          <a
-            href={rijksUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-3 bg-(--color-charcoal) text-white text-sm font-semibold hover:bg-(--color-charcoal-light) transition-colors"
-          >
-            <ExternalLink size={14} />
-            {t('viewOnRijksmuseum')}
-          </a>
+          {/* External links */}
+          <div className="flex flex-wrap gap-3">
+            <a
+              href={rijksUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-3 bg-(--color-charcoal) text-white text-sm font-semibold hover:bg-(--color-charcoal-light) transition-colors"
+            >
+              <ExternalLink size={14} />
+              {t('viewOnRijksmuseum')}
+            </a>
+            {obj.wikidataUrl && (
+              <a
+                href={obj.wikidataUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-3 border border-(--color-border) text-(--color-charcoal) text-sm font-semibold hover:bg-(--color-cream-dark) transition-colors"
+              >
+                <Globe size={14} />
+                Wikidata
+              </a>
+            )}
+            {obj.wikimediaUrl && (
+              <a
+                href={obj.wikimediaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-5 py-3 border border-(--color-border) text-(--color-charcoal) text-sm font-semibold hover:bg-(--color-cream-dark) transition-colors"
+              >
+                <Globe size={14} />
+                Wikimedia Commons
+              </a>
+            )}
+          </div>
         </div>
       </div>
 

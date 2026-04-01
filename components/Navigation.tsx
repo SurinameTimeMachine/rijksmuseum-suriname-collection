@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import {
+  AlertTriangle,
   BarChart3,
   Clock,
   Globe,
@@ -20,6 +21,11 @@ const navItems = [
   { href: '/timeline', labelKey: 'timeline' as const, icon: Clock },
   { href: '/map', labelKey: 'map' as const, icon: MapPin },
   { href: '/statistics', labelKey: 'statistics' as const, icon: BarChart3 },
+  {
+    href: '/location-qa',
+    labelKey: 'locationQa' as const,
+    icon: AlertTriangle,
+  },
 ];
 
 export default function Navigation() {

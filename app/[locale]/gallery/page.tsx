@@ -46,6 +46,11 @@ export default async function GalleryPage({
     : sp.subject
       ? [sp.subject]
       : [];
+  const licenses = Array.isArray(sp.license)
+    ? sp.license
+    : sp.license
+      ? [sp.license]
+      : [];
   const sort = (
     typeof sp.sort === 'string' ? sp.sort : 'date-desc'
   ) as SortOption;
@@ -58,6 +63,10 @@ export default async function GalleryPage({
         objectTypes: types.length > 0 ? types : undefined,
         geographicKeywords: locations.length > 0 ? locations : undefined,
         subjects: subjects.length > 0 ? subjects : undefined,
+        licenseStatuses:
+          licenses.length > 0
+            ? (licenses as Array<'public-domain' | 'copyrighted' | 'unknown'>)
+            : undefined,
       },
       sort,
       page,

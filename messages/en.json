@@ -9,6 +9,7 @@
     "timeline": "Timeline",
     "map": "Map",
     "statistics": "Statistics",
+    "locationQa": "Location QA",
     "language": "Language"
   },
   "home": {
@@ -34,6 +35,10 @@
     "creator": "Creator",
     "location": "Location",
     "subject": "Subject",
+    "license": "License",
+    "licensePublicDomain": "Public domain",
+    "licenseCopyrighted": "Copyrighted",
+    "licenseUnknown": "Unknown / review",
     "material": "Material",
     "hasImage": "Has Image",
     "showAll": "Show all",
@@ -47,6 +52,14 @@
     "page": "Page {current} of {total}",
     "noResults": "No objects match your filters.",
     "noResultsSuggestion": "Try adjusting your filters or search terms."
+  },
+  "locationQa": {
+    "title": "Location QA",
+    "subtitle": "Objects with unresolved location interpretation",
+    "unresolvedTerms": "Unresolved terms",
+    "objects": "Objects",
+    "openObject": "Open object",
+    "noIssues": "No unresolved locations found."
   },
   "object": {
     "description": "Description",
@@ -64,6 +77,14 @@
     "imageRestricted": "Image not available due to copyright restrictions",
     "license": "License",
     "licenseUnknown": "License unknown — needs review",
+    "locationNeedsReview": "Location could not be resolved automatically and should be reviewed",
+    "locationMap": "Location Map",
+    "openInMap": "Open in map",
+    "locationSource": {
+      "thesaurus": "Source: Geo thesaurus",
+      "coordinates": "Source: Coordinates table",
+      "unresolved": "Source: Unresolved"
+    },
     "anonymous": "Anonymous",
     "back": "Back"
   },

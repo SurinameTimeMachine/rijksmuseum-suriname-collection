@@ -15,10 +15,13 @@
 import fs from 'fs';
 import Papa from 'papaparse';
 import path from 'path';
-import type { CollectionObject } from '../types/collection';
+import type { CollectionObject, GeoKeywordDetail } from '../types/collection';
+import { geoCoordinates } from '../data/geo-coordinates';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const CSV_PATH = path.join(DATA_DIR, 'Suriname_objecten_export.csv');
+const GEO_CSV_PATH = path.join(DATA_DIR, 'Geo thesau Suriname.csv');
+const WIKIDATA_CSV_PATH = path.join(DATA_DIR, 'results_wikidata_commons.csv');
 const OUTPUT_PATH = path.join(DATA_DIR, 'collection.json');
 const CACHE_DIR = path.join(DATA_DIR, '.cache');
 
@@ -58,12 +61,152 @@ interface ImageCache {
   [pidDataId: string]: ImageCacheEntry;
 }
 
+/**
+ * Load the geographic thesaurus CSV and build a lookup map keyed by term name.
+ * The CSV has duplicate column names ("PID_overige.URI" x3), so we parse
+ * without headers and use column indices.
+ * File is ISO-8859-1 encoded.
+ */
+function loadGeoThesaurus(): Map<string, GeoKeywordDetail> {
+  const map = new Map<string, GeoKeywordDetail>();
+
+  if (!fs.existsSync(GEO_CSV_PATH)) {
+    console.warn('⚠️  Geo thesaurus CSV not found, skipping');
+    return map;
+  }
+
+  const raw = fs.readFileSync(GEO_CSV_PATH);
+  // Decode as latin1 (ISO-8859-1)
+  const csvContent = new TextDecoder('latin1').decode(raw);
+
+  const parsed = Papa.parse<string[]>(csvContent, {
+    header: false,
+    delimiter: ';',
+    skipEmptyLines: true,
+  });
+
+  // Skip header row (index 0)
+  for (let i = 1; i < parsed.data.length; i++) {
+    const cols = parsed.data[i];
+    const term = (cols[1] || '').trim();
+    if (!term) continue;
+
+    const broaderTerm = (cols[2] || '').trim() || null;
+
+    // Columns 3-5 are all "PID_overige.URI" — categorize by domain
+    let gettyUri: string | null = null;
+    let wikidataUri: string | null = null;
+    let geonamesUri: string | null = null;
+
+    for (let c = 3; c <= 5; c++) {
+      const uri = (cols[c] || '').trim();
+      if (!uri) continue;
+      if (uri.includes('vocab.getty.edu')) gettyUri = uri;
+      else if (uri.includes('wikidata.org')) wikidataUri = uri;
+      else if (uri.includes('geonames.org')) geonamesUri = uri;
+    }
+
+    map.set(term, {
+      term,
+      broaderTerm,
+      gettyUri,
+      wikidataUri,
+      geonamesUri,
+      lat: geoCoordinates[term]?.lat ?? null,
+      lng: geoCoordinates[term]?.lng ?? null,
+      region: geoCoordinates[term]?.region ?? null,
+      source: 'thesaurus',
+    });
+  }
+
+  return map;
+}
+
+interface WikidataEntry {
+  wikidataUrl: string | null;
+  wikimediaUrl: string | null;
+}
+
+/**
+ * Load the Wikidata/Wikimedia Commons CSV and build a lookup map keyed by recordnummer.
+ */
+function loadWikidataCommons(): Map<string, WikidataEntry> {
+  const map = new Map<string, WikidataEntry>();
+
+  if (!fs.existsSync(WIKIDATA_CSV_PATH)) {
+    console.warn('⚠️  Wikidata CSV not found, skipping');
+    return map;
+  }
+
+  const csvContent = fs.readFileSync(WIKIDATA_CSV_PATH, 'utf-8');
+
+  const parsed = Papa.parse<Record<string, string>>(csvContent, {
+    header: true,
+    skipEmptyLines: true,
+  });
+
+  for (const row of parsed.data) {
+    const rn = (row.recordnummer || '').trim();
+    if (!rn) continue;
+
+    map.set(rn, {
+      wikidataUrl: (row.wikidata_url || '').trim() || null,
+      wikimediaUrl: (row.wikimedia_url || '').trim() || null,
+    });
+  }
+
+  return map;
+}
+
 function splitMultiValue(value: string): string[] {
   if (!value || value === '""' || value === '') return [];
   return value
     .split('$')
     .map((v) => v.trim())
     .filter(Boolean);
+}
+
+/**
+ * Build location details for every keyword with explicit provenance.
+ * Matching is strict and exact only (no fuzzy matching).
+ */
+function buildGeoKeywordDetails(
+  keywords: string[],
+  geoThesaurus: Map<string, GeoKeywordDetail>,
+): GeoKeywordDetail[] {
+  return keywords.map((kw) => {
+    const thesaurusDetail = geoThesaurus.get(kw);
+    if (thesaurusDetail) {
+      return thesaurusDetail;
+    }
+
+    const coord = geoCoordinates[kw];
+    if (coord) {
+      return {
+        term: kw,
+        broaderTerm: null,
+        gettyUri: null,
+        wikidataUri: null,
+        geonamesUri: null,
+        lat: coord.lat,
+        lng: coord.lng,
+        region: coord.region,
+        source: 'coordinates',
+      };
+    }
+
+    return {
+      term: kw,
+      broaderTerm: null,
+      gettyUri: null,
+      wikidataUri: null,
+      geonamesUri: null,
+      lat: null,
+      lng: null,
+      region: null,
+      source: 'unresolved',
+    };
+  });
 }
 
 function extractYear(dateStr: string): number | null {
@@ -332,6 +475,8 @@ async function resolveImageUrl(pidDataUri: string): Promise<ImageCacheEntry> {
 async function processBatch(
   rows: CsvRow[],
   cache: ImageCache,
+  geoThesaurus: Map<string, GeoKeywordDetail>,
+  wikidataMap: Map<string, WikidataEntry>,
 ): Promise<CollectionObject[]> {
   const results: CollectionObject[] = [];
 
@@ -353,6 +498,7 @@ async function processBatch(
     const row = rows[i];
     const imageData = imageResults[i];
     const year = extractYear(row['datering.datum.start']);
+    const geographicKeywords = splitMultiValue(row.geografisch_trefwoord);
 
     const obj: CollectionObject = {
       recordnummer: parseInt(row.recordnummer, 10),
@@ -369,7 +515,11 @@ async function processBatch(
       contentClassificationCodes: splitMultiValue(
         row['inhoud.classificatie.code'],
       ),
-      geographicKeywords: splitMultiValue(row.geografisch_trefwoord),
+      geographicKeywords,
+      geoKeywordDetails: buildGeoKeywordDetails(
+        geographicKeywords,
+        geoThesaurus,
+      ),
       mainMotifGeneral: splitMultiValue(row['inhoud.hoofdmotief.algemeen']),
       mainMotifSpecific: splitMultiValue(row['inhoud.hoofdmotief.specifiek']),
       subjects: splitMultiValue(row['inhoud.onderwerp']),
@@ -387,6 +537,8 @@ async function processBatch(
         imageData.licenseLabel,
         imageData.copyrightHolder,
       ),
+      wikidataUrl: wikidataMap.get(row.recordnummer)?.wikidataUrl ?? null,
+      wikimediaUrl: wikidataMap.get(row.recordnummer)?.wikimediaUrl ?? null,
     };
 
     results.push(obj);
@@ -420,6 +572,13 @@ async function main() {
     parsed.errors.slice(0, 5).forEach((e) => console.warn(`  - ${e.message}`));
   }
 
+  // Load auxiliary data sources
+  console.log(`\nLoading auxiliary data sources...`);
+  const geoThesaurus = loadGeoThesaurus();
+  console.log(`📍 Geo thesaurus: ${geoThesaurus.size} geographic terms`);
+  const wikidataMap = loadWikidataCommons();
+  console.log(`🔗 Wikidata/Commons: ${wikidataMap.size} linked objects`);
+
   // Load cache
   const cache = loadCache();
   const cachedCount = Object.keys(cache).length;
@@ -439,7 +598,7 @@ async function main() {
   for (let i = 0; i < rows.length; i += CONCURRENCY) {
     const batch = rows.slice(i, i + CONCURRENCY);
     const batchNum = Math.floor(i / CONCURRENCY) + 1;
-    const results = await processBatch(batch, cache);
+    const results = await processBatch(batch, cache, geoThesaurus, wikidataMap);
     allObjects.push(...results);
 
     const progress = Math.round(((i + batch.length) / rows.length) * 100);
@@ -483,6 +642,14 @@ async function main() {
   console.log(`\n📊 Quick stats:`);
   console.log(`   Unique object types: ${types.size}`);
   console.log(`   Unique locations: ${locations.size}`);
+  const withGeoDetails = allObjects.filter(
+    (o) => o.geoKeywordDetails.length > 0,
+  ).length;
+  console.log(`   With geo thesaurus details: ${withGeoDetails}`);
+  const withWikidata = allObjects.filter((o) => o.wikidataUrl).length;
+  const withWikimedia = allObjects.filter((o) => o.wikimediaUrl).length;
+  console.log(`   With Wikidata URL: ${withWikidata}`);
+  console.log(`   With Wikimedia Commons URL: ${withWikimedia}`);
   const years = allObjects
     .map((o) => o.year)
     .filter((y): y is number => y !== null);

@@ -9,6 +9,7 @@
     "timeline": "Tijdlijn",
     "map": "Kaart",
     "statistics": "Statistieken",
+    "locationQa": "Locatie QA",
     "language": "Taal"
   },
   "home": {
@@ -34,6 +35,10 @@
     "creator": "Vervaardiger",
     "location": "Locatie",
     "subject": "Onderwerp",
+    "license": "Licentie",
+    "licensePublicDomain": "Publiek domein",
+    "licenseCopyrighted": "Auteursrechtelijk beschermd",
+    "licenseUnknown": "Onbekend / controle",
     "material": "Materiaal",
     "hasImage": "Heeft Afbeelding",
     "showAll": "Toon alles",
@@ -47,6 +52,14 @@
     "page": "Pagina {current} van {total}",
     "noResults": "Geen objecten gevonden met deze filters.",
     "noResultsSuggestion": "Probeer de filters of zoektermen aan te passen."
+  },
+  "locationQa": {
+    "title": "Locatie QA",
+    "subtitle": "Objecten met onopgeloste locatie-interpretatie",
+    "unresolvedTerms": "Onopgeloste termen",
+    "objects": "Objecten",
+    "openObject": "Open object",
+    "noIssues": "Geen onopgeloste locaties gevonden."
   },
   "object": {
     "description": "Beschrijving",
@@ -64,6 +77,14 @@
     "imageRestricted": "Afbeelding niet beschikbaar vanwege auteursrechtelijke beperkingen",
     "license": "Licentie",
     "licenseUnknown": "Licentie onbekend — moet gecontroleerd worden",
+    "locationNeedsReview": "Locatie kon niet automatisch worden bepaald en moet worden gecontroleerd",
+    "locationMap": "Locatiekaart",
+    "openInMap": "Openen in kaart",
+    "locationSource": {
+      "thesaurus": "Bron: Geo-thesaurus",
+      "coordinates": "Bron: Coördinatentabel",
+      "unresolved": "Bron: Onopgelost"
+    },
     "anonymous": "Anoniem",
     "back": "Terug"
   },

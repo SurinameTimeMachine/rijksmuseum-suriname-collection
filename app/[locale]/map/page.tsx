@@ -1,6 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getObjectsByLocation } from '@/lib/collection';
-import { geoCoordinates } from '@/data/geo-coordinates';
 import MapClient from '@/components/MapClient';
 import ScrollReveal from '@/components/ScrollReveal';
 
@@ -25,14 +24,31 @@ export default async function MapPage({
   const t = await getTranslations({ locale, namespace: 'map' });
   const objectsByLocation = await getObjectsByLocation();
 
-  // Match geographic keywords to coordinates
+  // Match geographic keywords to coordinates from the enriched geo thesaurus data
   const locations = Object.entries(objectsByLocation)
-    .filter(([keyword]) => geoCoordinates[keyword])
-    .map(([keyword, objects]) => ({
-      keyword,
-      geo: { ...geoCoordinates[keyword], objectCount: objects.length },
-      objects,
-    }));
+    .filter(([keyword, objects]) => {
+      // Use geo details from any object with this keyword — they all share the same detail
+      const detail = objects[0]?.geoKeywordDetails?.find(
+        (d) => d.term === keyword,
+      );
+      return detail?.lat != null && detail?.lng != null;
+    })
+    .map(([keyword, objects]) => {
+      const detail = objects[0].geoKeywordDetails.find(
+        (d) => d.term === keyword,
+      )!;
+      return {
+        keyword,
+        geo: {
+          name: detail.term,
+          lat: detail.lat!,
+          lng: detail.lng!,
+          region: detail.region ?? ('other' as const),
+          objectCount: objects.length,
+        },
+        objects,
+      };
+    });
 
   return (
     <div className="max-w-350 mx-auto px-4 sm:px-6 lg:px-8 py-8">

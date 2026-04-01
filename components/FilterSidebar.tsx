@@ -18,6 +18,7 @@ interface FilterSidebarProps {
     geographicKeywords: FacetItem[];
     subjects: FacetItem[];
     materials: FacetItem[];
+    licenseStatuses: FacetItem[];
   };
 }
 
@@ -33,6 +34,7 @@ export default function FilterSidebar({ facets }: FilterSidebarProps) {
   const currentTypes = searchParams.getAll('type');
   const currentLocations = searchParams.getAll('location');
   const currentSubjects = searchParams.getAll('subject');
+  const currentLicenses = searchParams.getAll('license');
   const currentSort = searchParams.get('sort') || 'date-desc';
 
   const updateParams = useCallback(
@@ -78,7 +80,8 @@ export default function FilterSidebar({ facets }: FilterSidebarProps) {
     currentQuery ||
     currentTypes.length > 0 ||
     currentLocations.length > 0 ||
-    currentSubjects.length > 0;
+    currentSubjects.length > 0 ||
+    currentLicenses.length > 0;
 
   const filterContent = (
     <div className="space-y-6">
@@ -144,6 +147,19 @@ export default function FilterSidebar({ facets }: FilterSidebarProps) {
         onToggle={(val) => toggleFilter('subject', val)}
       />
 
+      {/* License */}
+      <FacetGroup
+        title={t('license')}
+        items={facets.licenseStatuses}
+        selected={currentLicenses}
+        labelMap={{
+          'public-domain': t('licensePublicDomain'),
+          copyrighted: t('licenseCopyrighted'),
+          unknown: t('licenseUnknown'),
+        }}
+        onToggle={(val) => toggleFilter('license', val)}
+      />
+
       {/* Clear */}
       {hasFilters && (
         <button
@@ -170,6 +186,7 @@ export default function FilterSidebar({ facets }: FilterSidebarProps) {
             {currentTypes.length +
               currentLocations.length +
               currentSubjects.length +
+              currentLicenses.length +
               (currentQuery ? 1 : 0)}
           </span>
         )}
@@ -182,7 +199,12 @@ export default function FilterSidebar({ facets }: FilterSidebarProps) {
           mobileOpen ? 'block' : 'hidden',
         )}
       >
-        <div className={cn('lg:sticky lg:top-20', isPending && 'opacity-60')}>
+        <div
+          className={cn(
+            'lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto lg:pr-2',
+            isPending && 'opacity-60',
+          )}
+        >
           {filterContent}
         </div>
       </aside>
@@ -194,11 +216,13 @@ function FacetGroup({
   title,
   items,
   selected,
+  labelMap,
   onToggle,
 }: {
   title: string;
   items: FacetItem[];
   selected: string[];
+  labelMap?: Record<string, string>;
   onToggle: (value: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -222,7 +246,7 @@ function FacetGroup({
               className="w-3.5 h-3.5 rounded border-(--color-border) text-(--color-charcoal-light) focus:ring-(--color-charcoal-light)/20"
             />
             <span className="text-sm text-(--color-charcoal-light) group-hover:text-(--color-charcoal) flex-1 truncate">
-              {item.value}
+              {labelMap?.[item.value] || item.value}
             </span>
             <span className="text-xs text-(--color-warm-gray-light)">
               {item.count}

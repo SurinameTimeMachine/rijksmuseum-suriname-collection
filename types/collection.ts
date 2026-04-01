@@ -1,3 +1,15 @@
+export interface GeoKeywordDetail {
+  term: string;
+  broaderTerm: string | null;
+  gettyUri: string | null;
+  wikidataUri: string | null;
+  geonamesUri: string | null;
+  lat: number | null;
+  lng: number | null;
+  region: 'suriname' | 'netherlands' | 'other' | null;
+  source: 'thesaurus' | 'coordinates' | 'unresolved';
+}
+
 export interface CollectionObject {
   recordnummer: number;
   objectnummer: string;
@@ -12,6 +24,7 @@ export interface CollectionObject {
   classificationCode: string;
   contentClassificationCodes: string[];
   geographicKeywords: string[];
+  geoKeywordDetails: GeoKeywordDetail[];
   mainMotifGeneral: string[];
   mainMotifSpecific: string[];
   subjects: string[];
@@ -25,6 +38,8 @@ export interface CollectionObject {
   license: string | null;
   licenseLabel: string | null;
   isPublicDomain: boolean;
+  wikidataUrl: string | null;
+  wikimediaUrl: string | null;
 }
 
 export interface FilterOptions {
@@ -35,6 +50,7 @@ export interface FilterOptions {
   geographicKeywords: string[];
   subjects: string[];
   materials: string[];
+  licenseStatuses: Array<'public-domain' | 'copyrighted' | 'unknown'>;
   query: string;
   hasImage: boolean | null;
 }
