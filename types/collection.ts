@@ -9,7 +9,7 @@ export interface GeoKeywordDetail {
   lat: number | null;
   lng: number | null;
   region: 'suriname' | 'netherlands' | 'other' | null;
-  source: 'thesaurus' | 'coordinates' | 'unresolved' | 'edit';
+  source: 'thesaurus' | 'coordinates' | 'unresolved' | 'edit' | 'term-default';
   resolutionLevel: LocationResolutionLevel | null;
   flags: GeoFlag[];
   provenance: LocationProvenance | null;
@@ -21,7 +21,12 @@ export type LocationResolutionLevel =
   | 'city'
   | 'country';
 
-export type LocationEvidenceSource = 'trefwoord' | 'beschrijving' | 'both';
+export type LocationEvidenceSource =
+  | 'trefwoord'
+  | 'beschrijving'
+  | 'both'
+  | 'bevestigd'
+  | 'revert';
 
 export type GeoFlag = 'outside-suriname';
 
@@ -44,6 +49,19 @@ export interface LocationEditRecord extends LocationProvenance {
   resolutionLevel: LocationResolutionLevel;
   evidenceSource: LocationEvidenceSource;
   evidenceText: string | null;
+}
+
+export interface TermDefault {
+  term: string;
+  resolvedLocationLabel: string;
+  wikidataQid: string | null;
+  wikidataUrl: string | null;
+  gazetteerUrl: string | null;
+  lat: number | null;
+  lng: number | null;
+  resolutionLevel: LocationResolutionLevel;
+  author: string;
+  timestamp: string;
 }
 
 export interface CollectionObject {

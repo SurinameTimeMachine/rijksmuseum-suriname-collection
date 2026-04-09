@@ -2,8 +2,10 @@ import { cache } from 'react';
 
 import {
   applyLocationEditsToObject,
+  applyTermDefaultsToObject,
   buildLatestLocationEditMap,
   loadLocationEdits,
+  loadTermDefaults,
 } from '@/lib/location-curation';
 import { getLicenseShortName } from '@/lib/utils';
 import type {
@@ -30,8 +32,11 @@ export const getCollection = cache(async (): Promise<CollectionObject[]> => {
   const data = await import('@/data/collection.json');
   const collection = data.default as CollectionObject[];
   const latestLocationEdits = buildLatestLocationEditMap(loadLocationEdits());
+  const termDefaults = loadTermDefaults();
 
-  return collection.map((obj) => applyLocationEditsToObject(obj, latestLocationEdits));
+  return collection
+    .map((obj) => applyLocationEditsToObject(obj, latestLocationEdits))
+    .map((obj) => applyTermDefaultsToObject(obj, termDefaults));
 });
 
 /**

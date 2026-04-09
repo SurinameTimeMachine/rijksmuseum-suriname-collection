@@ -8,11 +8,13 @@ import type {
   GeoKeywordDetail,
   LocationEditRecord,
   LocationResolutionLevel,
+  TermDefault,
 } from '@/types/collection';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const LOCATION_EDITS_PATH = path.join(DATA_DIR, 'location-edits.jsonl');
 const COUNTRY_CODES_PATH = path.join(DATA_DIR, 'country_codes.csv');
+const TERM_DEFAULTS_PATH = path.join(DATA_DIR, 'term-wikidata-map.json');
 
 const SURINAME_BOUNDS = {
   minLat: 1.7,
@@ -144,9 +146,15 @@ export function applyLocationEditsToObject(
       };
     }
 
+    if (edit.evidenceSource === 'revert') {
+      return {
+        ...detail,
+        flags: Array.from(new Set([...(detail.flags || []), ...baseFlags])),
+      };
+    }
+
     return {
       ...detail,
-      term: edit.resolvedLocationLabel,
       matchedLabel: edit.resolvedLocationLabel,
       wikidataUri: edit.wikidataUrl,
       stmGazetteerUrl: edit.gazetteerUrl ?? null,
@@ -208,4 +216,63 @@ export function loadSurinameLocationTerms(): string[] {
   }
 
   return Array.from(terms.values());
+}
+
+export function loadTermDefaults(): Map<string, TermDefault> {
+  if (!fs.existsSync(TERM_DEFAULTS_PATH)) return new Map();
+
+  try {
+    const raw = fs.readFileSync(TERM_DEFAULTS_PATH, 'utf-8').trim();
+    if (!raw || raw === '{}') return new Map();
+    const obj = JSON.parse(raw) as Record<string, TermDefault>;
+    return new Map(Object.entries(obj));
+  } catch {
+    return new Map();
+  }
+}
+
+export function saveTermDefault(entry: TermDefault): void {
+  const existing = loadTermDefaults();
+  const key = entry.term.trim().toLowerCase();
+  existing.set(key, entry);
+
+  const plain: Record<string, TermDefault> = {};
+  for (const [k, v] of existing.entries()) {
+    plain[k] = v;
+  }
+
+  fs.writeFileSync(TERM_DEFAULTS_PATH, JSON.stringify(plain, null, 2) + '\n', 'utf-8');
+}
+
+export function applyTermDefaultsToObject(
+  obj: CollectionObject,
+  termDefaults: Map<string, TermDefault>,
+): CollectionObject {
+  const updatedDetails = obj.geoKeywordDetails.map((detail) => {
+    // Don't overwrite object-specific edits or already-confirmed details
+    if (detail.source === 'edit') return detail;
+
+    const key = detail.term.trim().toLowerCase();
+    const def = termDefaults.get(key);
+    if (!def) return detail;
+
+    return {
+      ...detail,
+      matchedLabel: def.resolvedLocationLabel,
+      wikidataUri: def.wikidataUrl,
+      stmGazetteerUrl: def.gazetteerUrl ?? null,
+      lat: def.lat,
+      lng: def.lng,
+      resolutionLevel: def.resolutionLevel,
+      source: 'term-default' as const,
+      flags: getGeoFlags(def.lat, def.lng),
+      provenance: {
+        author: def.author,
+        timestamp: def.timestamp,
+        remark: null,
+      },
+    } satisfies GeoKeywordDetail;
+  });
+
+  return { ...obj, geoKeywordDetails: updatedDetails };
 }

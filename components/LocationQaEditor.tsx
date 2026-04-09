@@ -9,12 +9,14 @@ import {
 
 import {
   AlertTriangle,
+  Check,
   CheckCircle2,
   ExternalLink,
   FileText,
   MapPin,
   Save,
   Search,
+  XCircle,
 } from 'lucide-react';
 import {
   useLocale,
@@ -113,16 +115,155 @@ function getIssueDetails(obj: CollectionObject) {
   );
 }
 
+function ConfirmDetailButton({
+  obj,
+  detail,
+  t,
+  onMarkIncorrect,
+}: {
+  obj: CollectionObject;
+  detail: GeoKeywordDetail;
+  t: ReturnType<typeof useTranslations<'locationQa'>>;
+  onMarkIncorrect: (term: string) => void;
+}) {
+  const [isSaving, startSaving] = useTransition();
+  const [confirmed, setConfirmed] = useState(false);
+  const confirmedDate = detail.provenance?.timestamp?.split('T')[0] ?? '';
+
+  const handleRevert = () => {
+    startSaving(async () => {
+      await fetch('/api/location-edits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recordnummer: obj.recordnummer,
+          objectnummer: obj.objectnummer,
+          originalTerm: detail.term,
+          resolvedLocationLabel: detail.term,
+          wikidataReference: '',
+          gazetteerReference: '',
+          lat: '',
+          lng: '',
+          resolutionLevel: detail.resolutionLevel || 'exact',
+          evidenceSource: 'revert',
+          evidenceText: '',
+          author: DEFAULT_AUTHOR,
+          remark: t('revertRemark'),
+        }),
+      });
+      setConfirmed(false);
+      onMarkIncorrect(detail.term);
+    });
+  };
+
+  if (detail.source === 'edit' && detail.provenance) {
+    return (
+      <div className="inline-flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 text-xs text-emerald-700">
+          <CheckCircle2 size={12} />
+          {detail.provenance.author} · {confirmedDate}
+        </span>
+        <button
+          onClick={handleRevert}
+          disabled={isSaving}
+          className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100 disabled:opacity-60"
+        >
+          <XCircle size={11} />
+          {isSaving ? t('revertingLabel') : t('revertAction')}
+        </button>
+      </div>
+    );
+  }
+
+  if (confirmed) {
+    return (
+      <div className="inline-flex items-center gap-2">
+        <span className="inline-flex items-center gap-1 text-xs text-emerald-700">
+          <CheckCircle2 size={12} />
+          {t('confirmedLabel')}
+        </span>
+        <button
+          onClick={() => onMarkIncorrect(detail.term)}
+          className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100"
+        >
+          <XCircle size={11} />
+          {t('incorrectAction')}
+        </button>
+      </div>
+    );
+  }
+
+  const handleConfirm = () => {
+    startSaving(async () => {
+      await fetch('/api/location-edits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recordnummer: obj.recordnummer,
+          objectnummer: obj.objectnummer,
+          originalTerm: detail.term,
+          resolvedLocationLabel: detail.matchedLabel || detail.term,
+          wikidataReference: detail.wikidataUri || '',
+          gazetteerReference: detail.stmGazetteerUrl || '',
+          lat: detail.lat,
+          lng: detail.lng,
+          resolutionLevel: detail.resolutionLevel || 'exact',
+          evidenceSource: 'bevestigd',
+          evidenceText: '',
+          author: DEFAULT_AUTHOR,
+          remark: '',
+        }),
+      });
+      setConfirmed(true);
+    });
+  };
+
+  return (
+    <div className="inline-flex items-center gap-2">
+      <button
+        onClick={handleConfirm}
+        disabled={isSaving}
+        className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 disabled:opacity-60"
+      >
+        <Check size={11} />
+        {isSaving ? t('confirmingLabel') : t('confirmAction')}
+      </button>
+      <button
+        onClick={() => onMarkIncorrect(detail.term)}
+        className="inline-flex items-center gap-1 px-2 py-1 text-xs border border-rose-300 bg-rose-50 text-rose-800 hover:bg-rose-100"
+      >
+        <XCircle size={11} />
+        {t('incorrectAction')}
+      </button>
+    </div>
+  );
+}
+
 function LocationEditForm({
   obj,
   t,
+  preferredOriginalTerm,
 }: {
   obj: CollectionObject;
   t: ReturnType<typeof useTranslations<'locationQa'>>;
+  preferredOriginalTerm?: string | null;
 }) {
   const [isSaving, startSaving] = useTransition();
   const [isLookingUp, startLookup] = useTransition();
-  const firstDetail = obj.geoKeywordDetails[0] ?? null;
+
+  // Prefer the first unresolved/flagged detail so the form focuses on the problem term
+  const firstDetail =
+    obj.geoKeywordDetails.find((d) => d.term === preferredOriginalTerm) ??
+    obj.geoKeywordDetails.find(
+      (d) =>
+        d.source === 'unresolved' ||
+        d.flags.includes('outside-suriname') ||
+        d.resolutionLevel === 'broader' ||
+        d.resolutionLevel === 'city' ||
+        d.resolutionLevel === 'country',
+    ) ??
+    obj.geoKeywordDetails[0] ??
+    null;
 
   const [selectedOriginalTerm, setSelectedOriginalTerm] = useState(
     firstDetail?.term ?? '',
@@ -156,6 +297,7 @@ function LocationEditForm({
   const [lookup, setLookup] = useState<WikidataLookup | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusType, setStatusType] = useState<'success' | 'error' | null>(null);
+  const [saveAsTermDefault, setSaveAsTermDefault] = useState(false);
 
   const selectedDetail =
     obj.geoKeywordDetails.find((detail) => detail.term === selectedOriginalTerm) ||
@@ -175,6 +317,7 @@ function LocationEditForm({
     setLookup(null);
     setStatusMessage(null);
     setStatusType(null);
+    setSaveAsTermDefault(false);
   };
 
   const handleLookup = () => {
@@ -260,11 +403,30 @@ function LocationEditForm({
         return;
       }
 
+      if (saveAsTermDefault) {
+        await fetch('/api/term-defaults', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            term: selectedOriginalTerm,
+            resolvedLocationLabel,
+            wikidataReference,
+            gazetteerReference,
+            lat,
+            lng,
+            resolutionLevel,
+            author,
+          }),
+        });
+      }
+
       setStatusType('success');
       setStatusMessage(
         payload.flags?.includes('outside-suriname')
           ? t('savedWithFlag')
-          : t('saved'),
+          : saveAsTermDefault
+            ? t('savedWithTermDefault')
+            : t('saved'),
       );
     });
   };
@@ -477,6 +639,16 @@ function LocationEditForm({
         </div>
       )}
 
+      <label className="flex items-start gap-2 text-xs text-(--color-charcoal-light) cursor-pointer select-none">
+        <input
+          type="checkbox"
+          checked={saveAsTermDefault}
+          onChange={(event) => setSaveAsTermDefault(event.target.checked)}
+          className="mt-0.5 h-3.5 w-3.5 accent-(--color-charcoal)"
+        />
+        <span>{t('saveAsTermDefaultLabel')}</span>
+      </label>
+
       <button
         onClick={handleSave}
         disabled={isSaving}
@@ -508,6 +680,7 @@ export default function LocationQaEditor({
 
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
+  const [focusedOriginalTerm, setFocusedOriginalTerm] = useState<string | null>(null);
   const [selectedObjectnummer, setSelectedObjectnummer] = useState(
     objects[0]?.objectnummer ?? '',
   );
@@ -679,7 +852,10 @@ export default function LocationQaEditor({
             return (
               <button
                 key={obj.objectnummer}
-                onClick={() => setSelectedObjectnummer(obj.objectnummer)}
+                onClick={() => {
+                  setSelectedObjectnummer(obj.objectnummer);
+                  setFocusedOriginalTerm(null);
+                }}
                 className={`w-full text-left p-4 border-b border-(--color-border) transition-colors ${
                   obj.objectnummer === selectedObjectnummer
                     ? 'bg-(--color-cream-dark)'
@@ -763,7 +939,15 @@ export default function LocationQaEditor({
               <div key={`${selectedObject.objectnummer}-${detail.term}-${detail.source}`} className="border border-(--color-border) p-3 bg-white">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-(--color-charcoal)">{detail.term}</span>
-                  <span className="text-xs text-(--color-warm-gray)">{detail.source}</span>
+                  <span className={`text-xs px-2 py-0.5 border ${
+                    detail.source === 'edit'
+                      ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                      : detail.source === 'term-default'
+                        ? 'border-blue-200 bg-blue-50 text-blue-800'
+                        : 'border-(--color-border) text-(--color-warm-gray)'
+                  }`}>
+                    {detail.source}
+                  </span>
                   {detail.resolutionLevel && (
                     <span className="text-xs px-2 py-0.5 border border-(--color-border)">
                       {detail.resolutionLevel}
@@ -799,6 +983,15 @@ export default function LocationQaEditor({
                       <ExternalLink size={11} />
                     </a>
                   )}
+                  <ConfirmDetailButton
+                    obj={selectedObject}
+                    detail={detail}
+                    t={t}
+                    onMarkIncorrect={(term) => {
+                      setSelectedObjectnummer(selectedObject.objectnummer);
+                      setFocusedOriginalTerm(term);
+                    }}
+                  />
                 </div>
                 {(detail.lat !== null || detail.lng !== null) && (
                   <div className="mt-2 text-xs text-(--color-charcoal-light)">
@@ -832,7 +1025,12 @@ export default function LocationQaEditor({
         </div>
       </section>
 
-      <LocationEditForm key={selectedObject.objectnummer} obj={selectedObject} t={t} />
+      <LocationEditForm
+        key={`${selectedObject.objectnummer}:${focusedOriginalTerm ?? ''}`}
+        obj={selectedObject}
+        t={t}
+        preferredOriginalTerm={focusedOriginalTerm}
+      />
     </div>
   );
 }

@@ -108,6 +108,15 @@
     "saved": "Location edit saved to the local edit log.",
     "savedWithFlag": "Location edit saved, but the coordinates fall outside Suriname and were flagged.",
     "flagOutsideSuriname": "Outside Suriname",
+    "confirmAction": "This is correct ✓",
+    "confirmingLabel": "Confirming…",
+    "confirmedLabel": "Confirmed",
+    "incorrectAction": "This is incorrect",
+    "revertAction": "Undo confirmation",
+    "revertingLabel": "Undoing…",
+    "revertRemark": "Confirmation reverted",
+    "saveAsTermDefaultLabel": "Also save as default for all objects with this keyword",
+    "savedWithTermDefault": "Edit saved and set as default for this keyword.",
     "wikidataLink": "Wikidata",
     "gazetteerLink": "STM Gazetteer",
     "localWriteNote": "This writes to a local repository file for curation work. It is suitable for your Git-based workflow, not for persistent public editing on Vercel."
@@ -136,7 +145,8 @@
       "thesaurus": "Source: Geo thesaurus",
       "coordinates": "Source: Coordinates table",
       "unresolved": "Source: Unresolved",
-      "edit": "Source: Local edit"
+      "edit": "Source: Local edit",
+      "term-default": "Source: Keyword default"
     },
     "anonymous": "Anonymous",
     "back": "Back"

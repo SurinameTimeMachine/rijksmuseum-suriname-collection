@@ -108,6 +108,15 @@
     "saved": "Locatiebewerking opgeslagen in het lokale logbestand.",
     "savedWithFlag": "Locatiebewerking opgeslagen, maar de coördinaten liggen buiten Suriname en zijn gemarkeerd.",
     "flagOutsideSuriname": "Buiten Suriname",
+    "confirmAction": "Dit is correct ✓",
+    "confirmingLabel": "Bevestigen…",
+    "confirmedLabel": "Bevestigd",
+    "incorrectAction": "Dit is incorrect",
+    "revertAction": "Herstel bevestiging",
+    "revertingLabel": "Herstellen…",
+    "revertRemark": "Bevestiging ongedaan gemaakt",
+    "saveAsTermDefaultLabel": "Bewaar ook als standaard voor alle objecten met dit trefwoord",
+    "savedWithTermDefault": "Locatiebewerking opgeslagen en ingesteld als standaard voor dit trefwoord.",
     "wikidataLink": "Wikidata",
     "gazetteerLink": "STM Gazetteer",
     "localWriteNote": "Dit schrijft naar een lokaal repositorybestand voor curatorisch werk. Geschikt voor de Git-workflow, niet voor persistente publieke bewerking op Vercel."
@@ -136,7 +145,8 @@
       "thesaurus": "Bron: Geo-thesaurus",
       "coordinates": "Bron: Coördinatentabel",
       "unresolved": "Bron: Onopgelost",
-      "edit": "Bron: Lokale bewerking"
+      "edit": "Bron: Lokale bewerking",
+      "term-default": "Bron: Trefwoordstandaard"
     },
     "anonymous": "Anoniem",
     "back": "Terug"
