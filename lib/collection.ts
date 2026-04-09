@@ -1,11 +1,17 @@
+import { cache } from 'react';
+
+import {
+  applyLocationEditsToObject,
+  buildLatestLocationEditMap,
+  loadLocationEdits,
+} from '@/lib/location-curation';
+import { getLicenseShortName } from '@/lib/utils';
 import type {
   CollectionObject,
   CollectionStats,
   FilterOptions,
   SortOption,
 } from '@/types/collection';
-import { getLicenseShortName } from '@/lib/utils';
-import { cache } from 'react';
 
 function getObjectLicenseStatus(
   obj: CollectionObject,
@@ -22,7 +28,10 @@ function getObjectLicenseStatus(
 export const getCollection = cache(async (): Promise<CollectionObject[]> => {
   // Dynamic import to read the JSON at build/request time
   const data = await import('@/data/collection.json');
-  return data.default as CollectionObject[];
+  const collection = data.default as CollectionObject[];
+  const latestLocationEdits = buildLatestLocationEditMap(loadLocationEdits());
+
+  return collection.map((obj) => applyLocationEditsToObject(obj, latestLocationEdits));
 });
 
 /**
@@ -275,7 +284,14 @@ export async function getFacets() {
 export async function getLocationQaObjects(): Promise<CollectionObject[]> {
   const collection = await getCollection();
   return collection.filter((obj) =>
-    obj.geoKeywordDetails.some((d) => d.source === 'unresolved'),
+    obj.geoKeywordDetails.some(
+      (d) =>
+        d.source === 'unresolved' ||
+        d.flags.includes('outside-suriname') ||
+        d.resolutionLevel === 'broader' ||
+        d.resolutionLevel === 'city' ||
+        d.resolutionLevel === 'country',
+    ),
   );
 }
 

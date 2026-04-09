@@ -1,23 +1,30 @@
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getObjectByNumber, getRelatedObjects } from '@/lib/collection';
-import { getLicenseShortName } from '@/lib/utils';
-import ObjectImage from '@/components/ObjectImage';
-import ObjectCard from '@/components/ObjectCard';
 import {
+  AlertTriangle,
   ArrowLeft,
   Calendar,
-  Palette,
+  ExternalLink,
+  Globe,
+  Layers,
   MapPin,
+  Palette,
+  Scale,
   Tag,
   Users,
-  ExternalLink,
-  Layers,
-  Scale,
-  AlertTriangle,
-  Globe,
 } from 'lucide-react';
+import {
+  getTranslations,
+  setRequestLocale,
+} from 'next-intl/server';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+
+import ObjectCard from '@/components/ObjectCard';
+import ObjectImage from '@/components/ObjectImage';
+import {
+  getObjectByNumber,
+  getRelatedObjects,
+} from '@/lib/collection';
+import { getLicenseShortName } from '@/lib/utils';
 
 // Return empty array so pages are rendered on-demand instead of at build time.
 // This avoids exceeding Vercel's 75 MB deploy size limit (~7 300+ objects × 2 locales).
@@ -212,6 +219,19 @@ export default async function ObjectPage({
                         {detail.source === 'unresolved' && (
                           <div className="text-amber-700 mt-1">
                             {t('locationNeedsReview')}
+                          </div>
+                        )}
+                        {detail.flags.includes('outside-suriname') && (
+                          <div className="text-amber-700 mt-1">
+                            {t('locationOutsideSuriname')}
+                          </div>
+                        )}
+                        {detail.provenance && (
+                          <div className="text-(--color-warm-gray) mt-1">
+                            {detail.provenance.author} · {detail.provenance.timestamp}
+                            {detail.provenance.remark
+                              ? ` · ${detail.provenance.remark}`
+                              : ''}
                           </div>
                         )}
                         {detail &&

@@ -1,13 +1,49 @@
 export interface GeoKeywordDetail {
   term: string;
   broaderTerm: string | null;
+  matchedLabel: string | null;
   gettyUri: string | null;
   wikidataUri: string | null;
+  stmGazetteerUrl?: string | null;
   geonamesUri: string | null;
   lat: number | null;
   lng: number | null;
   region: 'suriname' | 'netherlands' | 'other' | null;
-  source: 'thesaurus' | 'coordinates' | 'unresolved';
+  source: 'thesaurus' | 'coordinates' | 'unresolved' | 'edit';
+  resolutionLevel: LocationResolutionLevel | null;
+  flags: GeoFlag[];
+  provenance: LocationProvenance | null;
+}
+
+export type LocationResolutionLevel =
+  | 'exact'
+  | 'broader'
+  | 'city'
+  | 'country';
+
+export type LocationEvidenceSource = 'trefwoord' | 'beschrijving' | 'both';
+
+export type GeoFlag = 'outside-suriname';
+
+export interface LocationProvenance {
+  author: string;
+  timestamp: string;
+  remark: string | null;
+}
+
+export interface LocationEditRecord extends LocationProvenance {
+  recordnummer: number;
+  objectnummer: string;
+  originalTerm: string;
+  resolvedLocationLabel: string;
+  wikidataQid: string | null;
+  wikidataUrl: string | null;
+  gazetteerUrl: string | null;
+  lat: number | null;
+  lng: number | null;
+  resolutionLevel: LocationResolutionLevel;
+  evidenceSource: LocationEvidenceSource;
+  evidenceText: string | null;
 }
 
 export interface CollectionObject {

@@ -1,0 +1,211 @@
+import fs from 'fs';
+import Papa from 'papaparse';
+import path from 'path';
+
+import type {
+  CollectionObject,
+  GeoFlag,
+  GeoKeywordDetail,
+  LocationEditRecord,
+  LocationResolutionLevel,
+} from '@/types/collection';
+
+const DATA_DIR = path.join(process.cwd(), 'data');
+const LOCATION_EDITS_PATH = path.join(DATA_DIR, 'location-edits.jsonl');
+const COUNTRY_CODES_PATH = path.join(DATA_DIR, 'country_codes.csv');
+
+const SURINAME_BOUNDS = {
+  minLat: 1.7,
+  maxLat: 6.3,
+  minLng: -58.2,
+  maxLng: -53.8,
+};
+
+function getEditKey(recordnummer: number, term: string) {
+  return `${recordnummer}::${term.trim().toLowerCase()}`;
+}
+
+export function isWithinSurinameBounds(lat: number, lng: number): boolean {
+  return (
+    lat >= SURINAME_BOUNDS.minLat &&
+    lat <= SURINAME_BOUNDS.maxLat &&
+    lng >= SURINAME_BOUNDS.minLng &&
+    lng <= SURINAME_BOUNDS.maxLng
+  );
+}
+
+export function getGeoFlags(
+  lat: number | null,
+  lng: number | null,
+): GeoFlag[] {
+  if (lat === null || lng === null) return [];
+  return isWithinSurinameBounds(lat, lng) ? [] : ['outside-suriname'];
+}
+
+export function parseWktPoint(
+  value: string | null | undefined,
+): { lat: number; lng: number } | null {
+  if (!value) return null;
+
+  const match = value
+    .trim()
+    .match(/^Point\(([-+]?\d+(?:\.\d+)?)\s+([-+]?\d+(?:\.\d+)?)\)$/i);
+  if (!match) return null;
+
+  const lng = Number(match[1]);
+  const lat = Number(match[2]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+
+  return { lat, lng };
+}
+
+export function normalizeWikidataReference(input: string): {
+  qid: string | null;
+  url: string | null;
+} {
+  const trimmed = input.trim();
+  if (!trimmed) return { qid: null, url: null };
+
+  const qidMatch = trimmed.match(/Q\d+/i);
+  const qid = qidMatch ? qidMatch[0].toUpperCase() : null;
+
+  return {
+    qid,
+    url: qid ? `https://www.wikidata.org/entity/${qid}` : null,
+  };
+}
+
+export function inferResolutionLevel(
+  broaderTerm: string | null,
+  hasDirectMatch: boolean,
+): LocationResolutionLevel | null {
+  if (hasDirectMatch) return 'exact';
+  if (!broaderTerm) return null;
+
+  const normalized = broaderTerm.toLowerCase();
+  if (normalized.includes('paramaribo')) return 'city';
+  if (normalized.includes('suriname')) return 'country';
+  return 'broader';
+}
+
+export function loadLocationEdits(): LocationEditRecord[] {
+  if (!fs.existsSync(LOCATION_EDITS_PATH)) return [];
+
+  const raw = fs.readFileSync(LOCATION_EDITS_PATH, 'utf-8').trim();
+  if (!raw) return [];
+
+  return raw
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .flatMap((line) => {
+      try {
+        const parsed = JSON.parse(line) as LocationEditRecord;
+        return [parsed];
+      } catch {
+        return [];
+      }
+    });
+}
+
+export function appendLocationEdit(record: LocationEditRecord): void {
+  if (!fs.existsSync(DATA_DIR)) {
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+  }
+
+  const payload = `${JSON.stringify(record)}\n`;
+  fs.appendFileSync(LOCATION_EDITS_PATH, payload, 'utf-8');
+}
+
+export function buildLatestLocationEditMap(
+  edits: LocationEditRecord[],
+): Map<string, LocationEditRecord> {
+  const latest = new Map<string, LocationEditRecord>();
+
+  for (const edit of edits) {
+    latest.set(getEditKey(edit.recordnummer, edit.originalTerm), edit);
+  }
+
+  return latest;
+}
+
+export function applyLocationEditsToObject(
+  obj: CollectionObject,
+  latestEdits: Map<string, LocationEditRecord>,
+): CollectionObject {
+  const updatedDetails = obj.geoKeywordDetails.map((detail) => {
+    const edit = latestEdits.get(getEditKey(obj.recordnummer, detail.term));
+    const baseFlags = getGeoFlags(detail.lat, detail.lng);
+
+    if (!edit) {
+      return {
+        ...detail,
+        flags: Array.from(new Set([...(detail.flags || []), ...baseFlags])),
+      };
+    }
+
+    return {
+      ...detail,
+      term: edit.resolvedLocationLabel,
+      matchedLabel: edit.resolvedLocationLabel,
+      wikidataUri: edit.wikidataUrl,
+      stmGazetteerUrl: edit.gazetteerUrl ?? null,
+      lat: edit.lat,
+      lng: edit.lng,
+      source: 'edit' as const,
+      resolutionLevel: edit.resolutionLevel,
+      flags: getGeoFlags(edit.lat, edit.lng),
+      provenance: {
+        author: edit.author,
+        timestamp: edit.timestamp,
+        remark: edit.remark,
+      },
+    } satisfies GeoKeywordDetail;
+  });
+
+  return {
+    ...obj,
+    geoKeywordDetails: updatedDetails,
+  };
+}
+
+type CountryCodeRow = {
+  geografisch_trefwoord?: string;
+  Location?: string;
+  Country?: string;
+};
+
+function addTerm(set: Set<string>, value: string | undefined) {
+  if (!value) return;
+  const trimmed = value.trim();
+  if (!trimmed) return;
+  set.add(trimmed.toLowerCase());
+}
+
+/**
+ * Load location terms marked as SU from country_codes.csv.
+ * Uses exact values only to avoid false positives from split composite terms.
+ */
+export function loadSurinameLocationTerms(): string[] {
+  if (!fs.existsSync(COUNTRY_CODES_PATH)) return [];
+
+  const csv = fs.readFileSync(COUNTRY_CODES_PATH, 'utf-8');
+  const parsed = Papa.parse<CountryCodeRow>(csv, {
+    header: true,
+    delimiter: ';',
+    skipEmptyLines: true,
+  });
+
+  const terms = new Set<string>();
+
+  for (const row of parsed.data) {
+    if ((row.Country || '').trim().toUpperCase() !== 'SU') continue;
+
+    const raw = (row.geografisch_trefwoord || '').trim();
+    if (raw) addTerm(terms, raw);
+
+    addTerm(terms, row.Location);
+  }
+
+  return Array.from(terms.values());
+}
