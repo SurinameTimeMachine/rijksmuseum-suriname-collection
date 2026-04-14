@@ -75,6 +75,7 @@ type QueueFilter =
   | 'unedited-only'
   | 'edited-only';
 type QueueSort = 'review-priority' | 'title-asc' | 'title-desc' | 'objectnummer';
+type QaViewMode = 'record' | 'spreadsheet';
 
 const DEFAULT_AUTHOR = 'TvO';
 const STREET_SUGGESTION_LIMIT = 3;
@@ -244,6 +245,203 @@ function getSuggestionSourceLabel(
   if (source === 'title') return t('suggestionSourceTitle');
   if (source === 'commons') return t('suggestionSourceCommons');
   return t('suggestionSourceDescription');
+}
+
+function getEfBestSuggestion(
+  detail: GeoKeywordDetail | null,
+  suggestion: StreetNameSuggestion | undefined,
+) {
+  if (suggestion) {
+    return `${suggestion.label} (${suggestion.source})`;
+  }
+
+  if (!detail) return '';
+  if (detail.matchedLabel) return detail.matchedLabel;
+  return detail.term;
+}
+
+function getEfQualityScore(
+  detail: GeoKeywordDetail | null,
+  suggestion: StreetNameSuggestion | undefined,
+) {
+  if (!detail && !suggestion) return 0;
+  if (detail?.resolutionLevel === 'exact' && detail.wikidataUri && detail.lat !== null && detail.lng !== null) {
+    return 95;
+  }
+  if (detail?.resolutionLevel === 'exact') return 85;
+  if (suggestion && suggestion.score >= 55) return Math.min(82, suggestion.score + 10);
+  if (detail?.resolutionLevel === 'broader') return 65;
+  if (detail?.resolutionLevel === 'city') return 48;
+  if (detail?.resolutionLevel === 'country') return 35;
+  return 20;
+}
+
+function getEfSavePayload(
+  obj: CollectionObject,
+  detail: GeoKeywordDetail | null,
+  topSuggestion: StreetNameSuggestion | undefined,
+  reviewValue: string,
+  reviewNote: string,
+) {
+  const normalized = reviewValue.trim();
+  const acceptsSuggestion = normalized.toUpperCase() === 'Y';
+  const fallbackLabel = getEfBestSuggestion(detail, topSuggestion) || detail?.term || '';
+  const resolvedLocationLabel = acceptsSuggestion ? fallbackLabel : normalized;
+
+  const wikidataReference = acceptsSuggestion
+    ? topSuggestion?.wikidataQid || detail?.wikidataUri || ''
+    : '';
+
+  return {
+    recordnummer: obj.recordnummer,
+    objectnummer: obj.objectnummer,
+    originalTerm: detail?.term || obj.geographicKeywords[0] || 'unknown',
+    resolvedLocationLabel,
+    wikidataReference,
+    gazetteerReference: detail?.stmGazetteerUrl || '',
+    lat: acceptsSuggestion ? (detail?.lat ?? '') : '',
+    lng: acceptsSuggestion ? (detail?.lng ?? '') : '',
+    resolutionLevel: detail?.resolutionLevel || 'exact',
+    evidenceSource: topSuggestion && acceptsSuggestion ? 'beschrijving' : 'trefwoord',
+    evidenceText: topSuggestion && acceptsSuggestion
+      ? `${topSuggestion.source}: ${topSuggestion.snippet}`
+      : '',
+    author: DEFAULT_AUTHOR,
+    remark: reviewNote.trim(),
+  };
+}
+
+function SpreadsheetReviewRow({
+  obj,
+  detail,
+  topSuggestion,
+  qualityScore,
+  t,
+  locale,
+}: {
+  obj: CollectionObject;
+  detail: GeoKeywordDetail | null;
+  topSuggestion: StreetNameSuggestion | undefined;
+  qualityScore: number;
+  t: ReturnType<typeof useTranslations<'locationQa'>>;
+  locale: string;
+}) {
+  const [reviewValue, setReviewValue] = useState('');
+  const [reviewNote, setReviewNote] = useState('');
+  const [status, setStatus] = useState<'idle' | 'saved' | 'error'>('idle');
+  const [message, setMessage] = useState('');
+  const [isSaving, startSaving] = useTransition();
+
+  const bestSuggestion = getEfBestSuggestion(detail, topSuggestion);
+
+  const handleSave = () => {
+    if (!reviewValue.trim()) {
+      setStatus('error');
+      setMessage(t('efReviewFieldRequired'));
+      return;
+    }
+
+    startSaving(async () => {
+      const payload = getEfSavePayload(
+        obj,
+        detail,
+        topSuggestion,
+        reviewValue,
+        reviewNote,
+      );
+
+      const response = await fetch('/api/location-edits', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const body = await response.json();
+      if (!response.ok) {
+        setStatus('error');
+        setMessage(body.error || t('saveError'));
+        return;
+      }
+
+      setStatus('saved');
+      setMessage(t('saved'));
+    });
+  };
+
+  return (
+    <tr className="border-b border-(--color-border) align-top">
+      <td className="p-2">
+        <div className="relative h-14 w-18 overflow-hidden border border-(--color-border) bg-(--color-cream-dark)">
+          <ObjectImage
+            src={obj.thumbnailUrl || obj.imageUrl}
+            alt={obj.titles[0] || obj.objectnummer}
+            fill
+            className="object-contain"
+            sizes="72px"
+            isPublicDomain={obj.isPublicDomain}
+          />
+        </div>
+      </td>
+      <td className="p-2 min-w-56">
+        <div className="font-medium text-(--color-charcoal)">{obj.titles[0] || obj.objectnummer}</div>
+        <div className="mt-1 text-xs text-(--color-warm-gray)">{obj.objectnummer}</div>
+        <Link
+          href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-1 inline-flex items-center gap-1 text-xs text-(--color-rijks-red) hover:underline"
+        >
+          {t('openObject')}
+          <ExternalLink size={11} />
+        </Link>
+      </td>
+      <td className="p-2 min-w-80 text-xs text-(--color-charcoal-light)">
+        <div className="line-clamp-3 whitespace-pre-wrap">{obj.description || t('noDescription')}</div>
+      </td>
+      <td className="p-2 min-w-56 text-xs">
+        {detail?.term || obj.geographicKeywords[0] || '—'}
+      </td>
+      <td className="p-2 min-w-56 text-xs text-(--color-charcoal)">
+        {bestSuggestion || '—'}
+      </td>
+      <td className="p-2 min-w-56">
+        <input
+          value={reviewValue}
+          onChange={(event) => setReviewValue(event.target.value)}
+          placeholder={t('efReviewFieldPlaceholder')}
+          className="w-full border border-(--color-border) bg-white px-2 py-1.5 text-xs"
+        />
+      </td>
+      <td className="p-2 min-w-56">
+        <input
+          value={reviewNote}
+          onChange={(event) => setReviewNote(event.target.value)}
+          placeholder={t('efReviewNoteLabel')}
+          className="w-full border border-(--color-border) bg-white px-2 py-1.5 text-xs"
+        />
+      </td>
+      <td className="p-2 text-xs text-center font-medium">{qualityScore}</td>
+      <td className="p-2 min-w-40">
+        <button
+          onClick={handleSave}
+          disabled={isSaving}
+          className="inline-flex items-center gap-1 px-2 py-1.5 text-xs bg-(--color-charcoal) text-white hover:bg-(--color-charcoal-light) disabled:opacity-60"
+        >
+          <Save size={12} />
+          {isSaving ? t('saveBusy') : t('saveAction')}
+        </button>
+        {status !== 'idle' && (
+          <div
+            className={`mt-1 text-[11px] ${
+              status === 'saved' ? 'text-emerald-700' : 'text-rose-700'
+            }`}
+          >
+            {message}
+          </div>
+        )}
+      </td>
+    </tr>
+  );
 }
 
 function allFields(obj: CollectionObject) {
@@ -482,10 +680,15 @@ function LocationEditForm({
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusType, setStatusType] = useState<'success' | 'error' | null>(null);
   const [saveAsTermDefault, setSaveAsTermDefault] = useState(false);
+  const [efReviewValue, setEfReviewValue] = useState('');
+  const [efReviewNote, setEfReviewNote] = useState('');
 
   const selectedDetail =
     obj.geoKeywordDetails.find((detail) => detail.term === selectedOriginalTerm) ||
     firstDetail;
+  const topStreetSuggestion = streetSuggestions[0];
+  const efBestSuggestion = getEfBestSuggestion(selectedDetail, topStreetSuggestion);
+  const efQualityScore = getEfQualityScore(selectedDetail, topStreetSuggestion);
 
   useEffect(() => {
     if (selectedOriginalTerm) {
@@ -508,6 +711,8 @@ function LocationEditForm({
     setStatusMessage(null);
     setStatusType(null);
     setSaveAsTermDefault(false);
+    setEfReviewValue('');
+    setEfReviewNote('');
   };
 
   const applyStreetSuggestion = (suggestion: StreetNameSuggestion) => {
@@ -526,6 +731,8 @@ function LocationEditForm({
     setStatusMessage(null);
     setStatusType(null);
     setSaveAsTermDefault(false);
+    setEfReviewValue('');
+    setEfReviewNote('');
   };
 
   const handleLookup = () => {
@@ -577,7 +784,17 @@ function LocationEditForm({
   };
 
   const handleSave = () => {
-    if (!selectedOriginalTerm || !resolvedLocationLabel || !author) {
+    const normalizedEfInput = efReviewValue.trim();
+    const finalResolvedLocationLabel = normalizedEfInput
+      ? normalizedEfInput.toUpperCase() === 'Y'
+        ? efBestSuggestion || resolvedLocationLabel
+        : normalizedEfInput
+      : resolvedLocationLabel;
+    const finalRemark = [remark, efReviewNote.trim()]
+      .filter(Boolean)
+      .join(' | ');
+
+    if (!selectedOriginalTerm || !finalResolvedLocationLabel || !author) {
       setStatusType('error');
       setStatusMessage(t('saveValidation'));
       return;
@@ -591,7 +808,7 @@ function LocationEditForm({
           recordnummer: obj.recordnummer,
           objectnummer: obj.objectnummer,
           originalTerm: selectedOriginalTerm,
-          resolvedLocationLabel,
+          resolvedLocationLabel: finalResolvedLocationLabel,
           wikidataReference,
           gazetteerReference,
           lat,
@@ -600,7 +817,7 @@ function LocationEditForm({
           evidenceSource,
           evidenceText,
           author,
-          remark,
+          remark: finalRemark,
         }),
       });
 
@@ -617,7 +834,7 @@ function LocationEditForm({
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             term: selectedOriginalTerm,
-            resolvedLocationLabel,
+            resolvedLocationLabel: finalResolvedLocationLabel,
             wikidataReference,
             gazetteerReference,
             lat,
@@ -657,6 +874,75 @@ function LocationEditForm({
           )}
         </div>
       </div>
+
+      <div className="space-y-3 border border-emerald-200 bg-emerald-50 p-3">
+        <div className="text-xs font-semibold uppercase tracking-wider text-emerald-900">
+          {t('efTitle')}
+        </div>
+        <p className="text-xs text-emerald-900">{t('efHelp')}</p>
+
+        <div className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3 items-start">
+          <div className="relative h-16 w-20 overflow-hidden border border-emerald-300 bg-white">
+            <ObjectImage
+              src={obj.thumbnailUrl || obj.imageUrl}
+              alt={obj.titles[0] || obj.objectnummer}
+              fill
+              className="object-contain"
+              sizes="80px"
+              isPublicDomain={obj.isPublicDomain}
+            />
+          </div>
+          <div className="min-w-0 text-xs text-emerald-900">
+            <div className="font-medium truncate">{obj.titles[0] || obj.objectnummer}</div>
+            <div className="mt-1 line-clamp-2">{obj.description || t('noDescription')}</div>
+          </div>
+        </div>
+
+        <div className="text-xs">
+          <span className="font-semibold text-emerald-900">{t('efGeoKeywordLabel')}: </span>
+          <span className="text-(--color-charcoal)">{selectedOriginalTerm || '—'}</span>
+        </div>
+
+        <div className="text-xs">
+          <span className="font-semibold text-emerald-900">{t('efBestSuggestionLabel')}: </span>
+          <span className="text-(--color-charcoal)">{efBestSuggestion || '—'}</span>
+        </div>
+
+        <label className="block text-sm">
+          <span className="block text-xs font-semibold uppercase tracking-wider text-emerald-900 mb-2">
+            {t('efReviewFieldLabel')}
+          </span>
+          <input
+            value={efReviewValue}
+            onChange={(event) => setEfReviewValue(event.target.value)}
+            placeholder={t('efReviewFieldPlaceholder')}
+            className="w-full border border-emerald-300 bg-white px-3 py-2"
+          />
+        </label>
+
+        <label className="block text-sm">
+          <span className="block text-xs font-semibold uppercase tracking-wider text-emerald-900 mb-2">
+            {t('efReviewNoteLabel')}
+          </span>
+          <textarea
+            value={efReviewNote}
+            onChange={(event) => setEfReviewNote(event.target.value)}
+            rows={2}
+            className="w-full border border-emerald-300 bg-white px-3 py-2"
+          />
+        </label>
+
+        <div className="text-xs text-emerald-900">
+          <span className="font-semibold">{t('efQualityScoreLabel')}: </span>
+          {efQualityScore}
+        </div>
+      </div>
+
+      <details className="border border-(--color-border) bg-white p-3" open={false}>
+        <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray)">
+          {t('efAdvancedSectionLabel')}
+        </summary>
+        <div className="mt-3 space-y-5">
 
       {streetSuggestions.length > 0 && (
         <div className="space-y-3 border border-amber-200 bg-amber-50 p-3">
@@ -901,6 +1187,8 @@ function LocationEditForm({
         />
         <span>{t('saveAsTermDefaultLabel')}</span>
       </label>
+        </div>
+      </details>
 
       <button
         onClick={handleSave}
@@ -930,6 +1218,7 @@ export default function LocationQaEditor({
   const [showOnlySuriname, setShowOnlySuriname] = useState(true);
   const [queueFilter, setQueueFilter] = useState<QueueFilter>('all');
   const [queueSort, setQueueSort] = useState<QueueSort>('review-priority');
+  const [qaViewMode, setQaViewMode] = useState<QaViewMode>('record');
 
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
@@ -937,6 +1226,7 @@ export default function LocationQaEditor({
   const [selectedObjectnummer, setSelectedObjectnummer] = useState(
     objects[0]?.objectnummer ?? '',
   );
+
   const surinameTermSet = useMemo(
     () => new Set(surinameTerms.map((term) => term.toLowerCase())),
     [surinameTerms],
@@ -1048,6 +1338,21 @@ export default function LocationQaEditor({
     [selectedObject],
   );
 
+  const spreadsheetRows = useMemo(() => {
+    return filteredObjects.map((obj) => {
+      const detail = getPreferredDetail(obj, null);
+      const topSuggestion = getStreetSuggestions(obj)[0];
+      const qualityScore = getEfQualityScore(detail, topSuggestion);
+
+      return {
+        obj,
+        detail,
+        topSuggestion,
+        qualityScore,
+      };
+    });
+  }, [filteredObjects]);
+
   const goToQueueIndex = (index: number) => {
     const next = filteredObjects[index];
     if (!next) return;
@@ -1087,11 +1392,29 @@ export default function LocationQaEditor({
   }
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-[22rem_minmax(0,1fr)_24rem] gap-6">
+    <div className={
+      qaViewMode === 'spreadsheet'
+        ? 'grid grid-cols-1 xl:grid-cols-[22rem_minmax(0,1fr)] gap-6'
+        : 'grid grid-cols-1 xl:grid-cols-[22rem_minmax(0,1fr)_24rem] gap-6'
+    }>
       <section className="border border-(--color-border) bg-(--color-card)">
         <div className="p-4 border-b border-(--color-border)">
           <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
             {t('queueTitle')} ({filteredObjects.length})
+          </div>
+          <div className="mt-3 inline-flex border border-(--color-border) bg-white">
+            <button
+              onClick={() => setQaViewMode('record')}
+              className={`px-3 py-1.5 text-xs ${qaViewMode === 'record' ? 'bg-(--color-cream-dark)' : 'hover:bg-(--color-cream-dark)'}`}
+            >
+              {t('qaViewRecord')}
+            </button>
+            <button
+              onClick={() => setQaViewMode('spreadsheet')}
+              className={`px-3 py-1.5 text-xs border-l border-(--color-border) ${qaViewMode === 'spreadsheet' ? 'bg-(--color-cream-dark)' : 'hover:bg-(--color-cream-dark)'}`}
+            >
+              {t('qaViewSpreadsheet')}
+            </button>
           </div>
           <label className="mt-3 inline-flex items-center gap-2 text-xs text-(--color-charcoal-light)">
             <input
@@ -1186,6 +1509,46 @@ export default function LocationQaEditor({
         </div>
       </section>
 
+      {qaViewMode === 'spreadsheet' ? (
+        <section className="border border-(--color-border) bg-(--color-card)">
+          <div className="p-4 border-b border-(--color-border)">
+            <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
+              {t('qaSpreadsheetTitle')} ({spreadsheetRows.length})
+            </div>
+            <p className="mt-1 text-xs text-(--color-warm-gray)">{t('qaSpreadsheetHelp')}</p>
+          </div>
+          <div className="overflow-auto max-h-[78vh]">
+            <table className="min-w-[1100px] w-full text-sm">
+              <thead className="sticky top-0 bg-(--color-cream-dark) border-b border-(--color-border)">
+                <tr className="text-left text-xs uppercase tracking-wider text-(--color-warm-gray)">
+                  <th className="p-2">{t('qaSpreadsheetImage')}</th>
+                  <th className="p-2">{t('qaSpreadsheetTitleCol')}</th>
+                  <th className="p-2">{t('qaSpreadsheetDescription')}</th>
+                  <th className="p-2">{t('qaSpreadsheetGeoKeyword')}</th>
+                  <th className="p-2">{t('qaSpreadsheetBestSuggestion')}</th>
+                  <th className="p-2">{t('qaSpreadsheetReview')}</th>
+                  <th className="p-2">{t('qaSpreadsheetNote')}</th>
+                  <th className="p-2">{t('qaSpreadsheetQuality')}</th>
+                  <th className="p-2">{t('qaSpreadsheetSave')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {spreadsheetRows.map((row) => (
+                  <SpreadsheetReviewRow
+                    key={`${row.obj.objectnummer}:${row.detail?.term || 'none'}`}
+                    obj={row.obj}
+                    detail={row.detail}
+                    topSuggestion={row.topSuggestion}
+                    qualityScore={row.qualityScore}
+                    t={t}
+                    locale={locale}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : (
       <section className="space-y-6">
         <div className="border border-(--color-border) bg-(--color-card)">
           <div className="grid grid-cols-1 md:grid-cols-[16rem_minmax(0,1fr)] gap-6 p-5">
@@ -1374,15 +1737,18 @@ export default function LocationQaEditor({
           </div>
         </div>
       </section>
+      )}
 
-      <LocationEditForm
-        key={`${selectedObject.objectnummer}:${activeOriginalTerm ?? ''}`}
-        obj={selectedObject}
-        t={t}
-        streetSuggestions={streetSuggestions}
-        activeOriginalTerm={activeOriginalTerm}
-        onActiveOriginalTermChange={setFocusedOriginalTerm}
-      />
+      {qaViewMode === 'record' && (
+        <LocationEditForm
+          key={`${selectedObject.objectnummer}:${activeOriginalTerm ?? ''}`}
+          obj={selectedObject}
+          t={t}
+          streetSuggestions={streetSuggestions}
+          activeOriginalTerm={activeOriginalTerm}
+          onActiveOriginalTermChange={setFocusedOriginalTerm}
+        />
+      )}
     </div>
   );
 }
