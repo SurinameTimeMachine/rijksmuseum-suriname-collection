@@ -2,6 +2,7 @@
 
 import {
   useDeferredValue,
+  useEffect,
   useMemo,
   useState,
   useTransition,
@@ -11,6 +12,8 @@ import {
   AlertTriangle,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   ExternalLink,
   FileText,
   MapPin,
@@ -24,6 +27,7 @@ import {
 } from 'next-intl';
 import Link from 'next/link';
 
+import streetAliases from '@/data/paramaribo-street-aliases.json';
 import type {
   CollectionObject,
   GeoKeywordDetail,
@@ -37,6 +41,23 @@ interface LocationQaEditorProps {
   objects: CollectionObject[];
   surinameTerms: string[];
 }
+
+type StreetAliasEntry = {
+  label: string;
+  aliases: string[];
+  wikidataQid: string | null;
+};
+
+type StreetSuggestionSource = 'title' | 'description' | 'commons';
+
+type StreetNameSuggestion = {
+  label: string;
+  matchedVariant: string;
+  source: StreetSuggestionSource;
+  snippet: string;
+  wikidataQid: string | null;
+  score: number;
+};
 
 type WikidataLookup = {
   qid: string;
@@ -56,6 +77,14 @@ type QueueFilter =
 type QueueSort = 'review-priority' | 'title-asc' | 'title-desc' | 'objectnummer';
 
 const DEFAULT_AUTHOR = 'TvO';
+const STREET_SUGGESTION_LIMIT = 3;
+const STREET_SUGGESTION_SOURCE_WEIGHTS: Record<StreetSuggestionSource, number> = {
+  title: 40,
+  commons: 30,
+  description: 20,
+};
+const PARAMARIBO_HINTS = ['paramaribo', 'suriname'];
+const TEMP_STREET_ALIASES = streetAliases as StreetAliasEntry[];
 
 const QUICK_FALLBACKS = {
   paramaribo: {
@@ -79,6 +108,142 @@ function formatDetailSummary(detail: GeoKeywordDetail) {
   if (detail.broaderTerm) parts.push(detail.broaderTerm);
   if (detail.flags.includes('outside-suriname')) parts.push('outside-suriname');
   return parts.join(' • ');
+}
+
+function normalizeMatcherText(value: string) {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[’']/g, '')
+    .replace(/[-./_,:;()[\]{}]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function extractCommonsText(url: string | null) {
+  if (!url) return '';
+
+  try {
+    return decodeURIComponent(url);
+  } catch {
+    return url;
+  }
+}
+
+function buildSuggestionSnippet(text: string, variant: string) {
+  const match = text.match(new RegExp(escapeRegExp(variant), 'i'));
+  if (!match || match.index === undefined) {
+    return variant;
+  }
+
+  const start = Math.max(0, match.index - 40);
+  const end = Math.min(text.length, match.index + match[0].length + 40);
+  const prefix = start > 0 ? '...' : '';
+  const suffix = end < text.length ? '...' : '';
+  return `${prefix}${text.slice(start, end).trim()}${suffix}`;
+}
+
+function hasParamariboContext(obj: CollectionObject) {
+  const values = [
+    ...obj.geographicKeywords,
+    ...obj.geoKeywordDetails.flatMap((detail) => [
+      detail.term,
+      detail.broaderTerm || '',
+      detail.matchedLabel || '',
+    ]),
+  ];
+
+  return values.some((value) => {
+    const normalized = normalizeMatcherText(value);
+    return PARAMARIBO_HINTS.some((hint) => normalized.includes(hint));
+  });
+}
+
+function getStreetSearchSources(obj: CollectionObject) {
+  return [
+    {
+      source: 'title' as const,
+      text: obj.titles.filter(Boolean).join(' | '),
+    },
+    {
+      source: 'description' as const,
+      text: obj.description || '',
+    },
+    {
+      source: 'commons' as const,
+      text: extractCommonsText(obj.wikimediaUrl),
+    },
+  ].filter((entry) => entry.text.trim());
+}
+
+function getStreetSuggestions(obj: CollectionObject): StreetNameSuggestion[] {
+  if (!hasParamariboContext(obj)) return [];
+
+  const existingTerms = new Set(
+    obj.geoKeywordDetails.flatMap((detail) => [
+      normalizeMatcherText(detail.term),
+      normalizeMatcherText(detail.matchedLabel || ''),
+    ]),
+  );
+
+  const bestByLabel = new Map<string, StreetNameSuggestion>();
+  const searchSources = getStreetSearchSources(obj).map((entry) => ({
+    ...entry,
+    normalized: normalizeMatcherText(entry.text),
+  }));
+
+  for (const entry of TEMP_STREET_ALIASES) {
+    const normalizedLabel = normalizeMatcherText(entry.label);
+    if (!normalizedLabel || existingTerms.has(normalizedLabel)) continue;
+
+    const variants = [entry.label, ...entry.aliases].filter(Boolean);
+
+    for (const variant of variants) {
+      const normalizedVariant = normalizeMatcherText(variant);
+      if (!normalizedVariant || normalizedVariant.length < 8) continue;
+
+      const pattern = new RegExp(`(^|\\b)${escapeRegExp(normalizedVariant)}(\\b|$)`, 'i');
+
+      for (const sourceEntry of searchSources) {
+        if (!pattern.test(sourceEntry.normalized)) continue;
+
+        const candidate: StreetNameSuggestion = {
+          label: entry.label,
+          matchedVariant: variant,
+          source: sourceEntry.source,
+          snippet: buildSuggestionSnippet(sourceEntry.text, variant),
+          wikidataQid: entry.wikidataQid,
+          score:
+            STREET_SUGGESTION_SOURCE_WEIGHTS[sourceEntry.source] +
+            Math.min(normalizedVariant.length, 20) +
+            (variant === entry.label ? 6 : 0),
+        };
+
+        const currentBest = bestByLabel.get(entry.label);
+        if (!currentBest || candidate.score > currentBest.score) {
+          bestByLabel.set(entry.label, candidate);
+        }
+      }
+    }
+  }
+
+  return Array.from(bestByLabel.values())
+    .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label))
+    .slice(0, STREET_SUGGESTION_LIMIT);
+}
+
+function getSuggestionSourceLabel(
+  t: ReturnType<typeof useTranslations<'locationQa'>>,
+  source: StreetSuggestionSource,
+) {
+  if (source === 'title') return t('suggestionSourceTitle');
+  if (source === 'commons') return t('suggestionSourceCommons');
+  return t('suggestionSourceDescription');
 }
 
 function allFields(obj: CollectionObject) {
@@ -115,15 +280,40 @@ function getIssueDetails(obj: CollectionObject) {
   );
 }
 
+function isReviewableDetail(detail: GeoKeywordDetail) {
+  return detail.source !== 'edit' && detail.provenance === null;
+}
+
+function getPreferredDetail(
+  obj: CollectionObject,
+  preferredOriginalTerm?: string | null,
+) {
+  return (
+    obj.geoKeywordDetails.find((detail) => detail.term === preferredOriginalTerm) ??
+    obj.geoKeywordDetails.find(
+      (detail) =>
+        detail.source === 'unresolved' ||
+        detail.flags.includes('outside-suriname') ||
+        detail.resolutionLevel === 'broader' ||
+        detail.resolutionLevel === 'city' ||
+        detail.resolutionLevel === 'country',
+    ) ??
+    obj.geoKeywordDetails[0] ??
+    null
+  );
+}
+
 function ConfirmDetailButton({
   obj,
   detail,
   t,
+  onConfirm,
   onMarkIncorrect,
 }: {
   obj: CollectionObject;
   detail: GeoKeywordDetail;
   t: ReturnType<typeof useTranslations<'locationQa'>>;
+  onConfirm?: (term: string) => void;
   onMarkIncorrect: (term: string) => void;
 }) {
   const [isSaving, startSaving] = useTransition();
@@ -214,6 +404,7 @@ function ConfirmDetailButton({
           remark: '',
         }),
       });
+      onConfirm?.(detail.term);
       setConfirmed(true);
     });
   };
@@ -242,28 +433,21 @@ function ConfirmDetailButton({
 function LocationEditForm({
   obj,
   t,
-  preferredOriginalTerm,
+  streetSuggestions,
+  activeOriginalTerm,
+  onActiveOriginalTermChange,
 }: {
   obj: CollectionObject;
   t: ReturnType<typeof useTranslations<'locationQa'>>;
-  preferredOriginalTerm?: string | null;
+  streetSuggestions: StreetNameSuggestion[];
+  activeOriginalTerm?: string | null;
+  onActiveOriginalTermChange?: (term: string) => void;
 }) {
   const [isSaving, startSaving] = useTransition();
   const [isLookingUp, startLookup] = useTransition();
 
   // Prefer the first unresolved/flagged detail so the form focuses on the problem term
-  const firstDetail =
-    obj.geoKeywordDetails.find((d) => d.term === preferredOriginalTerm) ??
-    obj.geoKeywordDetails.find(
-      (d) =>
-        d.source === 'unresolved' ||
-        d.flags.includes('outside-suriname') ||
-        d.resolutionLevel === 'broader' ||
-        d.resolutionLevel === 'city' ||
-        d.resolutionLevel === 'country',
-    ) ??
-    obj.geoKeywordDetails[0] ??
-    null;
+  const firstDetail = getPreferredDetail(obj, activeOriginalTerm);
 
   const [selectedOriginalTerm, setSelectedOriginalTerm] = useState(
     firstDetail?.term ?? '',
@@ -303,6 +487,12 @@ function LocationEditForm({
     obj.geoKeywordDetails.find((detail) => detail.term === selectedOriginalTerm) ||
     firstDetail;
 
+  useEffect(() => {
+    if (selectedOriginalTerm) {
+      onActiveOriginalTermChange?.(selectedOriginalTerm);
+    }
+  }, [onActiveOriginalTermChange, selectedOriginalTerm]);
+
   const syncFromDetail = (detail: GeoKeywordDetail) => {
     setSelectedOriginalTerm(detail.term);
     setResolvedLocationLabel(detail.term);
@@ -313,6 +503,24 @@ function LocationEditForm({
     setResolutionLevel(detail.resolutionLevel || 'exact');
     setEvidenceSource('trefwoord');
     setEvidenceText('');
+    setRemark('');
+    setLookup(null);
+    setStatusMessage(null);
+    setStatusType(null);
+    setSaveAsTermDefault(false);
+  };
+
+  const applyStreetSuggestion = (suggestion: StreetNameSuggestion) => {
+    setResolvedLocationLabel(suggestion.label);
+    setWikidataReference(suggestion.wikidataQid || '');
+    setGazetteerReference('');
+    setLat('');
+    setLng('');
+    setResolutionLevel('exact');
+    setEvidenceSource('beschrijving');
+    setEvidenceText(
+      `${getSuggestionSourceLabel(t, suggestion.source)}: ${suggestion.snippet}`,
+    );
     setRemark('');
     setLookup(null);
     setStatusMessage(null);
@@ -438,7 +646,52 @@ function LocationEditForm({
           {t('editorTitle')}
         </div>
         <p className="mt-2 text-xs text-(--color-warm-gray)">{t('editorHelp')}</p>
+        <div className="mt-3 border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900">
+          <div className="font-semibold uppercase tracking-wider">{t('editorModeLabel')}</div>
+          <div className="mt-1">{t('editorModeHelp')}</div>
+          {selectedOriginalTerm && (
+            <div className="mt-2 inline-flex items-center gap-2 border border-blue-300 bg-white px-2 py-1 text-[11px] font-medium text-blue-900">
+              <span>{t('activeTermLabel')}</span>
+              <span>{selectedOriginalTerm}</span>
+            </div>
+          )}
+        </div>
       </div>
+
+      {streetSuggestions.length > 0 && (
+        <div className="space-y-3 border border-amber-200 bg-amber-50 p-3">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-amber-900">
+              {t('streetSuggestionsTitle')}
+            </div>
+            <p className="mt-1 text-xs text-amber-900">{t('streetSuggestionsHelp')}</p>
+          </div>
+          <div className="grid gap-2">
+            {streetSuggestions.map((suggestion) => (
+              <div key={`${suggestion.label}-${suggestion.source}`} className="border border-amber-300 bg-white p-3 text-xs">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-medium text-(--color-charcoal)">{suggestion.label}</div>
+                    <div className="mt-1 text-(--color-warm-gray)">
+                      {getSuggestionSourceLabel(t, suggestion.source)} · {suggestion.matchedVariant}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => applyStreetSuggestion(suggestion)}
+                    className="shrink-0 px-2 py-1 border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
+                  >
+                    {t('suggestionUseAction')}
+                  </button>
+                </div>
+                <div className="mt-2 text-(--color-charcoal-light)">{suggestion.snippet}</div>
+                {suggestion.wikidataQid && (
+                  <div className="mt-2 text-(--color-warm-gray)">Wikidata: {suggestion.wikidataQid}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <label className="block text-sm">
         <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
@@ -781,6 +1034,54 @@ export default function LocationQaEditor({
         objects[0] ||
         null);
 
+  const selectedIndex = filteredObjects.findIndex(
+    (obj) => obj.objectnummer === selectedObject?.objectnummer,
+  );
+  const hasPrevious = selectedIndex > 0;
+  const hasNext = selectedIndex >= 0 && selectedIndex < filteredObjects.length - 1;
+  const activeDetail = selectedObject
+    ? getPreferredDetail(selectedObject, focusedOriginalTerm)
+    : null;
+  const activeOriginalTerm = activeDetail?.term ?? null;
+  const streetSuggestions = useMemo(
+    () => (selectedObject ? getStreetSuggestions(selectedObject) : []),
+    [selectedObject],
+  );
+
+  const goToQueueIndex = (index: number) => {
+    const next = filteredObjects[index];
+    if (!next) return;
+    setSelectedObjectnummer(next.objectnummer);
+    setFocusedOriginalTerm(null);
+  };
+
+  const goToNextReviewTarget = (term: string) => {
+    const currentDetailIndex = selectedObject.geoKeywordDetails.findIndex(
+      (detail) => detail.term === term,
+    );
+
+    if (currentDetailIndex >= 0) {
+      const nextDetail = selectedObject.geoKeywordDetails
+        .slice(currentDetailIndex + 1)
+        .find(isReviewableDetail);
+
+      if (nextDetail) {
+        setFocusedOriginalTerm(nextDetail.term);
+        return;
+      }
+    }
+
+    const nextObject = filteredObjects[selectedIndex + 1];
+    if (!nextObject) {
+      setFocusedOriginalTerm(term);
+      return;
+    }
+
+    const nextDetail = getPreferredDetail(nextObject, null);
+    setSelectedObjectnummer(nextObject.objectnummer);
+    setFocusedOriginalTerm(nextDetail?.term ?? null);
+  };
+
   if (!selectedObject) {
     return <div className="py-12 text-center text-(--color-warm-gray)">{t('noQueueResults')}</div>;
   }
@@ -918,6 +1219,31 @@ export default function LocationQaEditor({
                 {selectedObject.objectnummer} · {selectedObject.recordnummer}
               </div>
 
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <button
+                  onClick={() => goToQueueIndex(selectedIndex - 1)}
+                  disabled={!hasPrevious}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-(--color-border) bg-white hover:bg-(--color-cream-dark) disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft size={12} />
+                  {t('previousAction')}
+                </button>
+                <button
+                  onClick={() => goToQueueIndex(selectedIndex + 1)}
+                  disabled={!hasNext}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-(--color-border) bg-white hover:bg-(--color-cream-dark) disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {t('nextAction')}
+                  <ChevronRight size={12} />
+                </button>
+                <span className="text-xs text-(--color-warm-gray)">
+                  {t('queuePosition', {
+                    current: Math.max(1, selectedIndex + 1),
+                    total: Math.max(1, filteredObjects.length),
+                  })}
+                </span>
+              </div>
+
               <div className="mt-4">
                 <div className="text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
                   {t('descriptionLabel')}
@@ -931,14 +1257,37 @@ export default function LocationQaEditor({
         </div>
 
         <div className="border border-(--color-border) bg-(--color-card) p-5">
-          <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
-            {t('locationContext')}
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
+                {t('locationContext')}
+              </div>
+              <p className="mt-2 text-xs text-(--color-warm-gray)">{t('contextHelp')}</p>
+            </div>
+            {activeOriginalTerm && (
+              <div className="border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                <div className="font-semibold uppercase tracking-wider">{t('activeTermLabel')}</div>
+                <div className="mt-1 font-medium">{activeOriginalTerm}</div>
+              </div>
+            )}
           </div>
           <div className="mt-4 grid gap-3">
             {selectedObject.geoKeywordDetails.map((detail) => (
-              <div key={`${selectedObject.objectnummer}-${detail.term}-${detail.source}`} className="border border-(--color-border) p-3 bg-white">
+              <div
+                key={`${selectedObject.objectnummer}-${detail.term}-${detail.source}`}
+                className={`border p-3 bg-white ${
+                  detail.term === activeOriginalTerm
+                    ? 'border-blue-300 ring-1 ring-blue-200'
+                    : 'border-(--color-border)'
+                }`}
+              >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium text-(--color-charcoal)">{detail.term}</span>
+                  {detail.term === activeOriginalTerm && (
+                    <span className="text-xs px-2 py-0.5 border border-blue-300 bg-blue-50 text-blue-800">
+                      {t('activeTermBadge')}
+                    </span>
+                  )}
                   <span className={`text-xs px-2 py-0.5 border ${
                     detail.source === 'edit'
                       ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
@@ -987,6 +1336,7 @@ export default function LocationQaEditor({
                     obj={selectedObject}
                     detail={detail}
                     t={t}
+                    onConfirm={goToNextReviewTarget}
                     onMarkIncorrect={(term) => {
                       setSelectedObjectnummer(selectedObject.objectnummer);
                       setFocusedOriginalTerm(term);
@@ -1026,10 +1376,12 @@ export default function LocationQaEditor({
       </section>
 
       <LocationEditForm
-        key={`${selectedObject.objectnummer}:${focusedOriginalTerm ?? ''}`}
+        key={`${selectedObject.objectnummer}:${activeOriginalTerm ?? ''}`}
         obj={selectedObject}
         t={t}
-        preferredOriginalTerm={focusedOriginalTerm}
+        streetSuggestions={streetSuggestions}
+        activeOriginalTerm={activeOriginalTerm}
+        onActiveOriginalTermChange={setFocusedOriginalTerm}
       />
     </div>
   );
