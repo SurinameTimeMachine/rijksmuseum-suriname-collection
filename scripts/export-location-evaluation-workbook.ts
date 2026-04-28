@@ -36,6 +36,8 @@ const SOURCE_WEIGHTS = {
 
 const PARAMARIBO_HINTS = ['paramaribo', 'suriname'];
 const STREET_SUGGESTION_LIMIT = 3;
+const DEFAULT_WORKBOOK_FONT_SIZE = 10;
+const DEFAULT_WORKBOOK_FONT_NAME = 'Calibri';
 
 type ObjectCsvRow = {
   recordnummer: string;
@@ -160,9 +162,14 @@ type EvaluationRow = {
   titel: string;
   beschrijving: string;
   geografisch_trefwoord: string;
+  alle_locatietermen_object: string;
   beste_locatiesuggestie: string;
+  ef_review_status: string;
   ef_review_locatie: string;
   ef_review_opmerking: string;
+  ef_review_migratie_bron: string;
+  auto_review_status: string;
+  auto_review_reden: string;
   locatiekwaliteit_score: number;
   locatiekwaliteit: string;
   recordnummer: number;
@@ -249,14 +256,91 @@ type StreetSuggestionRow = {
 };
 
 type ExistingEfReview = {
+  efReviewStatus: EfReviewStatus | null;
   efReviewLocatie: string;
   efReviewOpmerking: string;
+  legacyReviewLocatie: string;
+  migratieBron: string;
 };
 
 type SummaryRow = {
   metric: string;
   value: number | string;
 };
+
+type EfReviewStatus = 'accept' | 'remove-broader' | 'reject' | 'custom';
+
+type ExportCliOptions = {
+  outputPath: string;
+  existingReviewPath: string | null;
+  overwrite: boolean;
+};
+
+type AutoReviewSuggestion = {
+  status: EfReviewStatus;
+  reason: string;
+  hideFromReview: boolean;
+};
+
+type ObjectReviewContext = {
+  term: string;
+  activeLabel: string;
+  broaderTerm: string;
+  resolutionLevel: LocationResolutionLevel | null;
+};
+
+function inferReviewResolutionLevel(reviewValue: string): LocationResolutionLevel {
+  const normalized = normalizeMatcherText(reviewValue);
+  if (!normalized) return 'exact';
+  if (normalized.includes('suriname') || normalized.includes('surinam')) return 'country';
+  if (normalized.includes('paramaribo')) return 'city';
+  return 'exact';
+}
+
+function buildReviewAwareContext(
+  term: string,
+  activeLocation: ActiveLocation,
+  broaderTerm: string,
+  existingReview: ExistingEfReview | undefined,
+): ObjectReviewContext {
+  if (!existingReview) {
+    return {
+      term,
+      activeLabel: activeLocation.label || '',
+      broaderTerm,
+      resolutionLevel: activeLocation.resolutionLevel,
+    };
+  }
+
+  const explicitLocation = existingReview.efReviewLocatie.trim();
+  if (existingReview.efReviewStatus === 'custom' && explicitLocation) {
+    return {
+      term,
+      activeLabel: explicitLocation,
+      broaderTerm,
+      resolutionLevel: inferReviewResolutionLevel(explicitLocation),
+    };
+  }
+
+  if (!existingReview.efReviewStatus && explicitLocation) {
+    const normalizedLegacy = explicitLocation.toLowerCase();
+    if (normalizedLegacy !== 'x' && normalizedLegacy !== 'y' && normalizedLegacy !== 'b') {
+      return {
+        term,
+        activeLabel: explicitLocation,
+        broaderTerm,
+        resolutionLevel: inferReviewResolutionLevel(explicitLocation),
+      };
+    }
+  }
+
+  return {
+    term,
+    activeLabel: activeLocation.label || '',
+    broaderTerm,
+    resolutionLevel: activeLocation.resolutionLevel,
+  };
+}
 
 function ensureReportsDir() {
   if (!fs.existsSync(REPORTS_DIR)) {
@@ -265,8 +349,60 @@ function ensureReportsDir() {
 }
 
 function buildDefaultOutputPath() {
-  const stamp = new Date().toISOString().slice(0, 10);
-  return path.join(REPORTS_DIR, `location-evaluation-${stamp}.xlsx`);
+  return path.join(REPORTS_DIR, 'location-review.xlsx');
+}
+
+function parseCliArgs(): ExportCliOptions {
+  const args = process.argv.slice(2);
+  let outputPath = '';
+  let existingReviewPath: string | null = null;
+  let overwrite = false;
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === '--output') {
+      outputPath = args[index + 1] || '';
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--existing-review') {
+      existingReviewPath = args[index + 1]
+        ? path.resolve(process.cwd(), args[index + 1])
+        : null;
+      index += 1;
+      continue;
+    }
+
+    if (arg === '--overwrite') {
+      overwrite = true;
+      continue;
+    }
+
+    if (!arg.startsWith('--') && !outputPath) {
+      outputPath = arg;
+    }
+  }
+
+  return {
+    outputPath: outputPath
+      ? path.resolve(process.cwd(), outputPath)
+      : buildDefaultOutputPath(),
+    existingReviewPath,
+    overwrite,
+  };
+}
+
+function assertOutputWritable(outputPath: string, overwrite: boolean) {
+  if (!overwrite && fs.existsSync(outputPath)) {
+    throw new Error(
+      [
+        `Output already exists: ${outputPath}`,
+        'To prevent accidental review data loss, rerun with --overwrite when you are sure.',
+      ].join('\n'),
+    );
+  }
 }
 
 function splitMultiValue(value: string): string[] {
@@ -442,12 +578,25 @@ function getReviewKey(recordnummer: number, term: string) {
   return `${recordnummer}::${term.trim().toLowerCase()}`;
 }
 
-function loadExistingEfReviewMap(outputPath: string): Map<string, ExistingEfReview> {
+function normalizeReviewStatus(value: unknown): EfReviewStatus | null {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (
+    normalized === 'accept' ||
+    normalized === 'remove-broader' ||
+    normalized === 'reject' ||
+    normalized === 'custom'
+  ) {
+    return normalized;
+  }
+  return null;
+}
+
+function loadExistingEfReviewMap(reviewPath: string | null): Map<string, ExistingEfReview> {
   const reviewMap = new Map<string, ExistingEfReview>();
-  if (!fs.existsSync(outputPath)) return reviewMap;
+  if (!reviewPath || !fs.existsSync(reviewPath)) return reviewMap;
 
   try {
-    const workbook = XLSX.readFile(outputPath);
+    const workbook = XLSX.readFile(reviewPath);
     const sheet = workbook.Sheets.Evaluatie;
     if (!sheet) return reviewMap;
 
@@ -459,13 +608,47 @@ function loadExistingEfReviewMap(outputPath: string): Map<string, ExistingEfRevi
       ).trim();
       if (!Number.isFinite(recordnummer) || !term) continue;
 
+      const explicitStatus = normalizeReviewStatus(row.ef_review_status);
       const reviewLoc = String(row.ef_review_locatie || '').trim();
       const reviewNote = String(row.ef_review_opmerking || '').trim();
-      if (!reviewLoc && !reviewNote) continue;
+      const legacyReviewLocatie = explicitStatus ? '' : reviewLoc;
+
+      let migratieBron = '';
+      let efReviewStatus = explicitStatus;
+      let efReviewLocatie = reviewLoc;
+
+      if (!efReviewStatus && legacyReviewLocatie) {
+        const normalizedLegacy = legacyReviewLocatie.toLowerCase();
+        if (normalizedLegacy === 'y') {
+          const hasAcceptCandidate = Boolean(
+            String(row.beste_locatiesuggestie || '').trim() ||
+            String(row.huidige_curatie_label || '').trim() ||
+            String(row.beste_beschikbare_locatie_label || '').trim(),
+          );
+          efReviewStatus = hasAcceptCandidate ? 'accept' : null;
+          efReviewLocatie = '';
+          migratieBron = hasAcceptCandidate ? 'legacy-y' : 'legacy-y-empty';
+        } else if (normalizedLegacy === 'x') {
+          efReviewStatus = null;
+          efReviewLocatie = '';
+          migratieBron = 'legacy-x';
+        } else {
+          efReviewStatus = 'custom';
+          efReviewLocatie = legacyReviewLocatie;
+          migratieBron = 'legacy-custom';
+        }
+      } else if (efReviewStatus) {
+        migratieBron = 'status-kolom';
+      }
+
+      if (!efReviewStatus && !efReviewLocatie && !reviewNote && !legacyReviewLocatie) continue;
 
       reviewMap.set(getReviewKey(recordnummer, term), {
-        efReviewLocatie: reviewLoc,
+        efReviewStatus,
+        efReviewLocatie,
         efReviewOpmerking: reviewNote,
+        legacyReviewLocatie,
+        migratieBron,
       });
     }
   } catch {
@@ -943,6 +1126,68 @@ function formatBestLocationSuggestion(activeLocation: ActiveLocation): string {
   return `${details.join(' | ')} [${activeLocation.source}]`;
 }
 
+function getResolutionSpecificity(
+  level: LocationResolutionLevel | null,
+  normalizedLabel: string = '',
+): number {
+  if (normalizedLabel.includes('suriname') || normalizedLabel.includes('surinam')) return 1;
+  if (normalizedLabel.includes('paramaribo')) return 3;
+  if (level === 'country') return 1;
+  if (level === 'broader') return 2;
+  if (level === 'city') return 3;
+  if (level === 'exact') return 4;
+  return 0;
+}
+
+function getAutoReviewSuggestion(
+  current: ObjectReviewContext,
+  allContexts: ObjectReviewContext[],
+): AutoReviewSuggestion | null {
+  const currentLabel = normalizeMatcherText(current.activeLabel || current.term);
+  const currentBroader = normalizeMatcherText(current.broaderTerm);
+  const currentSpecificity = getResolutionSpecificity(current.resolutionLevel, currentLabel);
+
+  if (!currentLabel) return null;
+
+  for (const other of allContexts) {
+    if (other.term === current.term) continue;
+
+    const otherLabel = normalizeMatcherText(other.activeLabel || other.term);
+    const otherBroader = normalizeMatcherText(other.broaderTerm);
+    const otherSpecificity = getResolutionSpecificity(other.resolutionLevel, otherLabel);
+    if (!otherLabel) continue;
+
+    const isCountrySuperset =
+      (currentLabel.includes('suriname') || currentLabel.includes('surinam')) &&
+      otherSpecificity > currentSpecificity;
+    const isCitySuperset = currentLabel.includes('paramaribo') && otherSpecificity === 4;
+    const isBroaderLink = Boolean(currentLabel && otherBroader && currentLabel === otherBroader);
+
+    if (isCountrySuperset || isCitySuperset || isBroaderLink) {
+      return {
+        status: 'remove-broader',
+        reason: `Specifiekere locatie in hetzelfde object: ${other.activeLabel || other.term}`,
+        hideFromReview: true,
+      };
+    }
+  }
+
+  if (currentSpecificity === 1) {
+    for (const other of allContexts) {
+      if (other.term === current.term) continue;
+      if (getResolutionSpecificity(other.resolutionLevel) > currentSpecificity) {
+        return {
+          status: 'remove-broader',
+          reason: `Landniveau overbodig door specifiekere locatie: ${other.activeLabel || other.term}`,
+          hideFromReview: true,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
 function autosizeColumns(sheet: XLSX.WorkSheet, rows: Array<Record<string, unknown>>) {
   const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
   sheet['!cols'] = headers.map((header) => {
@@ -956,15 +1201,51 @@ function autosizeColumns(sheet: XLSX.WorkSheet, rows: Array<Record<string, unkno
       wch: Math.min(Math.max(maxValueLength + 2, 10), 48),
     };
   });
-  sheet['!freeze'] = { xSplit: 0, ySplit: 1 } as any;
+  sheet['!freeze'] = {
+    xSplit: 0,
+    ySplit: 1,
+    topLeftCell: 'A2',
+    activePane: 'bottomLeft',
+    state: 'frozen',
+  } as any;
   if (sheet['!ref']) {
     sheet['!autofilter'] = { ref: sheet['!ref'] };
+  }
+}
+
+function applyDefaultFont(sheet: XLSX.WorkSheet) {
+  if (!sheet['!ref']) return;
+  const range = XLSX.utils.decode_range(sheet['!ref']);
+
+  for (let rowIndex = range.s.r; rowIndex <= range.e.r; rowIndex += 1) {
+    for (let colIndex = range.s.c; colIndex <= range.e.c; colIndex += 1) {
+      const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+      const cell = sheet[cellRef] as XLSX.CellObject | undefined;
+      if (!cell) continue;
+
+      const styledCell = cell as XLSX.CellObject & { s?: Record<string, unknown> };
+      const existingStyle = (styledCell.s ?? {}) as Record<string, unknown>;
+      const existingFont =
+        existingStyle.font && typeof existingStyle.font === 'object'
+          ? (existingStyle.font as Record<string, unknown>)
+          : {};
+
+      styledCell.s = {
+        ...existingStyle,
+        font: {
+          ...existingFont,
+          name: DEFAULT_WORKBOOK_FONT_NAME,
+          sz: DEFAULT_WORKBOOK_FONT_SIZE,
+        },
+      };
+    }
   }
 }
 
 function makeWorksheet(rows: Array<Record<string, unknown>>): XLSX.WorkSheet {
   const worksheet = XLSX.utils.json_to_sheet(rows);
   autosizeColumns(worksheet, rows);
+  applyDefaultFont(worksheet);
   return worksheet;
 }
 
@@ -981,9 +1262,9 @@ function makeEvaluatieWorksheet(rows: EvaluationRow[]): XLSX.WorkSheet {
 function main() {
   ensureReportsDir();
 
-  const outputPath = process.argv[2]
-    ? path.resolve(process.cwd(), process.argv[2])
-    : buildDefaultOutputPath();
+  const options = parseCliArgs();
+  const outputPath = options.outputPath;
+  assertOutputWritable(outputPath, options.overwrite);
 
   const objectRows = loadObjectRows();
   const geoThesaurus = loadEnrichedGeoThesaurus();
@@ -992,9 +1273,10 @@ function main() {
   const wikimediaEntries = loadWikimediaEntries();
   const latestEdits = buildLatestLocationEditMap(loadLocationEdits());
   const termDefaults = loadTermDefaults();
-  const existingReviewMap = loadExistingEfReviewMap(outputPath);
+  const existingReviewMap = loadExistingEfReviewMap(options.existingReviewPath);
 
   const evaluationRows: EvaluationRow[] = [];
+  const autoFilteredRows: EvaluationRow[] = [];
   const streetSuggestionRows: StreetSuggestionRow[] = [];
 
   for (const row of objectRows) {
@@ -1002,9 +1284,21 @@ function main() {
     const terms = splitMultiValue(row.geografisch_trefwoord);
     const effectiveTerms = terms.length > 0 ? terms : [''];
     const wikimediaEntry = wikimediaEntries.get(row.recordnummer);
-    const thesaurusMatches = effectiveTerms
+    let thesaurusMatches = effectiveTerms
       .map((term) => geoThesaurus.get(term))
       .filter((entry): entry is GeoThesaurusEntry => Boolean(entry));
+
+    // Fallback: als geen exacte match, maar wel een QID-match in de thesaurus, voeg die toe
+    if (thesaurusMatches.length === 0 && row.wikidataQid) {
+      // Zoek op QID in de thesaurus
+      const qid = row.wikidataQid.replace(/^Q/, '').trim();
+      const qidMatch = Array.from(geoThesaurus.values()).find(
+        (entry) => (entry.wikidataQid || '').replace(/^Q/, '').trim() === qid
+      );
+      if (qidMatch) {
+        thesaurusMatches = [qidMatch];
+      }
+    }
     const streetSuggestions = getStreetSuggestions(
       row,
       wikimediaEntry?.wikimediaUrl || null,
@@ -1038,6 +1332,9 @@ function main() {
       });
     }
 
+    const pendingRows: EvaluationRow[] = [];
+    const pendingContexts: ObjectReviewContext[] = [];
+
     effectiveTerms.forEach((term, index) => {
       const thesaurusEntry = term ? geoThesaurus.get(term) : undefined;
       const activeLocation = getActiveLocation(
@@ -1060,13 +1357,27 @@ function main() {
       const bestSuggestion = formatBestLocationSuggestion(activeLocation);
       const existingReview = existingReviewMap.get(getReviewKey(recordnummer, term || row.geografisch_trefwoord));
 
-      evaluationRows.push({
+      pendingContexts.push(
+        buildReviewAwareContext(
+          term,
+          activeLocation,
+          thesaurusEntry?.broaderTerm || '',
+          existingReview,
+        ),
+      );
+
+      pendingRows.push({
         titel: row.titel,
         beschrijving: row.beschrijving,
         geografisch_trefwoord: term || row.geografisch_trefwoord,
+        alle_locatietermen_object: row.geografisch_trefwoord,
         beste_locatiesuggestie: bestSuggestion,
+        ef_review_status: existingReview?.efReviewStatus || '',
         ef_review_locatie: existingReview?.efReviewLocatie || '',
         ef_review_opmerking: existingReview?.efReviewOpmerking || '',
+        ef_review_migratie_bron: existingReview?.migratieBron || '',
+        auto_review_status: '',
+        auto_review_reden: '',
         locatiekwaliteit_score: quality.score,
         locatiekwaliteit: quality.qualityLabel,
         recordnummer,
@@ -1166,6 +1477,32 @@ function main() {
         pid_werk_uri: row['PID_werk.URI'],
       });
     });
+
+    pendingRows.forEach((candidateRow, index) => {
+      const existingReview = existingReviewMap.get(
+        getReviewKey(recordnummer, candidateRow.rijksmuseum_geografisch_trefwoord_atomair || candidateRow.geografisch_trefwoord),
+      );
+      const autoSuggestion = getAutoReviewSuggestion(pendingContexts[index], pendingContexts);
+      const hasExistingReview = Boolean(
+        existingReview?.efReviewStatus ||
+        existingReview?.efReviewLocatie ||
+        existingReview?.efReviewOpmerking,
+      );
+
+      if (!candidateRow.ef_review_status && existingReview?.migratieBron === 'legacy-x') {
+        candidateRow.ef_review_status = autoSuggestion?.status || 'reject';
+      }
+
+      candidateRow.auto_review_status = autoSuggestion?.status || '';
+      candidateRow.auto_review_reden = autoSuggestion?.reason || '';
+
+      if (!hasExistingReview && autoSuggestion?.hideFromReview) {
+        autoFilteredRows.push(candidateRow);
+        return;
+      }
+
+      evaluationRows.push(candidateRow);
+    });
   }
 
   const thesaurusRows = Array.from(geoThesaurus.values()).map((entry) => ({
@@ -1198,6 +1535,7 @@ function main() {
   const summaryRows: SummaryRow[] = [
     { metric: 'objecten in broncsv', value: objectRows.length },
     { metric: 'rijen in evaluatietab', value: evaluationRows.length },
+    { metric: 'automatisch gefilterde bredere rijen', value: autoFilteredRows.length },
     { metric: 'objecten met straatsuggestie', value: new Set(streetSuggestionRows.map((row) => row.objectnummer)).size },
     { metric: 'totaal straatsuggesties', value: streetSuggestionRows.length },
     { metric: 'stm-gazetteer plaatsen geladen', value: stmGazetteerPlaces.length },
@@ -1231,14 +1569,29 @@ function main() {
       waarden: 'object-edit | term-default | thesaurus | street-suggestion | none',
     },
     {
+      veld: 'ef_review_status',
+      betekenis: 'Nieuwe hoofdstatus voor reviewbeslissing. Shorthands: a of y = accept.',
+      waarden: 'accept (a/y) | remove-broader | reject | custom',
+    },
+    {
       veld: 'ef_review_locatie',
-      betekenis: 'Enige verplichte reviewveld: zet Y als suggestie akkoord is, of typ hier direct je verbeterde locatie.',
-      waarden: 'Y of vrije tekst (jouw verbeterde locatie)',
+      betekenis: 'Alleen invullen bij status custom: gebruik hier je concrete primaire locatie, Wikidata-id of STM-id. Shorthands: s = Suriname (Q730), b = buiten scope (niet importeren).',
+      waarden: 'vrije tekst / QID / STM-id / s / b',
     },
     {
       veld: 'ef_review_opmerking',
       betekenis: 'Korte toelichting bij je keuze of correctie.',
       waarden: 'vrije tekst',
+    },
+    {
+      veld: 'ef_review_migratie_bron',
+      betekenis: 'Laat zien hoe een bestaande review uit het oude formulier is omgezet.',
+      waarden: 'status-kolom | legacy-y | legacy-y-empty | legacy-x | legacy-custom',
+    },
+    {
+      veld: 'auto_review_status / auto_review_reden',
+      betekenis: 'Automatische suggestie om bredere locaties buiten de hoofdreview te houden.',
+      waarden: 'alleen informatief',
     },
     {
       veld: 'stm_gazetteer_suggestie_*',
@@ -1254,12 +1607,13 @@ function main() {
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, makeEvaluatieWorksheet(evaluationRows), 'Evaluatie');
+  XLSX.utils.book_append_sheet(workbook, makeWorksheet(autoFilteredRows), 'Auto-gefilterd');
   XLSX.utils.book_append_sheet(workbook, makeWorksheet(streetSuggestionRows), 'Straatsuggesties');
   XLSX.utils.book_append_sheet(workbook, makeWorksheet(thesaurusRows), 'Termbron');
   XLSX.utils.book_append_sheet(workbook, makeWorksheet(summaryRows), 'Samenvatting');
   XLSX.utils.book_append_sheet(workbook, makeWorksheet(legendRows), 'Legenda');
 
-  XLSX.writeFile(workbook, outputPath);
+  XLSX.writeFile(workbook, outputPath, { cellStyles: true });
 
   console.log(
     `Wrote location evaluation workbook with ${evaluationRows.length} evaluation rows to ${outputPath}`,

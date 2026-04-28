@@ -27,6 +27,7 @@ type CliOptions = {
 type EvaluationRow = {
   recordnummer: unknown;
   objectnummer: unknown;
+  ef_review_status: unknown;
   geografisch_trefwoord: unknown;
   beste_locatiesuggestie: unknown;
   rijksmuseum_geografisch_trefwoord_atomair: unknown;
@@ -54,15 +55,22 @@ type ImportSummary = {
   rowsRead: number;
   reviewRows: number;
   imported: number;
+  importedRejected: number;
   skippedConflict: number;
   skippedUnmatched: number;
   skippedNoTerm: number;
   skippedRemarkOnly: number;
+  skippedNegativeReview: number;
+  skippedOutOfScope: number;
+  skippedEmptyAccept: number;
   skippedAlreadyCurrent: number;
+  skippedNietSuriname: number;
   errors: number;
   errorDetails: string[];
   timestamp: string;
 };
+
+type ReviewStatus = 'accept' | 'remove-broader' | 'reject' | 'custom' | 'out-of-scope';
 
 type CandidateLocation = {
   label: string;
@@ -73,11 +81,13 @@ type CandidateLocation = {
   resolutionLevel: LocationResolutionLevel;
 };
 
+const BROADER_TERMS = ['Suriname (Zuid-Amerika)', 'Paramaribo (stad)', 'Suriname', 'Paramaribo'];
+
 function parseCliArgs(): CliOptions {
   const args = process.argv.slice(2);
 
   let sourcePath = '';
-  let author = 'xlsx-import';
+  let author = 'Thunnis van Oort';
   let dryRun = false;
   let conflictPolicy: ConflictPolicy = 'skip';
   let summaryOutPath: string | null = null;
@@ -155,13 +165,45 @@ function normalizeResolution(value: string): LocationResolutionLevel | null {
   return null;
 }
 
-function pickCandidateLocation(row: EvaluationRow, reviewLoc: string): CandidateLocation | null {
-  const isConfirm = reviewLoc.toLowerCase() === 'y';
+function normalizeReviewStatus(value: unknown): ReviewStatus | null {
+  const normalized = toTrimmedString(value).toLowerCase();
+  if (normalized === 'accept' || normalized === 'a' || normalized === 'y') return 'accept';
+  if (normalized === 'remove-broader') return 'remove-broader';
+  if (normalized === 'reject' || normalized === 'r' || normalized === 'x') return 'reject';
+  if (normalized === 'custom' || normalized === 'c') return 'custom';
+  if (normalized === 'out-of-scope') return 'out-of-scope';
+  return null;
+}
+
+function deriveLegacyReviewStatus(reviewLoc: string): ReviewStatus | null {
+  const normalized = reviewLoc.toLowerCase();
+  if (normalized === 'y') return 'accept';
+  if (normalized === 'x') return 'reject';
+  if (normalized === 'b') return 'out-of-scope';
+  if (reviewLoc) return 'custom';
+  return null;
+}
+
+const SURINAME_SHORTHAND: CandidateLocation = {
+  label: 'Suriname',
+  qid: 'Q730',
+  wikidataUrl: 'https://www.wikidata.org/wiki/Q730',
+  lat: 4.0,
+  lng: -56.0,
+  resolutionLevel: 'country',
+};
+
+function pickCandidateLocation(row: EvaluationRow, reviewStatus: ReviewStatus, reviewLoc: string): CandidateLocation | null {
+  if (reviewStatus === 'reject' || reviewStatus === 'remove-broader') return null;
+  
+  const normalizedLoc = reviewLoc.toLowerCase();
+  if (normalizedLoc === 's') return SURINAME_SHORTHAND;
+  const isAccept = reviewStatus === 'accept';
 
   const currentLabel = toTrimmedString(row.huidige_curatie_label);
   const bestLabel = toTrimmedString(row.beste_beschikbare_locatie_label);
 
-  if (isConfirm) {
+  if (isAccept) {
     const label = currentLabel || bestLabel;
     const bestSuggestionRaw = toTrimmedString(row.beste_locatiesuggestie);
     const bestSuggestionLabel = bestSuggestionRaw ? bestSuggestionRaw.split('|')[0].trim() : '';
@@ -234,10 +276,6 @@ function ensureBackup(locationEditsPath: string): string | null {
   return backupPath;
 }
 
-function toEvidenceSource(reviewLoc: string): LocationEvidenceSource {
-  return reviewLoc.toLowerCase() === 'y' ? 'bevestigd' : 'beschrijving';
-}
-
 function writeSummary(summaryPath: string, summary: ImportSummary) {
   const parent = path.dirname(summaryPath);
   if (!fs.existsSync(parent)) {
@@ -254,9 +292,10 @@ function main() {
   }
 
   const workbook = XLSX.readFile(options.sourcePath);
-  const sheet = workbook.Sheets.Evaluatie;
+  const sheetName = 'Evaluatie';
+  const sheet = workbook.Sheets[sheetName];
   if (!sheet) {
-    throw new Error('Workbook does not contain required sheet: Evaluatie');
+    throw new Error(`Workbook does not contain required sheet: ${sheetName}`);
   }
 
   const rows = XLSX.utils.sheet_to_json<EvaluationRow>(sheet, { defval: '' });
@@ -271,102 +310,172 @@ function main() {
     rowsRead: rows.length,
     reviewRows: 0,
     imported: 0,
+    importedRejected: 0,
     skippedConflict: 0,
     skippedUnmatched: 0,
     skippedNoTerm: 0,
     skippedRemarkOnly: 0,
+    skippedNegativeReview: 0,
+    skippedOutOfScope: 0,
+    skippedEmptyAccept: 0,
     skippedAlreadyCurrent: 0,
+    skippedNietSuriname: 0,
     errors: 0,
     errorDetails: [],
     timestamp: new Date().toISOString(),
   };
 
+  // Group by objectnummer
+  const groups = new Map<string, EvaluationRow[]>();
+  for (const row of rows) {
+    const objectnummer = toTrimmedString(row.objectnummer);
+    if (!objectnummer) continue;
+    if (!groups.has(objectnummer)) groups.set(objectnummer, []);
+    groups.get(objectnummer)!.push(row);
+  }
+
   let backupPath: string | null = null;
   const locationEditsPath = path.join(process.cwd(), 'data', 'location-edits.jsonl');
 
-  for (let idx = 0; idx < rows.length; idx += 1) {
-    const row = rows[idx];
-    const excelLine = idx + 2;
+  for (const [objectnummer, groupRows] of groups.entries()) {
+    // Determine if we have "specific" locations in this group (not Suriname/Paramaribo)
+    // and they are either accepted or custom.
+    const hasSpecific = groupRows.some(row => {
+        const term = normalizeTerm(row);
+        const remark = toTrimmedString(row.ef_review_opmerking).toLowerCase();
+        if (remark.includes('niet-suriname')) return false;
+        
+        const status = normalizeReviewStatus(row.ef_review_status);
+        const isSpecific = !BROADER_TERMS.includes(term);
+        return isSpecific && (status === 'accept' || status === 'custom');
+    });
 
-    const reviewLoc = toTrimmedString(row.ef_review_locatie);
-    const reviewRemark = toTrimmedString(row.ef_review_opmerking);
+    for (const row of groupRows) {
+      const explicitStatus = normalizeReviewStatus(row.ef_review_status);
+      const reviewLoc = toTrimmedString(row.ef_review_locatie);
+      const reviewRemark = toTrimmedString(row.ef_review_opmerking);
+      const reviewStatus = explicitStatus || deriveLegacyReviewStatus(reviewLoc);
 
-    if (!reviewLoc && !reviewRemark) continue;
-    summary.reviewRows += 1;
+      if (!reviewStatus && !reviewLoc && !reviewRemark) continue;
+      summary.reviewRows += 1;
 
-    if (!reviewLoc && reviewRemark) {
-      summary.skippedRemarkOnly += 1;
-      continue;
-    }
-
-    const recordnummer = Number.parseInt(toTrimmedString(row.recordnummer), 10);
-    const objectnummer = toTrimmedString(row.objectnummer);
-    const originalTerm = normalizeTerm(row);
-
-    if (!originalTerm) {
-      summary.skippedNoTerm += 1;
-      continue;
-    }
-
-    if (!Number.isFinite(recordnummer) || !objectnummer) {
-      summary.skippedUnmatched += 1;
-      summary.errors += 1;
-      summary.errorDetails.push(
-        `Line ${excelLine}: missing key fields (recordnummer/objectnummer).`,
-      );
-      continue;
-    }
-
-    const candidate = pickCandidateLocation(row, reviewLoc || 'Y');
-    if (!candidate) {
-      summary.skippedUnmatched += 1;
-      summary.errors += 1;
-      summary.errorDetails.push(
-        `Line ${excelLine}: could not derive target location label for review value "${reviewLoc}".`,
-      );
-      continue;
-    }
-
-    const key = `${recordnummer}::${originalTerm.toLowerCase()}`;
-    const existingLatest = latestByKey.get(key);
-
-    const incoming: LocationEditRecord = {
-      recordnummer,
-      objectnummer,
-      originalTerm,
-      resolvedLocationLabel: candidate.label,
-      wikidataQid: candidate.qid,
-      wikidataUrl: candidate.wikidataUrl,
-      gazetteerUrl: null,
-      lat: candidate.lat,
-      lng: candidate.lng,
-      resolutionLevel: candidate.resolutionLevel,
-      evidenceSource: toEvidenceSource(reviewLoc || 'Y'),
-      evidenceText: reviewRemark || null,
-      author: options.author,
-      timestamp: new Date().toISOString(),
-      remark: reviewRemark || null,
-    };
-
-    if (existingLatest && sameAsLatest(existingLatest, incoming)) {
-      summary.skippedAlreadyCurrent += 1;
-      continue;
-    }
-
-    if (existingLatest && options.conflictPolicy === 'skip') {
-      summary.skippedConflict += 1;
-      continue;
-    }
-
-    if (!options.dryRun) {
-      if (!backupPath) {
-        backupPath = ensureBackup(locationEditsPath);
+      if (reviewRemark.toLowerCase().includes('niet-suriname')) {
+          summary.skippedNietSuriname += 1;
+          continue;
       }
-      appendLocationEdit(incoming);
-      latestByKey.set(key, incoming);
-    }
 
-    summary.imported += 1;
+      if (!reviewStatus && !reviewLoc && reviewRemark) {
+        summary.skippedRemarkOnly += 1;
+        continue;
+      }
+
+      if (reviewStatus === 'out-of-scope') {
+        summary.skippedOutOfScope += 1;
+        continue;
+      }
+
+      const recordnummer = Number.parseInt(toTrimmedString(row.recordnummer), 10);
+      const originalTerm = normalizeTerm(row);
+
+      if (!originalTerm) {
+        summary.skippedNoTerm += 1;
+        continue;
+      }
+
+      if (!Number.isFinite(recordnummer)) {
+        summary.skippedUnmatched += 1;
+        summary.errors += 1;
+        summary.errorDetails.push(
+          `Object ${objectnummer}, Term ${originalTerm}: missing recordnummer.`,
+        );
+        continue;
+      }
+
+      let evidenceSource: LocationEvidenceSource = 'bevestigd';
+      let candidate: CandidateLocation | null = null;
+
+      const isBroader = BROADER_TERMS.includes(originalTerm);
+      
+      if (reviewStatus === 'reject') {
+          summary.skippedNegativeReview += 1;
+          continue;
+      }
+
+      if (reviewStatus === 'remove-broader' || (isBroader && hasSpecific)) {
+          evidenceSource = 'rejected';
+          candidate = {
+              label: originalTerm,
+              qid: null,
+              wikidataUrl: null,
+              lat: null,
+              lng: null,
+              resolutionLevel: 'broader'
+          };
+      } else {
+          candidate = pickCandidateLocation(
+            row,
+            reviewStatus || 'accept',
+            reviewLoc || 'Y',
+          );
+      }
+
+      if (!candidate) {
+        if (reviewStatus === 'accept') {
+          summary.skippedEmptyAccept += 1;
+          continue;
+        }
+        summary.skippedUnmatched += 1;
+        summary.errors += 1;
+        summary.errorDetails.push(
+          `Object ${objectnummer}, Term ${originalTerm}: could not derive target location for review value "${reviewLoc}".`,
+        );
+        continue;
+      }
+
+      const key = `${recordnummer}::${originalTerm.toLowerCase()}`;
+      const existingLatest = latestByKey.get(key);
+
+      const incoming: LocationEditRecord = {
+        recordnummer,
+        objectnummer,
+        originalTerm,
+        resolvedLocationLabel: candidate.label,
+        wikidataQid: candidate.qid,
+        wikidataUrl: candidate.wikidataUrl,
+        gazetteerUrl: null,
+        lat: candidate.lat,
+        lng: candidate.lng,
+        resolutionLevel: candidate.resolutionLevel,
+        evidenceSource: evidenceSource,
+        evidenceText: reviewRemark || null,
+        author: options.author,
+        timestamp: new Date().toISOString(),
+        remark: reviewRemark || null,
+      };
+
+      if (existingLatest && sameAsLatest(existingLatest, incoming)) {
+        summary.skippedAlreadyCurrent += 1;
+        continue;
+      }
+
+      if (existingLatest && options.conflictPolicy === 'skip') {
+        summary.skippedConflict += 1;
+        continue;
+      }
+
+      if (!options.dryRun) {
+        if (!backupPath) {
+          backupPath = ensureBackup(locationEditsPath);
+        }
+        appendLocationEdit(incoming);
+        latestByKey.set(key, incoming);
+      }
+
+      if (evidenceSource === 'rejected') {
+          summary.importedRejected += 1;
+      }
+      summary.imported += 1;
+    }
   }
 
   if (options.summaryOutPath) {
@@ -383,11 +492,16 @@ function main() {
       `rowsRead=${summary.rowsRead}`,
       `reviewRows=${summary.reviewRows}`,
       `imported=${summary.imported}`,
+      `importedRejected=${summary.importedRejected}`,
       `skippedConflict=${summary.skippedConflict}`,
       `skippedUnmatched=${summary.skippedUnmatched}`,
       `skippedNoTerm=${summary.skippedNoTerm}`,
       `skippedRemarkOnly=${summary.skippedRemarkOnly}`,
+      `skippedNegativeReview=${summary.skippedNegativeReview}`,
+      `skippedOutOfScope=${summary.skippedOutOfScope}`,
+      `skippedEmptyAccept=${summary.skippedEmptyAccept}`,
       `skippedAlreadyCurrent=${summary.skippedAlreadyCurrent}`,
+      `skippedNietSuriname=${summary.skippedNietSuriname}`,
       `errors=${summary.errors}`,
     ].join(' '),
   );

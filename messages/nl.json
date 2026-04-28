@@ -218,11 +218,15 @@
     "clearFilters": "Filters wissen",
     "searchLocations": "Zoek locaties…",
     "noLocations": "Geen locaties gevonden",
-    "viewInGallery": "Bekijk in Galerij",
-    "showMore": "Toon {remaining} meer…",
+    "viewInGallery": "Bekijk in galerij",
+    "showMore": "Bekijk er nog {remaining}…",
     "showLess": "Toon minder",
-    "markerSize": "Grootte = aantal objecten"
-  },
+    "markerSize": "Grootte = aantal objecten",
+    "heatmap": "Hittekaart",
+    "markers": "Markers",
+    "heatDensity": "Dichtheid = aantal objecten",
+    "allRegions": "Alle regio's"
+    },
   "statistics": {
     "title": "Statistieken",
     "subtitle": "Data-overzicht van de collectie",

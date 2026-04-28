@@ -26,7 +26,8 @@ export type LocationEvidenceSource =
   | 'beschrijving'
   | 'both'
   | 'bevestigd'
-  | 'revert';
+  | 'revert'
+  | 'rejected';
 
 export type GeoFlag = 'outside-suriname';
 

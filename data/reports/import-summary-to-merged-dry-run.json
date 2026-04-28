@@ -1,0 +1,19 @@
+{
+  "sourcePath": "/home/thunnis/Projecten/STM/rijksmuseum/rijksmuseum-suriname-collection/data/reports/location-evaluation-2026-04-14-TO-merged.xlsx",
+  "dryRun": true,
+  "author": "TvO",
+  "conflictPolicy": "skip",
+  "rowsRead": 5942,
+  "reviewRows": 2421,
+  "imported": 2196,
+  "skippedConflict": 3,
+  "skippedUnmatched": 0,
+  "skippedNoTerm": 79,
+  "skippedRemarkOnly": 32,
+  "skippedNegativeReview": 107,
+  "skippedEmptyAccept": 3,
+  "skippedAlreadyCurrent": 1,
+  "errors": 0,
+  "errorDetails": [],
+  "timestamp": "2026-04-17T08:06:41.263Z"
+}

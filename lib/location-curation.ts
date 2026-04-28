@@ -135,45 +135,52 @@ export function applyLocationEditsToObject(
   obj: CollectionObject,
   latestEdits: Map<string, LocationEditRecord>,
 ): CollectionObject {
-  const updatedDetails = obj.geoKeywordDetails.map((detail) => {
-    const edit = latestEdits.get(getEditKey(obj.recordnummer, detail.term));
-    const baseFlags = getGeoFlags(detail.lat, detail.lng);
+  const updatedDetails = obj.geoKeywordDetails
+    .map((detail) => {
+      const edit = latestEdits.get(getEditKey(obj.recordnummer, detail.term));
+      const baseFlags = getGeoFlags(detail.lat, detail.lng);
 
-    if (!edit) {
+      if (!edit) {
+        return {
+          ...detail,
+          flags: Array.from(new Set([...(detail.flags || []), ...baseFlags])),
+        };
+      }
+
+      if (edit.evidenceSource === 'revert') {
+        return {
+          ...detail,
+          flags: Array.from(new Set([...(detail.flags || []), ...baseFlags])),
+        };
+      }
+
+      if (edit.evidenceSource === 'rejected') {
+        return null;
+      }
+
       return {
         ...detail,
-        flags: Array.from(new Set([...(detail.flags || []), ...baseFlags])),
-      };
-    }
-
-    if (edit.evidenceSource === 'revert') {
-      return {
-        ...detail,
-        flags: Array.from(new Set([...(detail.flags || []), ...baseFlags])),
-      };
-    }
-
-    return {
-      ...detail,
-      matchedLabel: edit.resolvedLocationLabel,
-      wikidataUri: edit.wikidataUrl,
-      stmGazetteerUrl: edit.gazetteerUrl ?? null,
-      lat: edit.lat,
-      lng: edit.lng,
-      source: 'edit' as const,
-      resolutionLevel: edit.resolutionLevel,
-      flags: getGeoFlags(edit.lat, edit.lng),
-      provenance: {
-        author: edit.author,
-        timestamp: edit.timestamp,
-        remark: edit.remark,
-      },
-    } satisfies GeoKeywordDetail;
-  });
+        matchedLabel: edit.resolvedLocationLabel,
+        wikidataUri: edit.wikidataUrl,
+        stmGazetteerUrl: edit.gazetteerUrl ?? null,
+        lat: edit.lat,
+        lng: edit.lng,
+        source: 'edit' as const,
+        resolutionLevel: edit.resolutionLevel,
+        flags: getGeoFlags(edit.lat, edit.lng),
+        provenance: {
+          author: edit.author,
+          timestamp: edit.timestamp,
+          remark: edit.remark,
+        },
+      } satisfies GeoKeywordDetail;
+    })
+    .filter((d): d is GeoKeywordDetail => d !== null);
 
   return {
     ...obj,
     geoKeywordDetails: updatedDetails,
+    geographicKeywords: updatedDetails.map((d) => d.term),
   };
 }
 

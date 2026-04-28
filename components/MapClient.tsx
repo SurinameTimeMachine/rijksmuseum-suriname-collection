@@ -19,6 +19,8 @@ import {
   MapPin,
   Search,
   X,
+  Flame,
+  Map as MapIcon,
 } from 'lucide-react';
 import type { CollectionObject, GeoLocation } from '@/types/collection';
 import ObjectImage from './ObjectImage';
@@ -74,6 +76,9 @@ export default function MapClient({ locations }: MapClientProps) {
   const t = useTranslations('map');
   const locale = useLocale();
   const mounted = useIsMounted();
+
+  /* ---- View mode ---- */
+  const [viewMode, setViewMode] = useState<'markers' | 'heatmap'>('markers');
 
   /* ---- Region filter ---- */
   const [regionFilter, setRegionFilter] = useState<
@@ -198,8 +203,35 @@ export default function MapClient({ locations }: MapClientProps) {
         )}
       </div>
 
-      {/* ---- Region toggle ---- */}
-      <div className="flex flex-wrap items-center gap-2">
+      {/* ---- Region toggle and View Mode toggle ---- */}
+      <div className=\"flex flex-wrap items-center gap-2\">
+        <div className=\"flex items-center gap-1 border border-(--color-border) p-1 bg-(--color-card)\">
+          <button
+            onClick={() => setViewMode('markers')}
+            className={`p-2 transition-colors ${
+              viewMode === 'markers'
+                ? 'bg-(--color-charcoal) text-white'
+                : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)'
+            }`}
+            title={t('markers')}
+          >
+            <MapIcon size={16} />
+          </button>
+          <button
+            onClick={() => setViewMode('heatmap')}
+            className={`p-2 transition-colors ${
+              viewMode === 'heatmap'
+                ? 'bg-(--color-charcoal) text-white'
+                : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)'
+            }`}
+            title={t('heatmap')}
+          >
+            <Flame size={16} />
+          </button>
+        </div>
+
+        <div className=\"w-px h-8 bg-(--color-border) mx-1 hidden sm:block\" />
+
         {(['suriname', 'netherlands', 'both'] as const).map((region) => {
           const isActive = regionFilter === region;
           const label =
@@ -349,12 +381,13 @@ export default function MapClient({ locations }: MapClientProps) {
         </div>
 
         {/* Map + detail panel */}
-        <div className="flex-1 min-w-0 space-y-4">
+        <div className=\"flex-1 min-w-0 space-y-4\">
           <MapInner
             locations={filteredLocations}
             selectedLocation={selectedLocation}
             onSelectLocation={setSelectedLocation}
             regionFilter={regionFilter}
+            viewMode={viewMode}
             locale={locale}
             t={t}
           />
@@ -477,6 +510,33 @@ function SelectedLocationPanel({
 }
 
 /* ==================================================================
+   HEATMAP LAYER
+   ================================================================== */
+function HeatLayerWrapper({ points, L }: { points: [number, number, number][], L: any }) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !points.length || !L) return;
+
+    // @ts-ignore - leaflet.heat is not typed
+    const heatLayer = L.heatLayer(points, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 13,
+      max: 1.0,
+    });
+
+    heatLayer.addTo(map);
+
+    return () => {
+      map.removeLayer(heatLayer);
+    };
+  }, [map, points]);
+
+  return null;
+}
+
+/* ==================================================================
    MAP INNER (dynamic leaflet)
    ================================================================== */
 function MapInner({
@@ -484,12 +544,14 @@ function MapInner({
   selectedLocation,
   onSelectLocation,
   regionFilter,
+  viewMode,
   t,
 }: {
   locations: LocationGroup[];
   selectedLocation: LocationGroup | null;
   onSelectLocation: (loc: LocationGroup | null) => void;
   regionFilter: 'suriname' | 'netherlands' | 'both';
+  viewMode: 'markers' | 'heatmap';
   locale: string;
   t: ReturnType<typeof useTranslations>;
 }) {
@@ -505,13 +567,20 @@ function MapInner({
   const [Tooltip, setTooltip] = useState<
     typeof import('react-leaflet').Tooltip | null
   >(null);
+  const [L, setL] = useState<any>(null);
 
   useEffect(() => {
-    import('react-leaflet').then((mod) => {
+    Promise.all([
+      import('react-leaflet'),
+      import('leaflet'),
+      // @ts-expect-error -- Leaflet.heat is not typed
+      import('leaflet.heat'),
+    ]).then(([mod, leaflet]) => {
       setMapContainer(() => mod.MapContainer);
       setTileLayer(() => mod.TileLayer);
       setCircleMarker(() => mod.CircleMarker);
       setTooltip(() => mod.Tooltip);
+      setL(() => leaflet.default || leaflet);
     });
     // @ts-expect-error -- CSS import has no type declarations
     import('leaflet/dist/leaflet.css');
@@ -529,6 +598,16 @@ function MapInner({
   }
 
   const maxCount = Math.max(...locations.map((l) => l.objects.length), 1);
+
+  // Prepare heatmap points
+  const heatmapPoints = locations.map(
+    (loc) =>
+      [loc.geo.lat, loc.geo.lng, loc.objects.length / maxCount] as [
+        number,
+        number,
+        number,
+      ],
+  );
 
   // Map center and zoom based on region
   let center: [number, number];
@@ -553,10 +632,14 @@ function MapInner({
         key={`${regionFilter}`}
       >
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>'
+          url=\"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png\"
         />
-        {locations.map((loc) => {
+        {viewMode === 'heatmap' && (
+          <HeatLayerWrapper points={heatmapPoints} L={L} />
+        )}
+        {viewMode === 'markers' &&
+          locations.map((loc) => {
           const isSelected = selectedLocation?.keyword === loc.keyword;
           const radius = Math.max(
             6,
@@ -604,14 +687,14 @@ function MapInner({
           <div className="w-2.5 h-2.5 rounded-full bg-(--color-rijks-red)" />
           {t('suriname')}
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-(--color-gold)" />
+        <div className=\"flex items-center gap-1.5\">
+          <div className=\"w-2.5 h-2.5 rounded-full bg-(--color-gold)\" />
           {t('netherlands')}
         </div>
-        <span className="text-(--color-warm-gray-light)">
-          {t('markerSize')}
+        <span className=\"text-(--color-warm-gray-light)\">
+          {viewMode === 'markers' ? t('markerSize') : t('heatDensity')}
         </span>
-      </div>
+        </div>
     </div>
   );
 }

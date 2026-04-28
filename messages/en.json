@@ -221,7 +221,11 @@
     "viewInGallery": "View in Gallery",
     "showMore": "Show {remaining} more…",
     "showLess": "Show less",
-    "markerSize": "Size = object count"
+    "markerSize": "Size = object count",
+    "heatmap": "Heatmap",
+    "markers": "Markers",
+    "heatDensity": "Density = object count",
+    "allRegions": "All Regions"
   },
   "statistics": {
     "title": "Statistics",

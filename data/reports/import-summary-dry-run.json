@@ -1,0 +1,24 @@
+{
+  "sourcePath": "/home/thunnis/Projecten/STM/rijksmuseum/rijksmuseum-suriname-collection/data/reports/location-evaluation-2026-04-14-TO-merged.xlsx",
+  "dryRun": true,
+  "author": "EF",
+  "conflictPolicy": "skip",
+  "rowsRead": 5942,
+  "reviewRows": 258,
+  "imported": 146,
+  "skippedConflict": 0,
+  "skippedUnmatched": 6,
+  "skippedNoTerm": 72,
+  "skippedRemarkOnly": 34,
+  "skippedAlreadyCurrent": 0,
+  "errors": 6,
+  "errorDetails": [
+    "Line 44: could not derive target location label for review value \"y\".",
+    "Line 267: could not derive target location label for review value \"y\".",
+    "Line 379: could not derive target location label for review value \"y\".",
+    "Line 385: could not derive target location label for review value \"y\".",
+    "Line 4279: could not derive target location label for review value \"y\".",
+    "Line 5483: could not derive target location label for review value \"y\"."
+  ],
+  "timestamp": "2026-04-14T12:31:42.151Z"
+}
