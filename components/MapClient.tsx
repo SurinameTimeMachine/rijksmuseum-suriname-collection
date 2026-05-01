@@ -1,5 +1,7 @@
 'use client';
 
+import 'leaflet/dist/leaflet.css';
+
 import {
   useCallback,
   useEffect,
@@ -7,22 +9,38 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import Link from 'next/link';
-import { useLocale, useTranslations } from 'next-intl';
+
 import {
   ChevronDown,
   ChevronUp,
   ExternalLink,
   Filter,
+  Flame,
   Globe,
   Layers,
+  Map as MapIcon,
   MapPin,
   Search,
   X,
-  Flame,
-  Map as MapIcon,
 } from 'lucide-react';
-import type { CollectionObject, GeoLocation } from '@/types/collection';
+import {
+  useLocale,
+  useTranslations,
+} from 'next-intl';
+import Link from 'next/link';
+import {
+  CircleMarker,
+  MapContainer,
+  TileLayer,
+  Tooltip,
+  useMap,
+} from 'react-leaflet';
+
+import type {
+  CollectionObject,
+  GeoLocation,
+} from '@/types/collection';
+
 import ObjectImage from './ObjectImage';
 
 /* ---- SSR-safe mount check ---- */
@@ -204,8 +222,8 @@ export default function MapClient({ locations }: MapClientProps) {
       </div>
 
       {/* ---- Region toggle and View Mode toggle ---- */}
-      <div className=\"flex flex-wrap items-center gap-2\">
-        <div className=\"flex items-center gap-1 border border-(--color-border) p-1 bg-(--color-card)\">
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-1 border border-(--color-border) p-1 bg-(--color-card)">
           <button
             onClick={() => setViewMode('markers')}
             className={`p-2 transition-colors ${
@@ -230,7 +248,7 @@ export default function MapClient({ locations }: MapClientProps) {
           </button>
         </div>
 
-        <div className=\"w-px h-8 bg-(--color-border) mx-1 hidden sm:block\" />
+        <div className="w-px h-8 bg-(--color-border) mx-1 hidden sm:block" />
 
         {(['suriname', 'netherlands', 'both'] as const).map((region) => {
           const isActive = regionFilter === region;
@@ -381,7 +399,7 @@ export default function MapClient({ locations }: MapClientProps) {
         </div>
 
         {/* Map + detail panel */}
-        <div className=\"flex-1 min-w-0 space-y-4\">
+        <div className="flex-1 min-w-0 space-y-4">
           <MapInner
             locations={filteredLocations}
             selectedLocation={selectedLocation}
@@ -555,38 +573,21 @@ function MapInner({
   locale: string;
   t: ReturnType<typeof useTranslations>;
 }) {
-  const [MapContainer, setMapContainer] = useState<
-    typeof import('react-leaflet').MapContainer | null
-  >(null);
-  const [TileLayer, setTileLayer] = useState<
-    typeof import('react-leaflet').TileLayer | null
-  >(null);
-  const [CircleMarker, setCircleMarker] = useState<
-    typeof import('react-leaflet').CircleMarker | null
-  >(null);
-  const [Tooltip, setTooltip] = useState<
-    typeof import('react-leaflet').Tooltip | null
-  >(null);
   const [L, setL] = useState<any>(null);
 
   useEffect(() => {
     Promise.all([
-      import('react-leaflet'),
       import('leaflet'),
       // @ts-expect-error -- Leaflet.heat is not typed
       import('leaflet.heat'),
-    ]).then(([mod, leaflet]) => {
-      setMapContainer(() => mod.MapContainer);
-      setTileLayer(() => mod.TileLayer);
-      setCircleMarker(() => mod.CircleMarker);
-      setTooltip(() => mod.Tooltip);
+    ]).then(([leaflet]) => {
       setL(() => leaflet.default || leaflet);
     });
     // @ts-expect-error -- CSS import has no type declarations
     import('leaflet/dist/leaflet.css');
   }, []);
 
-  if (!MapContainer || !TileLayer || !CircleMarker || !Tooltip) {
+  if (!L) {
     return (
       <div className="w-full h-135 bg-(--color-cream-dark) flex items-center justify-center">
         <Globe
@@ -632,8 +633,8 @@ function MapInner({
         key={`${regionFilter}`}
       >
         <TileLayer
-          attribution='&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>'
-          url=\"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png\"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {viewMode === 'heatmap' && (
           <HeatLayerWrapper points={heatmapPoints} L={L} />
@@ -687,11 +688,11 @@ function MapInner({
           <div className="w-2.5 h-2.5 rounded-full bg-(--color-rijks-red)" />
           {t('suriname')}
         </div>
-        <div className=\"flex items-center gap-1.5\">
-          <div className=\"w-2.5 h-2.5 rounded-full bg-(--color-gold)\" />
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-(--color-gold)" />
           {t('netherlands')}
         </div>
-        <span className=\"text-(--color-warm-gray-light)\">
+        <span className="text-(--color-warm-gray-light)">
           {viewMode === 'markers' ? t('markerSize') : t('heatDensity')}
         </span>
         </div>

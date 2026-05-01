@@ -651,6 +651,7 @@ function main() {
               label: originalTerm,
               qid: null,
               wikidataUrl: null,
+              gazetteerUrl: null,
               lat: null,
               lng: null,
               resolutionLevel: 'broader'

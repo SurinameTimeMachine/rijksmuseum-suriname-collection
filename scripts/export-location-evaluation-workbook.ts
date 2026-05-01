@@ -1288,17 +1288,6 @@ function main() {
       .map((term) => geoThesaurus.get(term))
       .filter((entry): entry is GeoThesaurusEntry => Boolean(entry));
 
-    // Fallback: als geen exacte match, maar wel een QID-match in de thesaurus, voeg die toe
-    if (thesaurusMatches.length === 0 && row.wikidataQid) {
-      // Zoek op QID in de thesaurus
-      const qid = row.wikidataQid.replace(/^Q/, '').trim();
-      const qidMatch = Array.from(geoThesaurus.values()).find(
-        (entry) => (entry.wikidataQid || '').replace(/^Q/, '').trim() === qid
-      );
-      if (qidMatch) {
-        thesaurusMatches = [qidMatch];
-      }
-    }
     const streetSuggestions = getStreetSuggestions(
       row,
       wikimediaEntry?.wikimediaUrl || null,

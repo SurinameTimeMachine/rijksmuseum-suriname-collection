@@ -1,7 +1,11 @@
-import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { getObjectsByLocation } from '@/lib/collection';
-import MapClient from '@/components/MapClient';
+import {
+  getTranslations,
+  setRequestLocale,
+} from 'next-intl/server';
+
+import MapClientWrapper from '@/components/MapClientWrapper';
 import ScrollReveal from '@/components/ScrollReveal';
+import { getObjectsByLocation } from '@/lib/collection';
 
 export async function generateMetadata({
   params,
@@ -59,7 +63,7 @@ export default async function MapPage({
         </div>
       </ScrollReveal>
 
-      <MapClient locations={locations} />
+      <MapClientWrapper locations={locations} />
     </div>
   );
 }
