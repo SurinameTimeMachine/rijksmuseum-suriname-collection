@@ -1518,7 +1518,7 @@ export default function LocationQaEditor({
             <p className="mt-1 text-xs text-(--color-warm-gray)">{t('qaSpreadsheetHelp')}</p>
           </div>
           <div className="overflow-auto max-h-[78vh]">
-            <table className="min-w-[1100px] w-full text-sm">
+            <table className="min-w-275 w-full text-sm">
               <thead className="sticky top-0 bg-(--color-cream-dark) border-b border-(--color-border)">
                 <tr className="text-left text-xs uppercase tracking-wider text-(--color-warm-gray)">
                   <th className="p-2">{t('qaSpreadsheetImage')}</th>
@@ -1575,7 +1575,7 @@ export default function LocationQaEditor({
             </div>
 
             <div className="min-w-0">
-              <div className="font-serif text-xl md:text-2xl leading-tight break-words hyphens-auto">
+              <div className="font-serif text-xl md:text-2xl leading-tight wrap-break-word hyphens-auto">
                 {selectedObject.titles[0] || selectedObject.objectnummer}
               </div>
               <div className="mt-2 text-xs font-mono text-(--color-warm-gray-light)">
@@ -1727,11 +1727,11 @@ export default function LocationQaEditor({
           <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
             {t('allFieldsTitle')}
           </div>
-          <div className="mt-4 grid gap-3 max-h-[34rem] overflow-y-auto">
+          <div className="mt-4 grid gap-3 max-h-136 overflow-y-auto">
             {allFields(selectedObject).map(([label, value]) => (
               <div key={label} className="grid grid-cols-[12rem_minmax(0,1fr)] gap-3 border-b border-(--color-border) pb-2 text-sm">
                 <div className="text-(--color-warm-gray)">{label}</div>
-                <div className="break-words whitespace-pre-wrap text-(--color-charcoal-light)">{value}</div>
+                <div className="wrap-break-word whitespace-pre-wrap text-(--color-charcoal-light)">{value}</div>
               </div>
             ))}
           </div>
