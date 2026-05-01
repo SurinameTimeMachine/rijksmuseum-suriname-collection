@@ -13,6 +13,7 @@
     "build:street-aliases": "npx tsx scripts/build-paramaribo-street-aliases.ts",
     "report:street-aliases": "npx tsx scripts/report-paramaribo-street-alias-coverage.ts",
     "report:street-suggestions": "npx tsx scripts/export-street-suggestions.ts",
+    "report:location-triage": "npx tsx scripts/build-live-location-triage-queue.ts",
     "report:location-evaluation": "npx tsx scripts/export-location-evaluation-workbook.ts",
     "import:location-reviews": "npx tsx scripts/import-location-reviews.ts",
     "export:rijksmuseum-delta": "npx tsx scripts/export-rijksmuseum-location-delta.ts",
