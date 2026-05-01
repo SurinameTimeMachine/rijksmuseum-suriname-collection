@@ -7,6 +7,7 @@ import {
   buildLatestLocationEditMap,
   loadLocationEdits,
   normalizeWikidataReference,
+  resolveWikidataCoordinates,
 } from '../lib/location-curation';
 import type {
   LocationEditRecord,
@@ -456,13 +457,16 @@ function pickCustomCandidate(
     normalizeResolution(toTrimmedString(row.beste_beschikbare_locatie_resolution_level)) ||
     'broader';
 
+  // Resolve Wikidata coordinates if QID is recognized
+  const wikiCoords = qidRef.qid ? resolveWikidataCoordinates(qidRef.qid) : null;
+
   return {
     label: reviewLoc,
     qid: qidRef.qid,
     wikidataUrl: qidRef.url,
     gazetteerUrl: null,
-    lat: null,
-    lng: null,
+    lat: wikiCoords?.lat ?? null,
+    lng: wikiCoords?.lng ?? null,
     resolutionLevel: resolution,
   };
 }

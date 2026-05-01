@@ -23,6 +23,13 @@ const SURINAME_BOUNDS = {
   maxLng: -53.8,
 };
 
+// Hardcoded Wikidata coordinates for major places
+// Q730 = Suriname, Q1307 = Paramaribo, etc.
+const WIKIDATA_COORDINATES: Record<string, { lat: number; lng: number } | null> = {
+  Q730: { lat: 4.310475921401273, lng: -55.38661673044588 }, // Suriname
+  Q1307: { lat: 5.82392031098937, lng: -55.151778467090274 }, // Paramaribo
+};
+
 function getEditKey(recordnummer: number, term: string) {
   return `${recordnummer}::${term.trim().toLowerCase()}`;
 }
@@ -75,6 +82,17 @@ export function normalizeWikidataReference(input: string): {
     qid,
     url: qid ? `https://www.wikidata.org/entity/${qid}` : null,
   };
+}
+
+/**
+ * Resolve Wikidata QID to coordinates if available in hardcoded map.
+ * Returns null if QID not in map or coordinates not found.
+ */
+export function resolveWikidataCoordinates(
+  qid: string | null,
+): { lat: number; lng: number } | null {
+  if (!qid) return null;
+  return WIKIDATA_COORDINATES[qid] ?? null;
 }
 
 export function inferResolutionLevel(
