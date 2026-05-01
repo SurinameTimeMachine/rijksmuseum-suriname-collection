@@ -403,6 +403,7 @@ export default function MapClient({ locations }: MapClientProps) {
           <MapInner
             locations={filteredLocations}
             selectedLocation={selectedLocation}
+            getFilteredObjects={getFilteredObjects}
             onSelectLocation={setSelectedLocation}
             regionFilter={regionFilter}
             viewMode={viewMode}
@@ -560,6 +561,7 @@ function HeatLayerWrapper({ points, L }: { points: [number, number, number][], L
 function MapInner({
   locations,
   selectedLocation,
+  getFilteredObjects,
   onSelectLocation,
   regionFilter,
   viewMode,
@@ -567,6 +569,7 @@ function MapInner({
 }: {
   locations: LocationGroup[];
   selectedLocation: LocationGroup | null;
+  getFilteredObjects: (loc: LocationGroup) => CollectionObject[];
   onSelectLocation: (loc: LocationGroup | null) => void;
   regionFilter: 'suriname' | 'netherlands' | 'both';
   viewMode: 'markers' | 'heatmap';
@@ -598,12 +601,17 @@ function MapInner({
     );
   }
 
-  const maxCount = Math.max(...locations.map((l) => l.objects.length), 1);
+  const locationMetrics = locations.map((loc) => ({
+    loc,
+    filteredCount: getFilteredObjects(loc).length,
+  }));
+
+  const maxCount = Math.max(...locationMetrics.map((m) => m.filteredCount), 1);
 
   // Prepare heatmap points
-  const heatmapPoints = locations.map(
-    (loc) =>
-      [loc.geo.lat, loc.geo.lng, loc.objects.length / maxCount] as [
+  const heatmapPoints = locationMetrics.map(
+    ({ loc, filteredCount }) =>
+      [loc.geo.lat, loc.geo.lng, filteredCount / maxCount] as [
         number,
         number,
         number,
@@ -640,11 +648,11 @@ function MapInner({
           <HeatLayerWrapper points={heatmapPoints} L={L} />
         )}
         {viewMode === 'markers' &&
-          locations.map((loc) => {
+          locationMetrics.map(({ loc, filteredCount }) => {
           const isSelected = selectedLocation?.keyword === loc.keyword;
           const radius = Math.max(
             6,
-            Math.min(30, (loc.objects.length / maxCount) * 30),
+            Math.min(30, (filteredCount / maxCount) * 30),
           );
           const isSuriname = loc.geo.region === 'suriname';
 
@@ -673,8 +681,8 @@ function MapInner({
                 <span className="font-semibold">{loc.geo.name}</span>
                 <br />
                 <span className="text-xs text-gray-500">
-                  {loc.objects.length}{' '}
-                  {loc.objects.length === 1 ? 'object' : 'objects'}
+                  {filteredCount}{' '}
+                  {filteredCount === 1 ? 'object' : 'objects'}
                 </span>
               </Tooltip>
             </CircleMarker>

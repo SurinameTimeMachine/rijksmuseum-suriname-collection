@@ -6,6 +6,7 @@ import {
 import MapClientWrapper from '@/components/MapClientWrapper';
 import ScrollReveal from '@/components/ScrollReveal';
 import { getObjectsByLocation } from '@/lib/collection';
+import type { CollectionObject } from '@/types/collection';
 
 export async function generateMetadata({
   params,
@@ -28,31 +29,53 @@ export default async function MapPage({
   const t = await getTranslations({ locale, namespace: 'map' });
   const objectsByLocation = await getObjectsByLocation();
 
-  // Match geographic keywords to coordinates from the enriched geo thesaurus data
-  const locations = Object.entries(objectsByLocation)
-    .filter(([keyword, objects]) => {
-      // Use geo details from any object with this keyword — they all share the same detail
-      const detail = objects[0]?.geoKeywordDetails?.find(
-        (d) => d.term === keyword,
-      );
-      return detail?.lat != null && detail?.lng != null;
-    })
-    .map(([keyword, objects]) => {
-      const detail = objects[0].geoKeywordDetails.find(
-        (d) => d.term === keyword,
-      )!;
-      return {
-        keyword,
-        geo: {
-          name: detail.term,
-          lat: detail.lat!,
-          lng: detail.lng!,
-          region: detail.region ?? ('other' as const),
-          objectCount: objects.length,
-        },
-        objects,
+  // Build map buckets per object-specific resolved detail.
+  // This avoids pinning all objects with the same keyword to objects[0].
+  const locationBuckets = new Map<
+    string,
+    {
+      keyword: string;
+      geo: {
+        name: string;
+        lat: number;
+        lng: number;
+        region: 'suriname' | 'netherlands' | 'other';
+        objectCount: number;
       };
-    });
+      objects: CollectionObject[];
+    }
+  >();
+
+  for (const [keyword, objects] of Object.entries(objectsByLocation)) {
+    for (const obj of objects) {
+      const detail = obj.geoKeywordDetails.find((d) => d.term === keyword);
+      if (!detail || detail.lat == null || detail.lng == null) continue;
+
+      const name = detail.matchedLabel?.trim() || detail.term;
+      const region = detail.region ?? ('other' as const);
+      const bucketKey = `${name}::${detail.lat}::${detail.lng}::${region}`;
+
+      if (!locationBuckets.has(bucketKey)) {
+        locationBuckets.set(bucketKey, {
+          keyword: bucketKey,
+          geo: {
+            name,
+            lat: detail.lat,
+            lng: detail.lng,
+            region,
+            objectCount: 0,
+          },
+          objects: [],
+        });
+      }
+
+      const bucket = locationBuckets.get(bucketKey)!;
+      bucket.objects.push(obj);
+      bucket.geo.objectCount = bucket.objects.length;
+    }
+  }
+
+  const locations = Array.from(locationBuckets.values());
 
   return (
     <div className="max-w-350 mx-auto px-4 sm:px-6 lg:px-8 py-8">

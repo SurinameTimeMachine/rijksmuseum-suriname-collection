@@ -23,6 +23,13 @@ const SURINAME_BOUNDS = {
   maxLng: -53.8,
 };
 
+const NETHERLANDS_BOUNDS = {
+  minLat: 50.7,
+  maxLat: 53.6,
+  minLng: 3.4,
+  maxLng: 7.2,
+};
+
 // Hardcoded Wikidata coordinates for major places
 // Q730 = Suriname, Q1307 = Paramaribo, etc.
 const WIKIDATA_COORDINATES: Record<string, { lat: number; lng: number } | null> = {
@@ -49,6 +56,26 @@ export function getGeoFlags(
 ): GeoFlag[] {
   if (lat === null || lng === null) return [];
   return isWithinSurinameBounds(lat, lng) ? [] : ['outside-suriname'];
+}
+
+export function getRegionFromCoordinates(
+  lat: number | null,
+  lng: number | null,
+): GeoKeywordDetail['region'] {
+  if (lat === null || lng === null) return null;
+
+  if (isWithinSurinameBounds(lat, lng)) return 'suriname';
+
+  if (
+    lat >= NETHERLANDS_BOUNDS.minLat &&
+    lat <= NETHERLANDS_BOUNDS.maxLat &&
+    lng >= NETHERLANDS_BOUNDS.minLng &&
+    lng <= NETHERLANDS_BOUNDS.maxLng
+  ) {
+    return 'netherlands';
+  }
+
+  return 'other';
 }
 
 export function parseWktPoint(
@@ -183,6 +210,7 @@ export function applyLocationEditsToObject(
         stmGazetteerUrl: edit.gazetteerUrl ?? null,
         lat: edit.lat,
         lng: edit.lng,
+        region: getRegionFromCoordinates(edit.lat, edit.lng),
         source: 'edit' as const,
         resolutionLevel: edit.resolutionLevel,
         flags: getGeoFlags(edit.lat, edit.lng),
@@ -288,6 +316,7 @@ export function applyTermDefaultsToObject(
       stmGazetteerUrl: def.gazetteerUrl ?? null,
       lat: def.lat,
       lng: def.lng,
+      region: getRegionFromCoordinates(def.lat, def.lng),
       resolutionLevel: def.resolutionLevel,
       source: 'term-default' as const,
       flags: getGeoFlags(def.lat, def.lng),

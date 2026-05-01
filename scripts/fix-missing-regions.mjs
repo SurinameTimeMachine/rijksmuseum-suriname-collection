@@ -7,10 +7,10 @@ const dataPath = path.join(__dirname, '../data/collection.json');
 
 // Bounding boxes for regions
 const SURINAME_BOUNDS = {
-  minLat: 1.0,
-  maxLat: 6.5,
-  minLng: -58.0,
-  maxLng: -53.5,
+  minLat: 1.7,
+  maxLat: 6.3,
+  minLng: -58.2,
+  maxLng: -53.8,
 };
 
 const NETHERLANDS_BOUNDS = {

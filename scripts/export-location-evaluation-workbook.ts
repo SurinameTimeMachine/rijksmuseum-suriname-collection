@@ -132,6 +132,16 @@ type GeoThesaurusEntry = {
   matchType: 'exact' | 'broader' | 'none';
 };
 
+type WorksheetWithFreeze = XLSX.WorkSheet & {
+  '!freeze'?: {
+    xSplit: number;
+    ySplit: number;
+    topLeftCell: string;
+    activePane: string;
+    state: 'frozen';
+  };
+};
+
 type WikimediaEntry = {
   wikidataUrl: string | null;
   wikimediaUrl: string | null;
@@ -651,7 +661,11 @@ function loadExistingEfReviewMap(reviewPath: string | null): Map<string, Existin
         migratieBron,
       });
     }
-  } catch {
+  } catch (error) {
+    console.warn(
+      `Warning: Could not load existing review file at ${reviewPath}:`,
+      error instanceof Error ? error.message : error,
+    );
     return reviewMap;
   }
 
@@ -1201,13 +1215,14 @@ function autosizeColumns(sheet: XLSX.WorkSheet, rows: Array<Record<string, unkno
       wch: Math.min(Math.max(maxValueLength + 2, 10), 48),
     };
   });
-  sheet['!freeze'] = {
+  const sheetWithFreeze = sheet as WorksheetWithFreeze;
+  sheetWithFreeze['!freeze'] = {
     xSplit: 0,
     ySplit: 1,
     topLeftCell: 'A2',
     activePane: 'bottomLeft',
     state: 'frozen',
-  } as any;
+  };
   if (sheet['!ref']) {
     sheet['!autofilter'] = { ref: sheet['!ref'] };
   }
@@ -1284,7 +1299,7 @@ function main() {
     const terms = splitMultiValue(row.geografisch_trefwoord);
     const effectiveTerms = terms.length > 0 ? terms : [''];
     const wikimediaEntry = wikimediaEntries.get(row.recordnummer);
-    let thesaurusMatches = effectiveTerms
+    const thesaurusMatches = effectiveTerms
       .map((term) => geoThesaurus.get(term))
       .filter((entry): entry is GeoThesaurusEntry => Boolean(entry));
 

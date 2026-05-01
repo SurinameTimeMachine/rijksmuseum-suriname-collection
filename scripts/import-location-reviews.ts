@@ -586,10 +586,13 @@ function main() {
     // and they are either accepted or custom.
     const hasSpecific = groupRows.some(row => {
         const term = normalizeTerm(row);
+        const reviewLoc = toTrimmedString(row.ef_review_locatie);
         const remark = toTrimmedString(row.ef_review_opmerking).toLowerCase();
         if (remark.includes('niet-suriname')) return false;
-        
-        const status = normalizeReviewStatus(row.ef_review_status);
+
+        const status =
+          normalizeReviewStatus(row.ef_review_status) ||
+          deriveLegacyReviewStatus(reviewLoc);
         const isSpecific = !BROADER_TERMS.includes(term);
         return isSpecific && (status === 'accept' || status === 'custom');
     });

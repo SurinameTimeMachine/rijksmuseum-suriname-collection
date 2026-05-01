@@ -9,6 +9,44 @@ const OBJECT_CSV_PATH = path.join(DATA_DIR, 'Suriname_objecten_export.csv');
 const STM_GAZETTEER_PATH = path.join(DATA_DIR, 'places-gazetteer.jsonld');
 const REVIEW_XLSX_PATH = path.join(DATA_DIR, 'reports', 'location-missing-coordinates-manual-labeled.xlsx');
 
+type GazetteerName = {
+  text?: string;
+  isPreferred?: boolean;
+};
+
+type GazetteerPlace = {
+  id?: string;
+  locId?: string;
+  ['@id']?: string;
+  wikidataQid?: string;
+  location?: {
+    lat?: number;
+    lng?: number;
+  };
+  names?: GazetteerName[];
+};
+
+type GazetteerEntry = {
+  lat: number;
+  lng: number;
+  label: string;
+};
+
+function normalizeStmId(rawId?: string): string | null {
+  if (!rawId) return null;
+  if (rawId.startsWith('stm-')) return rawId;
+
+  const stmMatch = rawId.match(/stm-[0-9a-zA-Z-]+/i);
+  if (stmMatch) return stmMatch[0].toLowerCase();
+
+  return null;
+}
+
+function getPlaceLabel(place: GazetteerPlace): string {
+  const names = Array.isArray(place.names) ? place.names : [];
+  return names.find((n) => n.isPreferred)?.text || names[0]?.text || '';
+}
+
 function loadReviewXlsx() {
   const workbook = xlsx.readFile(REVIEW_XLSX_PATH);
   const sheetName = workbook.SheetNames[0];
@@ -20,18 +58,34 @@ function loadReviewXlsx() {
 function loadGazetteer() {
   const raw = fs.readFileSync(STM_GAZETTEER_PATH, 'utf-8');
   const json = JSON.parse(raw);
-  const byQid = new Map();
-  const graph = Array.isArray(json['@graph']) ? json['@graph'] : [];
+  const byQid = new Map<string, GazetteerEntry>();
+  const byStmId = new Map<string, GazetteerEntry>();
+  const graph = Array.isArray(json['@graph'])
+    ? (json['@graph'] as GazetteerPlace[])
+    : [];
+
   for (const place of graph) {
-    if (place.wikidataQid && place.location && place.location.lat && place.location.lng) {
-      byQid.set(place.wikidataQid, {
-        lat: place.location.lat,
-        lng: place.location.lng,
-        label: place.names?.find((n: any) => n.isPreferred)?.text || place.names?.[0]?.text || ''
-      });
+    const lat = place.location?.lat;
+    const lng = place.location?.lng;
+    if (typeof lat !== 'number' || typeof lng !== 'number') continue;
+
+    const entry: GazetteerEntry = {
+      lat,
+      lng,
+      label: getPlaceLabel(place),
+    };
+
+    const stmId = normalizeStmId(place.locId || place.id || place['@id']);
+    if (stmId) {
+      byStmId.set(stmId, entry);
+    }
+
+    if (place.wikidataQid) {
+      byQid.set(place.wikidataQid, entry);
     }
   }
-  return byQid;
+
+  return { byQid, byStmId };
 }
 
 async function main() {
@@ -51,7 +105,7 @@ async function main() {
   console.log('Aantal regels in reviewbestand:', reviewRows.length);
 
   // Laad gazetteer
-  const gazetteer = loadGazetteer();
+  const { byQid, byStmId } = loadGazetteer();
   const wikidataCoords: Record<string, any> = {};
 
   // Verzamel per afbeelding (PID_werk.URI) alle locaties, maximaal 2 per record
@@ -95,22 +149,22 @@ async function main() {
         let naam = '', lat = '', lng = '';
 
         if (locId.startsWith('Q')) {
-          const stm = gazetteer.get(locId);
+          const stm = byQid.get(locId);
           if (stm) {
             naam = stm.label;
-            lat = stm.lat;
-            lng = stm.lng;
+            lat = String(stm.lat);
+            lng = String(stm.lng);
           } else if (wikidataCoords[locId] && wikidataCoords[locId][0]) {
             naam = row['resolved_label'] || '';
             lat = wikidataCoords[locId][0].lat;
             lng = wikidataCoords[locId][0].lng;
           }
         } else if (locId.startsWith('stm-')) {
-          const stm = Array.from(gazetteer.values()).find(x => x.label && x.label.includes(row['resolved_label']));
+          const stm = byStmId.get(locId.toLowerCase());
           if (stm) {
             naam = stm.label;
-            lat = stm.lat;
-            lng = stm.lng;
+            lat = String(stm.lat);
+            lng = String(stm.lng);
           }
         } else if (locId.startsWith('http') && locId.includes('geonames.org')) {
           naam = row['resolved_label'] || '';
