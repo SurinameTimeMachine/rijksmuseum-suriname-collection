@@ -15,6 +15,7 @@
     "report:street-suggestions": "npx tsx scripts/export-street-suggestions.ts",
     "report:location-triage": "npx tsx scripts/build-live-location-triage-queue.ts",
     "report:location-evaluation": "npx tsx scripts/export-location-evaluation-workbook.ts",
+    "report:location-problem-review": "npx tsx scripts/export-problem-review-workbook.ts",
     "import:location-reviews": "npx tsx scripts/import-location-reviews.ts",
     "export:rijksmuseum-delta": "npx tsx scripts/export-rijksmuseum-location-delta.ts",
     "ef:apply-street-suggestions": "npx tsx scripts/apply-street-suggestions-to-ef.ts"

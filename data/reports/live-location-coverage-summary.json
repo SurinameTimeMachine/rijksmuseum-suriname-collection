@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-05-01T08:40:40.876Z",
+  "generatedAt": "2026-05-01T10:39:56.113Z",
   "source": "/home/thunnis/Projecten/STM/rijksmuseum/rijksmuseum-suriname-collection/data/collection.json",
   "totals": {
     "objects": 3668,
     "objectsWithGeoDetails": 3550,
-    "objectsMapReady": 3278,
-    "objectsNotMapReady": 390,
-    "objectsOnlyGenericSurinameOrParamaribo": 2392,
-    "objectsWithSpecificMapReady": 886,
-    "objectsMapReadyOnlyInsideSuriname": 3139,
-    "objectsMapReadyOnlyOutsideSuriname": 70,
-    "objectsMapReadyMixedInsideOutside": 69
+    "objectsMapReady": 3298,
+    "objectsNotMapReady": 370,
+    "objectsOnlyGenericSurinameOrParamaribo": 1625,
+    "objectsWithSpecificMapReady": 1673,
+    "objectsMapReadyOnlyInsideSuriname": 3284,
+    "objectsMapReadyOnlyOutsideSuriname": 12,
+    "objectsMapReadyMixedInsideOutside": 2
   },
   "problemBuckets": {
     "no-geo-details": 118,
-    "unresolved-only": 74,
-    "thesaurus-no-coords": 198,
-    "mixed-no-coords": 0
+    "unresolved-only": 27,
+    "thesaurus-no-coords": 0,
+    "mixed-no-coords": 225
   },
   "notes": {
     "mapReadyDefinition": "Object heeft minimaal 1 geoKeywordDetail met lat en lng.",

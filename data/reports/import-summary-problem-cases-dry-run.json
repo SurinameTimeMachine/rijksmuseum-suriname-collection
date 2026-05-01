@@ -1,0 +1,22 @@
+{
+  "sourcePath": "/home/thunnis/Projecten/STM/rijksmuseum/rijksmuseum-suriname-collection/data/reports/location-review-problem-cases.xlsx",
+  "dryRun": true,
+  "author": "TvO",
+  "conflictPolicy": "skip",
+  "rowsRead": 419,
+  "reviewRows": 212,
+  "imported": 0,
+  "importedRejected": 0,
+  "skippedConflict": 16,
+  "skippedUnmatched": 0,
+  "skippedNoTerm": 0,
+  "skippedRemarkOnly": 0,
+  "skippedNegativeReview": 0,
+  "skippedOutOfScope": 0,
+  "skippedEmptyAccept": 0,
+  "skippedAlreadyCurrent": 135,
+  "skippedNietSuriname": 61,
+  "errors": 0,
+  "errorDetails": [],
+  "timestamp": "2026-05-01T09:17:42.154Z"
+}

@@ -45,6 +45,22 @@ type EvaluationRow = {
   beste_beschikbare_locatie_lat: unknown;
   beste_beschikbare_locatie_lng: unknown;
   beste_beschikbare_locatie_resolution_level: unknown;
+  thesaurus_match_label: unknown;
+  thesaurus_wikidata_qid: unknown;
+  thesaurus_wikidata_uri: unknown;
+  thesaurus_lat: unknown;
+  thesaurus_lng: unknown;
+  thesaurus_resolution_level: unknown;
+  stm_gazetteer_suggestie_id: unknown;
+  stm_gazetteer_suggestie_label: unknown;
+  stm_gazetteer_suggestie_qid: unknown;
+  stm_gazetteer_suggestie_lat: unknown;
+  stm_gazetteer_suggestie_lng: unknown;
+  voorgestelde_eindlabel: unknown;
+  voorgestelde_eind_qid: unknown;
+  voorgestelde_eind_lat: unknown;
+  voorgestelde_eind_lng: unknown;
+  voorgestelde_eind_resolution_level: unknown;
 };
 
 type ImportSummary = {
@@ -76,12 +92,55 @@ type CandidateLocation = {
   label: string;
   qid: string | null;
   wikidataUrl: string | null;
+  gazetteerUrl: string | null;
   lat: number | null;
   lng: number | null;
   resolutionLevel: LocationResolutionLevel;
 };
 
+type WorkbookCandidateLocation = CandidateLocation & {
+  stmId: string | null;
+};
+
+type StmGazetteerName = {
+  text?: string;
+  isPreferred?: boolean;
+};
+
+type StmGazetteerPlace = {
+  '@id'?: string;
+  id?: string;
+  type?: string;
+  wikidataQid?: string | null;
+  location?: {
+    lat?: number | null;
+    lng?: number | null;
+  } | null;
+  names?: StmGazetteerName[];
+};
+
+type StmGazetteerDataset = {
+  '@graph'?: StmGazetteerPlace[];
+};
+
+type StmGazetteerResolvedPlace = {
+  stmId: string;
+  gazetteerUrl: string | null;
+  label: string;
+  qid: string | null;
+  wikidataUrl: string | null;
+  lat: number | null;
+  lng: number | null;
+};
+
+type StmGazetteerIndexes = {
+  byId: Map<string, StmGazetteerResolvedPlace>;
+  byQid: Map<string, StmGazetteerResolvedPlace>;
+  byLabel: Map<string, StmGazetteerResolvedPlace>;
+};
+
 const BROADER_TERMS = ['Suriname (Zuid-Amerika)', 'Paramaribo (stad)', 'Suriname', 'Paramaribo'];
+const STM_GAZETTEER_PATH = path.join(process.cwd(), 'data', 'places-gazetteer.jsonld');
 
 function parseCliArgs(): CliOptions {
   const args = process.argv.slice(2);
@@ -188,63 +247,243 @@ const SURINAME_SHORTHAND: CandidateLocation = {
   label: 'Suriname',
   qid: 'Q730',
   wikidataUrl: 'https://www.wikidata.org/wiki/Q730',
+  gazetteerUrl: null,
   lat: 4.0,
   lng: -56.0,
   resolutionLevel: 'country',
 };
 
-function pickCandidateLocation(row: EvaluationRow, reviewStatus: ReviewStatus, reviewLoc: string): CandidateLocation | null {
-  if (reviewStatus === 'reject' || reviewStatus === 'remove-broader') return null;
-  
-  const normalizedLoc = reviewLoc.toLowerCase();
-  if (normalizedLoc === 's') return SURINAME_SHORTHAND;
-  const isAccept = reviewStatus === 'accept';
+function normalizeLocationKey(value: string): string {
+  return value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
 
-  const currentLabel = toTrimmedString(row.huidige_curatie_label);
-  const bestLabel = toTrimmedString(row.beste_beschikbare_locatie_label);
+function buildCandidateLocation(partial: Partial<WorkbookCandidateLocation>): WorkbookCandidateLocation | null {
+  const label = toTrimmedString(partial.label);
+  const qidRef = normalizeWikidataReference(toTrimmedString(partial.qid || partial.wikidataUrl || ''));
+  const qid = qidRef.qid;
+  const wikidataUrl = toTrimmedString(partial.wikidataUrl) || qidRef.url;
+  const stmId = toTrimmedString(partial.stmId) || null;
+  const gazetteerUrl = toTrimmedString(partial.gazetteerUrl) || (stmId ? `https://data.suriname-timemachine.org/place/${stmId}` : null);
+  const resolutionLevel = partial.resolutionLevel || 'broader';
 
-  if (isAccept) {
-    const label = currentLabel || bestLabel;
-    const bestSuggestionRaw = toTrimmedString(row.beste_locatiesuggestie);
-    const bestSuggestionLabel = bestSuggestionRaw ? bestSuggestionRaw.split('|')[0].trim() : '';
-    const finalLabel = label || bestSuggestionLabel;
-    if (!finalLabel) return null;
+  if (!label && !qid && !stmId) return null;
 
-    const qidRaw = toTrimmedString(row.huidige_curatie_qid) || toTrimmedString(row.beste_beschikbare_locatie_qid);
-    const qidRef = normalizeWikidataReference(qidRaw);
-    const explicitUrl = toTrimmedString(row.huidige_curatie_wikidata_uri);
+  return {
+    label: label || qid || stmId || '',
+    qid,
+    wikidataUrl,
+    gazetteerUrl,
+    lat: partial.lat ?? null,
+    lng: partial.lng ?? null,
+    resolutionLevel,
+    stmId,
+  };
+}
 
-    const resolution =
-      normalizeResolution(toTrimmedString(row.huidige_curatie_resolution_level)) ||
-      normalizeResolution(toTrimmedString(row.beste_beschikbare_locatie_resolution_level)) ||
-      'broader';
+function loadStmGazetteerIndexes(): StmGazetteerIndexes {
+  const byId = new Map<string, StmGazetteerResolvedPlace>();
+  const byQid = new Map<string, StmGazetteerResolvedPlace>();
+  const byLabel = new Map<string, StmGazetteerResolvedPlace>();
 
-    return {
-      label: finalLabel,
-      qid: qidRef.qid,
-      wikidataUrl: explicitUrl || qidRef.url,
-      lat: toNullableNumber(row.huidige_curatie_lat) ?? toNullableNumber(row.beste_beschikbare_locatie_lat),
-      lng: toNullableNumber(row.huidige_curatie_lng) ?? toNullableNumber(row.beste_beschikbare_locatie_lng),
-      resolutionLevel: resolution,
-    };
+  if (!fs.existsSync(STM_GAZETTEER_PATH)) {
+    return { byId, byQid, byLabel };
   }
 
-  const qidRef = normalizeWikidataReference(reviewLoc);
-  const label = reviewLoc;
+  try {
+    const dataset = JSON.parse(fs.readFileSync(STM_GAZETTEER_PATH, 'utf-8')) as StmGazetteerDataset;
+    for (const place of dataset['@graph'] || []) {
+      const stmId = toTrimmedString(place.id);
+      if (!stmId) continue;
 
+      const preferredName = (place.names || []).find((name) => name.isPreferred)?.text;
+      const fallbackName = (place.names || []).find((name) => toTrimmedString(name.text))?.text;
+      const label = toTrimmedString(preferredName || fallbackName || stmId);
+      const qidRef = normalizeWikidataReference(toTrimmedString(place.wikidataQid || ''));
+      const resolved: StmGazetteerResolvedPlace = {
+        stmId,
+        gazetteerUrl: toTrimmedString(place['@id']) || `https://data.suriname-timemachine.org/place/${stmId}`,
+        label,
+        qid: qidRef.qid,
+        wikidataUrl: qidRef.url,
+        lat: place.location?.lat ?? null,
+        lng: place.location?.lng ?? null,
+      };
+
+      byId.set(normalizeLocationKey(stmId), resolved);
+      if (resolved.qid) byQid.set(normalizeLocationKey(resolved.qid), resolved);
+      byLabel.set(normalizeLocationKey(label), resolved);
+
+      for (const name of place.names || []) {
+        const text = toTrimmedString(name.text);
+        if (text) byLabel.set(normalizeLocationKey(text), resolved);
+      }
+    }
+  } catch {
+    return { byId, byQid, byLabel };
+  }
+
+  return { byId, byQid, byLabel };
+}
+
+function buildWorkbookCandidates(row: EvaluationRow): WorkbookCandidateLocation[] {
+  const candidates = [
+    buildCandidateLocation({
+      label: toTrimmedString(row.huidige_curatie_label),
+      qid: toTrimmedString(row.huidige_curatie_qid),
+      wikidataUrl: toTrimmedString(row.huidige_curatie_wikidata_uri),
+      lat: toNullableNumber(row.huidige_curatie_lat),
+      lng: toNullableNumber(row.huidige_curatie_lng),
+      resolutionLevel:
+        normalizeResolution(toTrimmedString(row.huidige_curatie_resolution_level)) || 'broader',
+    }),
+    buildCandidateLocation({
+      label: toTrimmedString(row.beste_beschikbare_locatie_label),
+      qid: toTrimmedString(row.beste_beschikbare_locatie_qid),
+      lat: toNullableNumber(row.beste_beschikbare_locatie_lat),
+      lng: toNullableNumber(row.beste_beschikbare_locatie_lng),
+      resolutionLevel:
+        normalizeResolution(toTrimmedString(row.beste_beschikbare_locatie_resolution_level)) || 'broader',
+    }),
+    buildCandidateLocation({
+      label: toTrimmedString(row.stm_gazetteer_suggestie_label),
+      qid: toTrimmedString(row.stm_gazetteer_suggestie_qid),
+      stmId: toTrimmedString(row.stm_gazetteer_suggestie_id),
+      lat: toNullableNumber(row.stm_gazetteer_suggestie_lat),
+      lng: toNullableNumber(row.stm_gazetteer_suggestie_lng),
+      resolutionLevel: 'exact',
+    }),
+    buildCandidateLocation({
+      label: toTrimmedString(row.voorgestelde_eindlabel),
+      qid: toTrimmedString(row.voorgestelde_eind_qid),
+      lat: toNullableNumber(row.voorgestelde_eind_lat),
+      lng: toNullableNumber(row.voorgestelde_eind_lng),
+      resolutionLevel:
+        normalizeResolution(toTrimmedString(row.voorgestelde_eind_resolution_level)) || 'broader',
+    }),
+    buildCandidateLocation({
+      label: toTrimmedString(row.thesaurus_match_label) || normalizeTerm(row),
+      qid: toTrimmedString(row.thesaurus_wikidata_qid),
+      wikidataUrl: toTrimmedString(row.thesaurus_wikidata_uri),
+      lat: toNullableNumber(row.thesaurus_lat),
+      lng: toNullableNumber(row.thesaurus_lng),
+      resolutionLevel:
+        normalizeResolution(toTrimmedString(row.thesaurus_resolution_level)) || 'broader',
+    }),
+  ].filter((candidate): candidate is WorkbookCandidateLocation => candidate !== null);
+
+  const seen = new Set<string>();
+  return candidates.filter((candidate) => {
+    const key = [candidate.stmId || '', candidate.qid || '', normalizeLocationKey(candidate.label)].join('::');
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function candidateHasCoords(candidate: WorkbookCandidateLocation): boolean {
+  return candidate.lat !== null && candidate.lng !== null;
+}
+
+function candidateMatchesInput(candidate: WorkbookCandidateLocation, input: string): boolean {
+  const normalizedInput = normalizeLocationKey(input);
+  const qidInput = normalizeWikidataReference(input).qid;
+
+  return Boolean(
+    normalizedInput && (
+      normalizedInput === normalizeLocationKey(candidate.label) ||
+      (candidate.stmId && normalizedInput === normalizeLocationKey(candidate.stmId)) ||
+      (candidate.qid && normalizedInput === normalizeLocationKey(candidate.qid)) ||
+      (qidInput && candidate.qid && qidInput === candidate.qid)
+    ),
+  );
+}
+
+function resolveCandidateFromGazetteer(input: string, gazetteer: StmGazetteerIndexes): WorkbookCandidateLocation | null {
+  const normalizedInput = normalizeLocationKey(input);
+  const qidInput = normalizeWikidataReference(input).qid;
+  const resolved =
+    gazetteer.byId.get(normalizedInput) ||
+    (qidInput ? gazetteer.byQid.get(normalizeLocationKey(qidInput)) : undefined) ||
+    gazetteer.byLabel.get(normalizedInput);
+
+  if (!resolved) return null;
+
+  return buildCandidateLocation({
+    label: resolved.label,
+    qid: resolved.qid,
+    wikidataUrl: resolved.wikidataUrl,
+    gazetteerUrl: resolved.gazetteerUrl,
+    stmId: resolved.stmId,
+    lat: resolved.lat,
+    lng: resolved.lng,
+    resolutionLevel: 'exact',
+  });
+}
+
+function pickAcceptCandidate(row: EvaluationRow, gazetteer: StmGazetteerIndexes): CandidateLocation | null {
+  const candidates = buildWorkbookCandidates(row);
+  const withCoords = candidates.find((candidate) => candidateHasCoords(candidate));
+  if (withCoords) return withCoords;
+
+  const stmSuggestion = resolveCandidateFromGazetteer(toTrimmedString(row.stm_gazetteer_suggestie_id), gazetteer);
+  if (stmSuggestion && candidateHasCoords(stmSuggestion)) return stmSuggestion;
+
+  return candidates[0] || stmSuggestion || null;
+}
+
+function pickCustomCandidate(
+  row: EvaluationRow,
+  reviewLoc: string,
+  gazetteer: StmGazetteerIndexes,
+): CandidateLocation | null {
+  const candidates = buildWorkbookCandidates(row);
+  const matchingCandidates = candidates.filter((candidate) => candidateMatchesInput(candidate, reviewLoc));
+  const matchWithCoords = matchingCandidates.find((candidate) => candidateHasCoords(candidate));
+  if (matchWithCoords) return matchWithCoords;
+  if (matchingCandidates[0]) return matchingCandidates[0];
+
+  const gazetteerCandidate = resolveCandidateFromGazetteer(reviewLoc, gazetteer);
+  if (gazetteerCandidate) return gazetteerCandidate;
+
+  const qidRef = normalizeWikidataReference(reviewLoc);
   const resolution =
     normalizeResolution(toTrimmedString(row.huidige_curatie_resolution_level)) ||
     normalizeResolution(toTrimmedString(row.beste_beschikbare_locatie_resolution_level)) ||
     'broader';
 
   return {
-    label,
+    label: reviewLoc,
     qid: qidRef.qid,
     wikidataUrl: qidRef.url,
+    gazetteerUrl: null,
     lat: null,
     lng: null,
     resolutionLevel: resolution,
   };
+}
+
+function pickCandidateLocation(
+  row: EvaluationRow,
+  reviewStatus: ReviewStatus,
+  reviewLoc: string,
+  gazetteer: StmGazetteerIndexes,
+): CandidateLocation | null {
+  if (reviewStatus === 'reject' || reviewStatus === 'remove-broader') return null;
+  
+  const normalizedLoc = reviewLoc.toLowerCase();
+  if (normalizedLoc === 's') return SURINAME_SHORTHAND;
+  const isAccept = reviewStatus === 'accept';
+
+  if (isAccept) {
+    return pickAcceptCandidate(row, gazetteer);
+  }
+
+  return pickCustomCandidate(row, reviewLoc, gazetteer);
 }
 
 function sameAsLatest(latest: LocationEditRecord, incoming: LocationEditRecord): boolean {
@@ -301,6 +540,7 @@ function main() {
   const rows = XLSX.utils.sheet_to_json<EvaluationRow>(sheet, { defval: '' });
   const existing = loadLocationEdits();
   const latestByKey = buildLatestLocationEditMap(existing);
+  const gazetteerIndexes = loadStmGazetteerIndexes();
 
   const summary: ImportSummary = {
     sourcePath: options.sourcePath,
@@ -416,6 +656,7 @@ function main() {
             row,
             reviewStatus || 'accept',
             reviewLoc || 'Y',
+            gazetteerIndexes,
           );
       }
 
@@ -442,7 +683,7 @@ function main() {
         resolvedLocationLabel: candidate.label,
         wikidataQid: candidate.qid,
         wikidataUrl: candidate.wikidataUrl,
-        gazetteerUrl: null,
+        gazetteerUrl: candidate.gazetteerUrl,
         lat: candidate.lat,
         lng: candidate.lng,
         resolutionLevel: candidate.resolutionLevel,

@@ -1,53 +1,172 @@
 objectnummer,titel,probleem_bucket,geografisch_trefwoord,geo_detail_termen,geo_detail_sources,geo_detail_broader_terms
+SK-A-4075,Surinaams landschap met een plantage van Jonas Witsen,mixed-no-coords,Suriname (Zuid-Amerika),Suriname (Zuid-Amerika),edit,Zuid-Amerika
+SK-A-4481,De begrafenis van pastoor Joannes Vitus Janssen (1803-43) in Paramaribo,mixed-no-coords,Paramaribo (stad),Paramaribo (stad),edit,Paramaribo (district)
 RP-P-1950-280,Portret van Johan Raye van Breukelerwaard,no-geo-details,,,,
 RP-P-1910-1539,Portret van Johan Raye van Breukelerwaard,no-geo-details,,,,
 RP-P-1938-1112,Surinamers en Hollanders drinken thee,no-geo-details,,,,
+RP-P-1909-1779,Gezicht op Post Gelderland en Joden Savannah,mixed-no-coords,Suriname (Zuid-Amerika),Suriname (Zuid-Amerika),edit,Zuid-Amerika
+RP-P-1911-322,Gezicht op de waterkant en reede van Paramaribo,mixed-no-coords,Suriname (Zuid-Amerika),Suriname (Zuid-Amerika),edit,Zuid-Amerika
+RP-P-1911-321,Gouvernementshuis en plein te Paramaribo,mixed-no-coords,Paramaribo (stad),Paramaribo (stad),edit,Paramaribo (district)
+RP-P-1909-1780,Gezicht op de synagoge en het kerkhof vanaf het Cordonpad gezien,mixed-no-coords,Suriname (Zuid-Amerika),Suriname (Zuid-Amerika),edit,Zuid-Amerika
 RP-P-OB-65.081,Portret van Joan Jacob Mauricius,no-geo-details,,,,
-RP-F-1994-16-6,"Tamarindelaan op plantage Mariënburg, Suriname",thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-RP-F-1994-16-21,"Grote Combéweg met het Logeergebouw, Paramaribo",thesaurus-no-coords,Grote Combéweg,Grote Combéweg,thesaurus,Paramaribo (stad)
-RP-F-1994-16-22,Gouvernementspaleis te Paramaribo,thesaurus-no-coords,Gouvernementspaleis,Gouvernementspaleis,thesaurus,Paramaribo (stad)
+RP-P-1931-1685,Oude huizen en water aan het Surinameplein te Amsterdam,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-NM-140,Fort Leyden (Suriname),mixed-no-coords,Suriname (Zuid-Amerika) | Commewijne | Fort Leyden,Suriname (Zuid-Amerika) | Commewijne | Fort Leyden,edit | edit | edit,Zuid-Amerika | Suriname (Zuid-Amerika) | Commewijne
+NG-NM-141,Fort Leyden (Suriname),mixed-no-coords,Suriname (Zuid-Amerika) | Commewijne | Fort Leyden,Suriname (Zuid-Amerika) | Commewijne | Fort Leyden,edit | edit | edit,Zuid-Amerika | Suriname (Zuid-Amerika) | Commewijne
+RP-T-1895-A-3085,Gezicht op Paramaribo,mixed-no-coords,Paramaribo (stad),Paramaribo (stad),edit,Paramaribo (district)
+RP-F-1994-12-3,"Groepsportret van zes Surinaamse vrouwen en een kind, op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-4,"Groepsportret van Surinamers tentoongesteld op de Koloniale tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-5,"Groepsportret van de familie Ka-Ja-Roe op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-6,Portret van Jean Baptiste Ka-Ja-Roe,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-7,Portret van Jean Baptiste Ka-Ja-Roe,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-8,Portret van Aliha-Kama,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-9,Portret van Aliha-Kama,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-10,Portret van Awarahena,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-11,Portret van Awarahena,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-12,Portret van Pierre Miharoe,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-13,Portret van Pierre Miharoe,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-14,Portret van Kolleté,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-15,Portret van Kolleté,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-16,Portret van Johan Ali-Wa-Ja,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-17,Portret van Johan Ali-Wa-Ja,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-18,Portret van Majoera-Ka-Ma,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-19,Portret van Majoera-Ka-Ma,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-20,Portret van Maja-Roekama,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-21,Portret van Maja-Roekama,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-22,Portret van Hendrik Jawarina,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-23,Portret van Hendrik Jawarina,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-24,Portret van Johan Koemayara,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-25,Portret van Johan Koemayara,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-26,Portret van Marioetari,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-27,Portret van Marioetari,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-31,Portret van Johan Hi-A-Lé,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-32,Portret van Johan Hi-A-Lé,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-33,"Interieur van een Caraïebse woning op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-34,"Korjaal en Caraïebse woning op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-35,"Johannes Kojo met trommels en korjalen op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-36,Portret van Kwamina Baja,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-37,Portret van Kwamina Baja,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-38,Portret van Kwamina A-Pé-Sé,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-39,Portret van Kwamina A-Pé-Sé,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-40,Portret van Kojo-A-Slen-Gri,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-41,Portret van Kojo-A-Slen-Gri,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-42,Portret van Johannes Kojo,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-43,Portret van Johannes Kojo,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-44,"Marronwoning op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-45,"Marronkorjalen met toeschouwers op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-46,"Groepsportret van Surinaamse vrouwen op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-67,"Plantagewoning en een korjaal op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-12-68,"Twee Surinaamse vrouwen voor een plantagewoning op de Koloniale Tentoonstelling, Amsterdam 1883",mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-1994-16-17,Groepsportret van onbekende Surinamers in de Gouvernementstuin te Paramaribo,mixed-no-coords,Paramaribo (stad),Paramaribo (stad),edit,Paramaribo (district)
+RP-F-1994-16-18,"Marrondorp in Cottica, Suriname",mixed-no-coords,Cottica,Cottica,edit,Suriname (Zuid-Amerika)
+RP-F-1994-16-20,"Groepsportret van drie onbekende Caraïben-vrouwen en een kind, Paramaribo",mixed-no-coords,Paramaribo (stad),Paramaribo (stad),edit,Paramaribo (district)
 NG-MC-1407,Halfmodel van het schroefstoomschip Suriname,no-geo-details,,,,
-RP-F-F24823,"Gezicht op de Waterkant, Paramaribo",thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
-RP-F-F24824,"Gezicht op de Waterkant, Paramaribo",thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
-RP-F-F01154-N,Menigte op het Gouvernementsplein te Paramaribo met Koninginnedag,thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-RP-F-F01154-AL,Huizen aan de Grote Combéweg in Paramaribo,thesaurus-no-coords,Grote Combéweg,Grote Combéweg,thesaurus,Paramaribo (stad)
-RP-F-F01154-M,Gezicht op een menigte aan de Waterkant in Paramaribo met Koninginnedag,thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
+RP-F-F01202,Fotoalbum van een onbekende Nederlandse familie met connecties in Suriname en Nederlands-Indië (1),mixed-no-coords,Nederland | Suriname (Zuid-Amerika) | Nederlands-Indië,Nederland | Suriname (Zuid-Amerika) | Nederlands-Indië,edit | edit | edit, | Zuid-Amerika | 
+RP-F-F01203,"Fotoalbum van een onbekende Nederlandse familie met opnames van Suriname, Europa en Nederlands-Indië",mixed-no-coords,Nederlands-Indië | Europa | Madeira,Nederlands-Indië | Europa | Madeira,unresolved | edit | unresolved, |  | 
+RP-F-F01204,Fotoalbum van een onbekende Nederlandse familie met connecties in Suriname en Nederlands-Indië (2).,mixed-no-coords,Nederland | Suriname (Zuid-Amerika) | Nice | Biarritz | Donostia-San Sebastián | Lugano | Wiesbaden | Melk,Nederland | Suriname (Zuid-Amerika) | Nice | Biarritz | Donostia-San Sebastián | Lugano | Wiesbaden | Melk,edit | edit | edit | edit | edit | edit | edit | edit, | Zuid-Amerika |  |  |  |  |  | 
+RP-F-F01154,"Fotoalbum met opnames van bezienswaardigheden in Europa, Trinidad, Haïti, Martinique en Suriname",mixed-no-coords,Duitsland | Zwitserland | Frankrijk | Noorwegen | Trinidad (Trinidad en Tobago) | Haïti | Martinique | Suriname (Zuid-Amerika),Duitsland | Zwitserland | Frankrijk | Noorwegen | Trinidad (Trinidad en Tobago) | Haïti | Martinique | Suriname (Zuid-Amerika),edit | edit | edit | edit | edit | edit | edit | edit, |  |  |  |  |  |  | Zuid-Amerika
 RP-F-F18711,Portret van een Afro-Surinaams kindermeisje met twee Europese kinderen,no-geo-details,,,,
 RP-F-F20834,Zeven Marronmannen voor de ingang van een Marrondorp (vermoedelijk) te Suriname,no-geo-details,,,,
 RP-T-1994-281,"Album met 35 tekeningen,op één na ingeplakt, van landschappen, plantages en typen in Suriname",no-geo-details,,,,
+RP-T-1994-281-19,Jonge vrouw in koto,mixed-no-coords,europees-locaal kostuum,europees-locaal kostuum,edit,
 RP-T-1994-281-31(V),Figuurstudies,no-geo-details,,,,
 RP-T-1994-281-34,Vrouw in koto misi met zakdoek,no-geo-details,,,,
-NG-1035-A,"Stoomschip ""Nederland""- naar Suriname.",unresolved-only,Nederland | Indië,Nederland | Indië,unresolved | unresolved, | 
+NG-1035-A,"Stoomschip ""Nederland""- naar Suriname.",mixed-no-coords,Nederland | Indië,Nederland | Indië,unresolved | edit, | 
 RP-P-OB-57.019,Wapenschild van de Sociëteit van Suriname,no-geo-details,,,,
 RP-P-1957-798,Wapenschild van de Sociëteit van Suriname,no-geo-details,,,,
 RP-P-OB-65.248,Wapenschild van Stephanus Laurentius Neale,no-geo-details,,,,
+NG-1979-565-30,Miss Black verkiezing 1978,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-1979-565-31,10-jarig bestaan van stichting BEST,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-32,Boottocht met muziek van Happy Boys,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-33,Feestavond,mixed-no-coords,Vlissingen | Suriname (Zuid-Amerika),Vlissingen | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-36,Het einde van de Ramadan,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-37,Het einde van de Ramadan,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-38,Surinaamse moslims bij het einde van de Ramadan,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-39,Het einde van de Ramadan,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-40,Het einde van de Ramadan,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-41,Inwijding nieuwe flat,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-42,Het einde van de Ramadan,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-565-43,Het einde van de Ramadan,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-4,Wassing overleden Surinaamse Javaanse,mixed-no-coords,Sint-Michielsgestel | Suriname (Zuid-Amerika),Sint-Michielsgestel | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-5,Aankleden Surinaamse Javaanse overledene,mixed-no-coords,Sint-Michielsgestel | Suriname (Zuid-Amerika),Sint-Michielsgestel | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-6,Gebedsdienst voor overledene,mixed-no-coords,Sint-Michielsgestel | Suriname (Zuid-Amerika),Sint-Michielsgestel | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-7,Begrafenis van Surinaamse Javaanse,mixed-no-coords,Sint-Michielsgestel | Suriname (Zuid-Amerika),Sint-Michielsgestel | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-8,Begrafenis van Surinaamse Javaanse,mixed-no-coords,Sint-Michielsgestel | Suriname (Zuid-Amerika),Sint-Michielsgestel | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-9,Begrafenis van Surinaamse Javaanse,mixed-no-coords,Sint-Michielsgestel | Suriname (Zuid-Amerika),Sint-Michielsgestel | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-10,Huize Beekvliet,mixed-no-coords,Sint-Michielsgestel | Suriname (Zuid-Amerika),Sint-Michielsgestel | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-11,Huize Beekvliet,mixed-no-coords,Sint-Michielsgestel | Suriname (Zuid-Amerika),Sint-Michielsgestel | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-14,"Eind van de Ramadan, Idul Fi'tre feest",mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-15,Holifeest: Nieuwjaarsfeest van Hindoes,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-16,Holifeest: Nieuwjaarsfeest van Hindoes,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-17,Holifeest: Nieuwjaarsfeest van Hindoes,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-18,Geboortefeest van Mohammed,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-19,Geboortefeest van Mohammed,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-20,Hindostaans huwelijk: de dag van de Bhatwan,mixed-no-coords,Den Haag | Suriname (Zuid-Amerika),Den Haag | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-21,Offeraarde voor Hindostaans huwelijk,mixed-no-coords,Den Haag | Suriname (Zuid-Amerika),Den Haag | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-22,Aankomst Hindostaanse bruidegom,mixed-no-coords,Rijswijk (Zuid-Holland) | Suriname (Zuid-Amerika),Rijswijk (Zuid-Holland) | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-23,Hindostaans huwelijk: de dag van de Bhatwan,mixed-no-coords,Den Haag | Suriname (Zuid-Amerika),Den Haag | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-24,Hindostaans huwelijk,mixed-no-coords,Rijswijk (Zuid-Holland) | Suriname (Zuid-Amerika),Rijswijk (Zuid-Holland) | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-25,Hindostaans huwelijk,mixed-no-coords,Rijswijk (Zuid-Holland) | Suriname (Zuid-Amerika),Rijswijk (Zuid-Holland) | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-26,Hindostaans huwelijk,mixed-no-coords,Den Haag | Suriname (Zuid-Amerika),Den Haag | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-27,Hindostaans huwelijk: de Matkorwa,mixed-no-coords,Den Haag | Suriname (Zuid-Amerika),Den Haag | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-29,Surinaamse markt op dag der Vrijheden,mixed-no-coords,Den Haag | Suriname (Zuid-Amerika),Den Haag | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-31,Surinaamse markt op Dag der Vrijheden,mixed-no-coords,Grote Markt (Den Haag) | Suriname (Zuid-Amerika),Grote Markt (Den Haag) | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1979-566-32,Optreden folkloristische groep op Dag der Vrijheden,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
 RP-P-1896-A-19368-3085,Paskaart van verschillende Surinaamse rivieren,no-geo-details,,,,
 RP-P-1896-A-19368-3086,Paskaart van een deel van de kust van Suriname en Guyana,no-geo-details,,,,
+NG-1981-8-24,Vormingsweekend van de SBSV,mixed-no-coords,Bergen (Noord-Holland) | Suriname (Zuid-Amerika),Bergen (Noord-Holland) | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1981-8-25,Deelneemster met kleinkind tijdens een Vormingsweekend,mixed-no-coords,Bergen (Noord-Holland) | Suriname (Zuid-Amerika),Bergen (Noord-Holland) | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1981-8-28,"Norma met het blad ""Ashanti"" tijdens een vormingsweekend van de SBSV (Stichting Behartiging-Belangen Surinaamse Vrouwen)",mixed-no-coords,Bergen (Noord-Holland) | Suriname (Zuid-Amerika),Bergen (Noord-Holland) | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1999-6-10,Portret van Faried Akmahr,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1999-6-38,Faried Akmahr met zijn broer,mixed-no-coords,Amsterdam | Suriname (Zuid-Amerika),Amsterdam | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-1992-19-44,De Surinaamse president,mixed-no-coords,Paleis Noordeinde | Suriname (Zuid-Amerika),Paleis Noordeinde | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+RP-P-1907-3971,"Surinaams dorp op de Wereldtentoonstelling in Amsterdam, 1883",mixed-no-coords,Amsterdam | Museumplein | Suriname (Zuid-Amerika),Amsterdam | Museumplein | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+RP-P-1911-323,"Kaart van Indonesië, met inzet van de kust van Zuid-Amerika, de Nederlandse Antillen en de kust van Guinée",mixed-no-coords,Indonesië | Guinée | Suriname (Zuid-Amerika) | Nederlandse Antillen,Indonesië | Guinée | Suriname (Zuid-Amerika) | Nederlandse Antillen,edit | edit | edit | edit, |  | Zuid-Amerika | 
+RP-P-1935-1481,"Kaart van Indonesië, met inzet van de kust van Zuid-Amerika, de Nederlandse Antillen en de kust van Guinée",mixed-no-coords,Indonesië | Guinée | Suriname (Zuid-Amerika) | Nederlandse Antillen,Indonesië | Guinée | Suriname (Zuid-Amerika) | Nederlandse Antillen,edit | edit | edit | edit, |  | Zuid-Amerika | 
 RP-P-1944-256,Gezicht op Paramaribo,no-geo-details,,,,
+RP-P-1974-102,"Titelpagina voor: Gerard Voorduin, Gezigten uit Neerland's West-Indien, 1860-1862",mixed-no-coords,Suriname (Zuid-Amerika) | Nederlandse Antillen,Suriname (Zuid-Amerika) | Nederlandse Antillen,edit | edit,Zuid-Amerika | 
+NG-2005-3-22,Desi Bouterse,mixed-no-coords,Den Haag | Suriname (Zuid-Amerika),Den Haag | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
 NG-2005-19,Surinamers in Nederland: 29 foto's uit het archief van Ons Vrije Nederland,unresolved-only,Nederland,Nederland,unresolved,
+NG-2005-19-1,Dansende Surinaamse meisjes tijdens Keti-Koti,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-2005-19-2,Surinaamse vrouwen in traditionele dracht tijdens Keti-Koti,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-2005-19-3,Surinaamse zanger Geraldi tijdens het Keti-Koti feest,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-2005-19-4,Optreden van Kid Dynamite tijdens Keti-Koti,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-2005-19-5,Dansende Surinaamse matroos tijdens het Keti-Koti feest,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-2005-19-6,Dansend paar tijdens Keti-Koti,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-2005-19-7,Surinaamse matrozen tijdens het Keti-Koti feest,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-2005-19-8,Minister Jonkman spreekt op de Ronde Tafel Conferentie tussen Nederland en de West,mixed-no-coords,Den Haag | Vergaderzaal Eerste Kamer | Nederland | Suriname (Zuid-Amerika),Den Haag | Vergaderzaal Eerste Kamer | Nederland | Suriname (Zuid-Amerika),edit | edit | edit | edit, |  |  | Zuid-Amerika
+NG-2005-19-9,Minister President Beel opent de Ronde Tafel Conferentie tussen Nederland en de West,mixed-no-coords,Den Haag | Vergaderzaal Eerste Kamer | Nederland | Suriname (Zuid-Amerika),Den Haag | Vergaderzaal Eerste Kamer | Nederland | Suriname (Zuid-Amerika),edit | edit | edit | edit, |  |  | Zuid-Amerika
+NG-2005-19-10,Een van de deelnemers aan de Ronde Tafel Conferentie: de heer A. Karamat Ali,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-11,Een van de deelnemers aan de RTC: C.A. Eman,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-12,Een van de deelnemers aan de RTC: J.A.E. Buiskool,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-13,Een van de deelnemers aan de RTC: R.H. Pos,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-14,Een van de deelnemers aan de RTC: Salikin M. Hardjo,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-15,Twee van de deelnemers aan de RTC: Percy Wijngaarde en P.G.A. Findlay,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-16,Een van de deelnemers aan de RTC: de heer J.P. Kaulesar Sukul,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-17,Een van de deelnemers aan de RTC: de heer F.H.R. Lim A Po,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-18,Een van de deelnemers aan de RTC: de heer J.A. de Miranda,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-19,Een van de deelnemers aan de RTC: de heer E. Jonckheer,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-20,Een van de journalisten  bij de RTC: de heer P. Daal,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika) | Curaçao,Den Haag | Nederland | Suriname (Zuid-Amerika) | Curaçao,edit | edit | edit | edit, |  | Zuid-Amerika | 
+NG-2005-19-21,Een van de deelnemers aan de RTC: de heer S.W. van der Meer,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika) | Curaçao,Den Haag | Nederland | Suriname (Zuid-Amerika) | Curaçao,edit | edit | edit | edit, |  | Zuid-Amerika | 
+NG-2005-19-22,Uitnodiging voor de opening van de RTC voor de heer Lim A Po,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-30-A,10 Handtekeningen van de deelnemers aan de RTC,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2005-19-30-B,10 Handtekeningen van de deelnemers aan de RTC,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
 RP-F-C109,"Portret van de gouverneur generaal van Suriname, Reinier Frederik Baron van Raders",no-geo-details,,,,
+NG-694-1-16,Willem Drees en het Statuut met de West,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika) | Nederlandse Antillen,Den Haag | Nederland | Suriname (Zuid-Amerika) | Nederlandse Antillen,edit | edit | edit | edit, |  | Zuid-Amerika | 
+NG-694-1-17,Willem Drees op Paleis Soestdijk in verband met de RTC West,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-694-1-18,Staatsbanket met Willem Drees en Koningin Elizabeth II,mixed-no-coords,Den Haag | Nederland | Suriname (Zuid-Amerika),Den Haag | Nederland | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
 RP-P-OB-20.471,"Zuid-zuid-west. Maritiem museum  ""Prins Hendrik"" Rotterdam. Geschiedenis Nederland - Suriname",no-geo-details,,,,
 RP-P-OB-100.203,Suriname. Land en volk,no-geo-details,,,,
 RP-P-OB-100.224,"Herfstflora 70. Mexicaanse kunst, kunst uit Suriname, schilderijen, beelden, ceramiek, wandtapijten van Josje Smit, Japanse bloemsierkunst en verzorgd door de Nederlandse Ikebana club",no-geo-details,,,,
-RP-F-2009-223,"Paramaribo, Jodenbreestraat 1975",thesaurus-no-coords,Jodenbreestraat (Paramaribo),Jodenbreestraat (Paramaribo),thesaurus,Paramaribo (stad)
+NG-2009-73-1,Surinaamse vrouw in Nederland,mixed-no-coords,Nederland | Suriname (Zuid-Amerika),Nederland | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
 RP-F-F01203-A,Portret van een meisje met een hoed,no-geo-details,,,,
 RP-F-F01203-B,Portret van een vrouw met opgestoken haar,no-geo-details,,,,
-RP-F-F01203-C,Onthulling van een standbeeld van koningin Wilhelmina op het Gouvernementsplein te Paramaribo,thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-RP-F-F01203-D,Versierde erepoort bij het paleis van de gouverneur in Paramaribo ter gelegenheid van het 25-jarig regeringsjubileum van koningin Wilhelmina,thesaurus-no-coords,Gouvernementspaleis,Gouvernementspaleis,thesaurus,Paramaribo (stad)
-RP-F-F01203-E,Feestverlichting aan het paleis van de gouverneur in Paramaribo ter gelegenheid van het 25-jarig regeringsjubileum van koningin Wilhelmina,thesaurus-no-coords,Gouvernementspaleis,Gouvernementspaleis,thesaurus,Paramaribo (stad)
-RP-F-F01203-G,Gouverneur Aarnoud van Heemstra (staand in donker pak) met een gezelschap op de Maäboberg in Suriname,thesaurus-no-coords,Maäbo Heuvel,Maäbo Heuvel,thesaurus,Suriname (Zuid-Amerika)
-RP-F-F01203-I,Gouverneur Aarnoud van Heemstra (midden) met een gezelschap bij Kwakoegron in Suriname,thesaurus-no-coords,Kwakoegron,Kwakoegron,thesaurus,Suriname (Zuid-Amerika)
-RP-F-F01203-H,Gezelschap langs een spoorbaan op de Maäboberg in Suriname,thesaurus-no-coords,Maäbo Heuvel,Maäbo Heuvel,thesaurus,Suriname (Zuid-Amerika)
-RP-F-F01203-O,Gezelschap in een boot en op een loopbrug bij plantage 'La Liberté' in Suriname,thesaurus-no-coords,Plantage La Liberté,Plantage La Liberté,thesaurus,Suriname (Zuid-Amerika)
-RP-F-F01203-Q,Gezelschap zittend in een sinaasappelveld op plantage 'La Liberté' in Suriname,thesaurus-no-coords,Plantage La Liberté,Plantage La Liberté,thesaurus,Suriname (Zuid-Amerika)
-RP-F-F01203-R,Gezelschap zittend in een sinaasappelveld op plantage 'La Liberté' in Suriname,thesaurus-no-coords,Plantage La Liberté,Plantage La Liberté,thesaurus,Suriname (Zuid-Amerika)
+RP-F-F01203-G,Gouverneur Aarnoud van Heemstra (staand in donker pak) met een gezelschap op de Maäboberg in Suriname,mixed-no-coords,Maäbo Heuvel,Maäbo Heuvel,edit,Suriname (Zuid-Amerika)
+RP-F-F01203-H,Gezelschap langs een spoorbaan op de Maäboberg in Suriname,mixed-no-coords,Maäbo Heuvel,Maäbo Heuvel,edit,Suriname (Zuid-Amerika)
 RP-F-F01203-AG,Man en vrouw op de Kanarielaan in Buitenzorg,no-geo-details,,,,
-RP-F-F01203-AH,Twee vrouwen in 's Lands Plantentuin in Buitenzorg,unresolved-only,'s Lands Plantentuin,'s Lands Plantentuin,unresolved,
+RP-F-F01203-AH,Twee vrouwen in 's Lands Plantentuin in Buitenzorg,mixed-no-coords,'s Lands Plantentuin,'s Lands Plantentuin,edit,
 RP-F-F01203-AI,"Man en vrouw op zittend op rivierkeien, vermoedelijk in Nederlands-Indië",unresolved-only,Nederlands-Indië,Nederlands-Indië,unresolved,
-RP-F-F01203-AJ,Man en vrouw staand onder varens in 's Lands Plantentuin te Buitenzorg,unresolved-only,Buitenzorg (West-Java),Buitenzorg (West-Java),unresolved,
-RP-F-F01203-AK,Vrouw met herten bij het paleis van de Gouverneur-Generaal in Buitenzorg,unresolved-only,Paleis van de Gouverneur-Generaal,Paleis van de Gouverneur-Generaal,unresolved,
-RP-F-F01203-AL,Paard en wagen voor Hotel du Chemin de Fer in Buitenzorg,unresolved-only,Buitenzorg (West-Java),Buitenzorg (West-Java),unresolved,
-RP-F-F01203-AM,Vrouw poseert bij Javaanse kooplieden op markt in Buitenzorg,unresolved-only,Buitenzorg (West-Java),Buitenzorg (West-Java),unresolved,
+RP-F-F01203-AJ,Man en vrouw staand onder varens in 's Lands Plantentuin te Buitenzorg,mixed-no-coords,Buitenzorg (West-Java),Buitenzorg (West-Java),edit,
+RP-F-F01203-AK,Vrouw met herten bij het paleis van de Gouverneur-Generaal in Buitenzorg,mixed-no-coords,Paleis van de Gouverneur-Generaal,Paleis van de Gouverneur-Generaal,edit,
 RP-F-F01203-AN,Twee Spaanse vrouwen met parasol in Lembang,unresolved-only,Lembang,Lembang,unresolved,
 RP-F-F01203-AO,Nederlands gezelschap aan boord van het schip 'Innsbruck',no-geo-details,,,,
 RP-F-F01203-AP,Mensen in een aardappelveld te Lembang,unresolved-only,Lembang,Lembang,unresolved,
@@ -59,7 +178,6 @@ RP-F-F01203-AU,Vrouw met parasol en kind in een tuin in Nederlands-Indië,unreso
 RP-F-F01203-AV,Gezelschap aan boord van stoomschip 'Prins Willem III',no-geo-details,,,,
 RP-F-F01203-AW,Gezelschap aan boord van stoomschip 'Prins Willem III',no-geo-details,,,,
 RP-F-F01203-AX,"Mannen, vrouwen en een kind bij een houten trap, twee mogelijk verkleed in oosterse gewaden",no-geo-details,,,,
-RP-F-F01203-BB,"Europese vrouw en (vermoedelijk) Surinaamse man, musicerend met snaarinstrumenten op plantage ''t Vertrouwen'",thesaurus-no-coords,Plantage 't Vertrouwen,Plantage 't Vertrouwen,thesaurus,Suriname (Zuid-Amerika)
 RP-F-F01203-BC,Kat in een mand,no-geo-details,,,,
 RP-F-F01203-BD,Kat in een mand,no-geo-details,,,,
 RP-F-F01203-BE,Vrouw houdt kat in een mand vast,no-geo-details,,,,
@@ -70,10 +188,9 @@ RP-F-F01203-BL,Twee vrouwen met hoeden picknickend op de hei bij Amersfoort,unre
 RP-F-F01203-BN,Laan naar het Monte Palace Hotel op Madeira,unresolved-only,Madeira,Madeira,unresolved,
 RP-F-F01203-BO,Gezelschap bij toesledes (sleepkoetsen) op Madeira,unresolved-only,Madeira,Madeira,unresolved,
 RP-F-F01203-BP,Vrouw wandelend langs de kust op Madeira,unresolved-only,Madeira,Madeira,unresolved,
-RP-F-F01203-BQ,Man en vrouw tussen de duiven op het San Marcoplein in Venetië,unresolved-only,San Marcoplein,San Marcoplein,unresolved,
 RP-F-F01203-BR,Gezelschap waaronder geestelijken aan boord van de 'Prins der Nederlanden',no-geo-details,,,,
 RP-F-F01203-BS,Man en vrouw in zeilboot 'Argonaut' aan een steiger te Aalsmeer,unresolved-only,Aalsmeer,Aalsmeer,unresolved,
-RP-F-F01203-BT,Man en vrouw onder de Eiffeltoren te Parijs,unresolved-only,Eiffeltoren,Eiffeltoren,unresolved,
+RP-F-F01203-BT,Man en vrouw onder de Eiffeltoren te Parijs,mixed-no-coords,Eiffeltoren,Eiffeltoren,edit,
 RP-F-F01203-BX,"Vrouw met hoed op het strand, vermoedelijk in Nederland",unresolved-only,Nederland,Nederland,unresolved,
 RP-F-F01203-CA,Portret van een (vermoedelijk) Nederlandse vrouw met een hoed,no-geo-details,,,,
 RP-F-F01203-CB,Portret van een (vermoedelijk) Nederlandse vrouw met een hoed,no-geo-details,,,,
@@ -81,123 +198,58 @@ RP-F-F01203-CI,"Gezelschap aan een gedekte tafel bij een feestelijke gelegenheid
 RP-F-F01203-CJ,"Gezelschap aan een gedekte tafel bij een feestelijke gelegenheid, mogelijk in Nederland",no-geo-details,,,,
 RP-F-F01203-CK,"Vrouw met kat in haar armen, mogelijk in Paramaribo (uitgeknipt)",no-geo-details,,,,
 RP-F-F01203-CL,"Gezelschap in een woonkamer, mogelijk in Nederland",unresolved-only,Nederland,Nederland,unresolved,
-RP-F-F01203-CN,Vrouw voert de kippen op plantage ''t Vertrouwen' in Suriname,thesaurus-no-coords,Plantage 't Vertrouwen,Plantage 't Vertrouwen,thesaurus,Suriname (Zuid-Amerika)
-RP-F-F01203-CO,Vrouw voert de kippen op plantage ''t Vertrouwen' in Suriname,thesaurus-no-coords,Plantage 't Vertrouwen,Plantage 't Vertrouwen,thesaurus,Suriname (Zuid-Amerika)
 RP-F-F01203-CR,"Portret van een jonge vrouw in een baljurk, en profil",no-geo-details,,,,
 RP-F-F01203-CS,Exterieur van het Monte Palace Hotel op Madeira,unresolved-only,Madeira,Madeira,unresolved,
-RP-F-F01203-CT,Mannen op een schoenenmarkt te Funchal op Madeira,unresolved-only,Funchal,Funchal,unresolved,
-RP-F-F01203-CU,"Gezicht op treinstel, station en publiek op het Vaillantsplein in Paramaribo bij de opening van de Lawaspoorweg (Landsspoorweg) op 28 maart 1905",thesaurus-no-coords,Vaillantsplein,Vaillantsplein,thesaurus,Paramaribo (stad)
+RP-F-F01203-CT,Mannen op een schoenenmarkt te Funchal op Madeira,mixed-no-coords,Funchal,Funchal,edit,
 RP-F-F01203-CW,Portret van een onbekende man,no-geo-details,,,,
-RP-F-F01203-CY,Gezicht op treinstel en publiek op het Vaillantsplein in Paramaribo bij de opening van de Lawaspoorweg (Landsspoorweg) op 28 maart 1905,thesaurus-no-coords,Vaillantsplein,Vaillantsplein,thesaurus,Paramaribo (stad)
-RP-F-F01203-CZ,Gezicht op de Waterkant in Paramaribo langs het traject van de Lawaspoorweg (Landsspoorweg),thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
 RP-F-F01203-DB,Drie vrouwen op het terras van het Badhotel in Wijk aan Zee,unresolved-only,Wijk aan Zee,Wijk aan Zee,unresolved,
 RP-F-F01203-DC,"Twee vrouwen in zee, vermoedelijk bij Wijk aan Zee",unresolved-only,Wijk aan Zee,Wijk aan Zee,unresolved,
 RP-F-F01203-DD,Drie vrouwen poserend bij een auto in Wijk aan Zee,unresolved-only,Wijk aan Zee,Wijk aan Zee,unresolved,
 RP-F-F01203-DE,Drie vrouwen op het terras van het Badhotel in Wijk aan Zee,unresolved-only,Wijk aan Zee,Wijk aan Zee,unresolved,
 RP-F-F01203-DG,"Groepsportret van jonge vrouwen in een tekenschool, vermoedelijk in Nederland",no-geo-details,,,,
-RP-F-F01203-DI,Gezelschap waaronder leden van de familie Terlaak in een open bus in Berlijn,unresolved-only,Berlijn,Berlijn,unresolved,
-RP-F-F01203-DJ,Gezelschap waaronder leden van de familie Ottenhof achter een paardenslee in Sankt Moritz,unresolved-only,Sankt Moritz,Sankt Moritz,unresolved,
+RP-F-F01203-DI,Gezelschap waaronder leden van de familie Terlaak in een open bus in Berlijn,mixed-no-coords,Berlijn,Berlijn,edit,
+RP-F-F01203-DJ,Gezelschap waaronder leden van de familie Ottenhof achter een paardenslee in Sankt Moritz,mixed-no-coords,Sankt Moritz,Sankt Moritz,edit,
 RP-F-F01203-DK,Europese vrouw poserend bij een trap in Indiase kleding,no-geo-details,,,,
 RP-F-F01203-DM,"Vrouw met kat in haar armen, mogelijk in Paramaribo (uitgeknipt)",no-geo-details,,,,
 RP-F-F01203-DN,Europese vrouw gekleed als geisha,no-geo-details,,,,
 RP-F-F01203-DO,Gezelschap drinkt koffie in etablissement,no-geo-details,,,,
 RP-F-F01203-DP,Gezelschap aan boord van de S.S. 'Van Rensselaer',no-geo-details,,,,
 RP-F-F01203-DQ,Gezelschap aan boord van de S.S. 'Van Rensselaer',no-geo-details,,,,
-RP-F-F01203-DR,"S.S. 'Nickerie', vermoedelijk in een Nederlandse haven",unresolved-only,Nederland,Nederland,unresolved,
+RP-F-F01203-DR,"S.S. 'Nickerie', vermoedelijk in een Nederlandse haven",mixed-no-coords,Nederland,Nederland,edit,
 RP-F-F01203-DS,Gezelschap aan boord van de S.S. 'Van Rensselaer',no-geo-details,,,,
 RP-F-F01203-DT,Portret van een vrouw en een klein meisje,no-geo-details,,,,
 RP-F-F01203-DU,Portret van een vrouw en een jong meisje,no-geo-details,,,,
 RP-F-F01203-DV,Portret van een jongen en een meisje met een handdoek om de middel geslagen,no-geo-details,,,,
 RP-F-F01203-DW,"Familieportret van man, vrouw, kinderen met kat",no-geo-details,,,,
 RP-F-F01203-DY,Twee vrouwen bij een woonhuis,no-geo-details,,,,
-RP-F-2009-221,"Stoelmanseiland, streekziekenhuis langs de Marowijne, 1977",thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
-NG-2008-37-63,Gouvernementspaleis in Paramaribo,thesaurus-no-coords,Gouvernementspaleis,Gouvernementspaleis,thesaurus,Paramaribo (stad)
+NG-2009-49-2,Drukkerij Het Parool,mixed-no-coords,Amsterdam,Amsterdam,edit,
+NG-2009-73-4,Surinaams-Javaanse vrouw in Nederland,mixed-no-coords,Nederland | Suriname (Zuid-Amerika),Nederland | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-2009-73-8,Surinaamse vrouw in Nederland,mixed-no-coords,Nederland | Suriname (Zuid-Amerika),Nederland | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-2009-73-10,Surinaams-Hindostaanse vrouw in Nederland,mixed-no-coords,Nederland | Suriname (Zuid-Amerika),Nederland | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-2009-73-8-A,Surinaamse vrouw in Nederland,mixed-no-coords,Nederland | Suriname (Zuid-Amerika),Nederland | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+NG-2009-132-6,Groepsportret van de Familie Wesenhagen-Loth in Den Haag,mixed-no-coords,Suriname (Zuid-Amerika) | Den Haag,Suriname (Zuid-Amerika) | Den Haag,edit | edit,Zuid-Amerika | 
+NG-2009-141-10,"Surinaams gezelschap op de trap van het Koloniaal Instituut in Amsterdam, 1940",mixed-no-coords,Amsterdam | Koninklijk Instituut voor de Tropen | Suriname (Zuid-Amerika),Amsterdam | Koninklijk Instituut voor de Tropen | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2009-141-11,Surinaams gezelschap in Krasnapolsky in Amsterdam,mixed-no-coords,Amsterdam | Grand Hotel Krasnapolsky | Suriname (Zuid-Amerika),Amsterdam | Grand Hotel Krasnapolsky | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+NG-2009-94-36-3,Hutten aan de oever van de rivier Cottica,mixed-no-coords,Moengo,Moengo,edit,Marowijne
 RP-F-2009-282,"Suriname 1895-1898, 'Souvenirs de Voyage'",no-geo-details,,,,
-NG-2010-11,"Bij de onafhankelijkheid van Suriname wordt het standbeeld van koningin Wilhelmina verwijderd, 1975",thesaurus-no-coords,Onafhankelijkheidsplein,Onafhankelijkheidsplein,thesaurus,Paramaribo (stad)
 NG-2010-36-1,Hof van Justitie in Suriname,no-geo-details,,,,
 RP-F-2009-282-1,Jhr. Mr. T.A.J. van Asch van Wijck / Gouverneur van Suriname,no-geo-details,,,,
-RP-F-2009-282-3,Het Gouvernementshuis,thesaurus-no-coords,Gouvernementspaleis,Gouvernementspaleis,thesaurus,Paramaribo (stad)
-RP-F-2009-282-4,Het Gouvernementsplein,thesaurus-no-coords,Gouvernementsplein | Hof van Justitie | Administratie van Financiën | Gouvernementspaleis,Gouvernementsplein | Hof van Justitie | Administratie van Financiën | Gouvernementspaleis,thesaurus | thesaurus | thesaurus | thesaurus,Paramaribo (stad) | Paramaribo (stad) | Paramaribo (stad) | Paramaribo (stad)
-RP-F-2009-282-13-2,Kerk der Herv. Gem.,thesaurus-no-coords,Hervormde Kerk (Paramaribo) | Kerkplein (Paramaribo),Hervormde Kerk (Paramaribo) | Kerkplein (Paramaribo),thesaurus | thesaurus,Paramaribo (stad) | Paramaribo (stad)
-RP-F-2009-282-14,"HIndostaanse contractarbeiders, aan de Waterkant",thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
-RP-F-2009-282-20,De Heerenstraat,thesaurus-no-coords,Heerenstraat (Paramaribo),Heerenstraat (Paramaribo),thesaurus,Paramaribo (stad)
-RP-F-2009-282-33-1,Hindostaanse contractarbeiders in het immigrantendepot,thesaurus-no-coords,Koeliedepot,Koeliedepot,thesaurus,Paramaribo (stad)
-RP-F-2009-282-33-2,Hindostaanse contractarbeiders in het immigrantendepot,thesaurus-no-coords,Koeliedepot,Koeliedepot,thesaurus,Paramaribo (stad)
-RP-F-2009-282-34-1,Hindostaanse vrouwen en kinderen in het immigrantendepot,thesaurus-no-coords,Koeliedepot,Koeliedepot,thesaurus,Paramaribo (stad)
-RP-F-2009-282-34-2,Hindostaanse vrouwen en kinderen in het immigrantendepot,thesaurus-no-coords,Koeliedepot,Koeliedepot,thesaurus,Paramaribo (stad)
 RP-F-2009-282-36-1,Javaanse vrouwen in het immigrantendepot,no-geo-details,,,,
 RP-F-2009-282-36-2,De gammelang,no-geo-details,,,,
-RP-F-2009-282-38-2,Woningen van voormalige Hindostaanse contractarbeiders in Combé,thesaurus-no-coords,Combé,Combé,thesaurus,Paramaribo (stad)
-RP-F-2009-282-40,"Cacao-plantage ""Kwatta""",thesaurus-no-coords,Kwatta (plantage),Kwatta (plantage),thesaurus,Suriname (Zuid-Amerika)
-RP-F-2009-282-41-1,"Plantage ""Kwatta"". Weg naar de gronden",thesaurus-no-coords,Kwatta (plantage),Kwatta (plantage),thesaurus,Suriname (Zuid-Amerika)
-RP-F-2009-282-41-2,Woningen voor de contractarbeiders op Plantage Kwatta,thesaurus-no-coords,Kwatta (plantage),Kwatta (plantage),thesaurus,Suriname (Zuid-Amerika)
-RP-F-2009-282-42-1,"Cacaoplantage ""De Maasstroom""",thesaurus-no-coords,Plantage Maasstroom,Plantage Maasstroom,thesaurus,Suriname (Zuid-Amerika)
-RP-F-2009-282-42-2,In de gronden op Maasstroom,thesaurus-no-coords,Plantage Maasstroom,Plantage Maasstroom,thesaurus,Suriname (Zuid-Amerika)
-RP-F-2009-282-44,"Op ""Mariënburg"" / Suikerfabriek der Ned. Handel Maatschappij",thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-RP-F-2009-282-45,"Suikerfabr. ""Mariënburg""",thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-RP-F-2009-282-46-1,"Suikerfabr. ""Mariënburg""",thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-RP-F-2009-282-46-2,School voor kinderen van de Hindostaanse contractarbeiders op plantage Mariënburg,thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-RP-F-2009-282-47,"Groep in de Dir. woning op ""Mariënburg"" (Mei '95)",thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-RP-F-2009-282-51,Groep op Chatillon v/h reisgezelschap op 14 Augs. '95,thesaurus-no-coords,Plantage Groot-Chatillon,Plantage Groot-Chatillon,thesaurus,Suriname (Zuid-Amerika)
-RP-F-2009-282-52-1,Politiepost op Onoribo,thesaurus-no-coords,Onoribo,Onoribo,thesaurus,Para
-RP-F-2009-282-52-2,Dorp Onoribo,thesaurus-no-coords,Onoribo,Onoribo,thesaurus,Para
-RP-F-2009-282-53,Huldebetoon a/d Gouverneur op Onoribo (8 nov. '95),thesaurus-no-coords,Onoribo,Onoribo,thesaurus,Para
-RP-F-2009-282-82-2,Drukte langs de Waterkant,thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
 RP-F-2009-282-83-3,Jhr. Mr. T.A.J. van Asch van Wijck / Gouverneur van Suriname,no-geo-details,,,,
-NG-1994-32-15-1,"Gouvernementsplein, Muziek Woensdagmiddags 5 uur",thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-NG-1994-32-15-2,Groote Combéweg,thesaurus-no-coords,Grote Combéweg,Grote Combéweg,thesaurus,Paramaribo (stad)
-NG-1994-32-19-1,Kerkplein,thesaurus-no-coords,Kerkplein (Paramaribo),Kerkplein (Paramaribo),thesaurus,Paramaribo (stad)
-NG-1994-32-14-1,Heiligenweg,thesaurus-no-coords,Heiligenweg,Heiligenweg,thesaurus,Paramaribo (stad)
-NG-1994-32-14-2,Heiligenweg. Markt,thesaurus-no-coords,Heiligenweg,Heiligenweg,thesaurus,Paramaribo (stad)
-NG-1994-32-22-1,Knuffelsgracht,thesaurus-no-coords,Knuffelsgracht,Knuffelsgracht,thesaurus,Paramaribo (stad)
-NG-1994-32-22-2,Knuffelsgracht,thesaurus-no-coords,Knuffelsgracht,Knuffelsgracht,thesaurus,Paramaribo (stad)
-NG-1994-32-21,In het Park,thesaurus-no-coords,Het Park,Het Park,thesaurus,Paramaribo (stad)
-NG-1994-32-31,Buitensocieteit Het Park,thesaurus-no-coords,Het Park,Het Park,thesaurus,Paramaribo (stad)
-NG-1994-32-26,Gouvernementsplein,thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-NG-2009-126-10,Maria Gonggrijp met vriendinnen op Morgenstond,thesaurus-no-coords,Plantage Morgenstond,Plantage Morgenstond,thesaurus,Paramaribo (district)
-NG-2009-126-11,Groepsportret op Morgenstond,thesaurus-no-coords,Plantage Morgenstond,Plantage Morgenstond,thesaurus,Paramaribo (district)
-NG-2009-126-12-2,Maria Gonggrijp op Clevia,thesaurus-no-coords,Plantage Clevia,Plantage Clevia,thesaurus,Suriname (Zuid-Amerika)
-NG-2009-126-13,Groepsfoto op Morgenstond,thesaurus-no-coords,Plantage Morgenstond,Plantage Morgenstond,thesaurus,Paramaribo (district)
-RP-F-BR-2011-1-1,"Portret van twee jonge mannen, Suriname",thesaurus-no-coords,Frimangron,Frimangron,thesaurus,Paramaribo (stad)
-RP-F-BR-2011-1-2,"Portret van twee jonge mannen, Suriname",thesaurus-no-coords,Frimangron,Frimangron,thesaurus,Paramaribo (stad)
-RP-F-BR-2011-1-12,Uitbetaling van de AOW en kinderbijslag te Mariënburg vlak voor de verkiezingen van 1973,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-13,Vrouwen staan in de rij voor de uitbetaling van de AOW en kinderbijslag te Mariënburg vlak voor de verkiezingen van 1973,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-14,In de rij voor uitbetaling van de AOW en kinderbijslag te Mariënburg vlak voor de verkiezingen van 1973,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-91,Stoelmanseiland,thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-93,Drie toeristen bij Stoelmanseiland,thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-94,Drie toeristen bij Stoelmanseiland,thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-96,Het streekziekenhuis van Stoelmanseiland,thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-147,Rietkappers van Mariënburg,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-154,Marronschool in Klaaskreek,thesaurus-no-coords,Klaaskreek,Klaaskreek,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-155,Marronschool in Klaaskreek,thesaurus-no-coords,Klaaskreek,Klaaskreek,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-156,Brownsweg met de Bruynseel-woningen,thesaurus-no-coords,Brownsweg,Brownsweg,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-157,Er zijn plannen om de Marrons in een aantal stedelijke kernen te concentreren; transmigratiedorp Brownsweg,thesaurus-no-coords,Brownsweg,Brownsweg,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-172,Javaanse barak te Mariënburg,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-175,Man met pet in het ouden van dagen tehuis in Mariënburg,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-176,Ouden van dagen tehuis te Mariënburg,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-177,Vrouwen op zaal in het ouden van dagen tehuis te Mariënburg,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-178,Woningen te Mariënburg gebouwd in de dagen van de eerste contractarbeiders,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-187,Aluminiumfabriek van Suralco te Paranam,thesaurus-no-coords,Paranam,Paranam,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-222,Medewerkers van Suralco,thesaurus-no-coords,Paranam,Paranam,thesaurus,Suriname (Zuid-Amerika)
-RP-F-BR-2011-1-229,Vrouwen in de rij voor uitbetaling van de AOW en kinderbijslag door een man te Mariënburg vlak voor de verkiezingen van 1973,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-BR-2011-1-230,"Uitbetaling van de AOW en kinderbijslag te Mariënburg vlak voor de verkiezingen van 1973, een man met bril houdt een papier omhoog",thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
+NG-1994-32-27,R.C. Kerk (Gravenstraat),mixed-no-coords,Paramaribo (stad) | Gravenstraat (Paramaribo),Paramaribo (stad) | Gravenstraat (Paramaribo),edit | edit,Paramaribo (district) | Paramaribo (stad)
+NG-2009-125-11,Familie op bed,mixed-no-coords,Suriname (Zuid-Amerika) | Plantage Morgenstond | Plantage Clevia,Suriname (Zuid-Amerika) | Plantage Morgenstond | Plantage Clevia,edit | edit | edit,Zuid-Amerika | Paramaribo (district) | Suriname (Zuid-Amerika)
+NG-2009-129-26,"Verklede bemanning van de Halve Maan, in New York",mixed-no-coords,Suriname (Zuid-Amerika) | New York,Suriname (Zuid-Amerika) | New York,edit | edit,Zuid-Amerika | 
+RP-F-BR-2011-1-1,"Portret van twee jonge mannen, Suriname",mixed-no-coords,Frimangron,Frimangron,edit,Paramaribo (stad)
+RP-F-BR-2011-1-2,"Portret van twee jonge mannen, Suriname",mixed-no-coords,Frimangron,Frimangron,edit,Paramaribo (stad)
 RP-F-2009-258,Vier maanden in Suriname,no-geo-details,,,,
-RP-F-2011-75-85,"Mariënburg, Suriname",thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2011-75-86,"Bejaardenhuis Mariënburg, old people's home, Suriname",thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
+NG-505-121,"De Graaff, minister van Koloniën",mixed-no-coords,Suriname (Zuid-Amerika) | Djambi,Suriname (Zuid-Amerika) | Djambi,edit | edit,Zuid-Amerika | 
+RP-F-2011-75-17,"Nickerie, Suriname",mixed-no-coords,Nickerie,Nickerie,edit,Suriname (Zuid-Amerika)
+NG-1064-10,Kaart van de Nederlandse Antillen,mixed-no-coords,Suriname (Zuid-Amerika) | Aruba | Curaçao | Bonaire | Sint-Maarten | Sint-Eustatius | Saba,Suriname (Zuid-Amerika) | Aruba | Curaçao | Bonaire | Sint-Maarten | Sint-Eustatius | Saba,edit | edit | edit | edit | edit | edit | edit,Zuid-Amerika |  |  |  |  |  | 
 RP-F-2013-73-36,Demonstratie bij de Dokwerker voor onafhankelijkheid van Suriname,unresolved-only,Jonas Daniël Meijerplein,Jonas Daniël Meijerplein,unresolved,
-RP-F-2013-91-1,Sleep,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
-NG-2013-22-4-1,Plantagegeld (10 cent) uitgegeven door de suikerplantage Mariënburg,thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-NG-2013-22-23,Waterkant van Paramaribo kort na de brand van 1821,thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
-NG-2013-22-4-2,Plantagegeld (25 cent) uitgegeven door de suikerplantage Mariënburg,thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-RP-F-2013-91-2,Bakúba # 1,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
-RP-F-2013-91-3,Pási,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
-RP-F-2013-91-4,Wási,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
-RP-F-2013-91-5,Song of Time,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
-RP-F-2013-91-6,Giallo,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
-RP-F-2013-91-7,Liba,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
-RP-F-2013-91-8,Sling,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
-RP-F-2013-91-9,Mariëtta,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
-RP-F-2013-91-10,Almando Fuchsia,thesaurus-no-coords,Pikin Slee,Pikin Slee,thesaurus,Boven-Suriname
+NG-2009-124-26-2,Groepsfoto in de Gravenstraat,mixed-no-coords,Paramaribo (stad),Paramaribo (stad),edit,Paramaribo (district)
+NG-2009-124-27-4,Groepsfoto in de Gravenstraat,mixed-no-coords,Paramaribo (stad),Paramaribo (stad),edit,Paramaribo (district)
+RP-P-OB-205.325,"Suriname, bezitting der Nederlanders op het vastland van Amerika. - 65,000 inwoners",mixed-no-coords,Fort Zeelandia (Paramaribo),Fort Zeelandia (Paramaribo),edit,Paramaribo (stad)
 RP-F-2014-104-1,Portret van een Surinamer,no-geo-details,,,,
 RP-F-2014-104-2,Portret van een Surinamer,no-geo-details,,,,
 RP-F-2014-104-3,Portret van een Surinamer,no-geo-details,,,,
@@ -217,86 +269,57 @@ RP-F-2014-104-16,Portret van een Surinamer,no-geo-details,,,,
 RP-F-2014-104-17,Portret van een Surinamer,no-geo-details,,,,
 RP-F-2014-104-18,Portret van een Surinamer,no-geo-details,,,,
 RP-F-2014-104,Portretten van Surinamers,no-geo-details,,,,
-NG-2013-22-24-6,Een man en een vrouw verlaten het Gouvernementspaleis in Paramaribo; rechts wacht een rijtuig,thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-NG-2013-22-24-7,Vier mannen in een rijtuig voor het Gouvernementspaleis in Paramaribo,thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-NG-2013-22-24-8,Wachtende mensen op de veranda van het Gouvernementspaleis in Paramaribo,thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-NG-2013-22-24-9,Wachtende mensen op de trap van de veranda van het Gouvernementspaleis in Paramaribo,thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-NG-2013-22-24-10,"Mensen opgesteld in een rij, met op de achtergrond het Gouvernementspaleis in Paramaribo",thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-NG-2013-22-24-11,Twee grote groepen mensen die kijken naar een familie op het balkon van het Gouvernementspaleis in Paramaribo,thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-NG-2015-4-6,Gouverneur Warmolt Tonckens en Granman Oseisie en hun gevolg in de Palmentuin van Paramaribo,thesaurus-no-coords,Palmentuin,Palmentuin,thesaurus,Paramaribo (stad)
-NG-2015-4-8,Rietkappen op suikerplantage Marienburg in Suriname,thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-NG-2015-4-10,"Gezicht op Onoribo, een houtgrond in het district Para",thesaurus-no-coords,Para | Onoribo,Para | Onoribo,thesaurus | thesaurus,Suriname (Zuid-Amerika) | Para
-RP-F-2016-47-9,"Mariënburg, arbeidersfamilie. 1977",thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-10,"Mariënburg, arbeidersfamilie. 1977",thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-11,"Mariënburg, bejaardentehuis. 1975",thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-12,"Mariënburg, bejaardentehuis. 1975",thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-13,"Mariënburg, bejaardentehuis. 1975",thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-16,"Mariënburg, bejaardentehuis. 1977",thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-17,"Stoelmanseiland, streekziekenhuis. 1977",thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
-RP-F-2016-47-20,Mariënburg. 1973,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-30,Mariënburg. 1975,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-31,Mariënburg. 1975,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-32,Mariënburg. 1977,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-33,Mariënburg. 1977,thesaurus-no-coords,Mariënburg (Suriname),Mariënburg (Suriname),thesaurus,Commewijne
-RP-F-2016-47-34,"Stoelmanseiland, toeristen. 1975",thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
-RP-F-2016-47-35,"Stoelmanseiland, toeristen. 1975",thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
-RP-F-2016-47-37,"Stoelmanseiland, streekziekenhuis. 1975",thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
-RP-F-2016-47-38,"Stoelmanseiland, streekziekenhuis. 1975",thesaurus-no-coords,Stoelmanseiland,Stoelmanseiland,thesaurus,Suriname (Zuid-Amerika)
+RP-P-OB-89.751-14,"Surinaamse mensen op de Wereldtentoonstelling in Amsterdam, 1883",mixed-no-coords,Amsterdam | Museumplein | Suriname (Zuid-Amerika),Amsterdam | Museumplein | Suriname (Zuid-Amerika),edit | edit | edit, |  | Zuid-Amerika
+RP-F-F00938-15,Gezicht op de Gravenstraat en de St. Petrus en Pauluskerk in Paramaribo vanaf een toren,mixed-no-coords,Suriname (Zuid-Amerika) | Paramaribo (stad),Suriname (Zuid-Amerika) | Paramaribo (stad),edit | edit,Zuid-Amerika | Paramaribo (district)
+BI-B-FM-141-46,"Uniform van de Surinaamse Guides van de West-Indische troepen, 1845",mixed-no-coords,Nederland | Suriname (Zuid-Amerika),Nederland | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+BI-B-FM-141-47,"Uniform van de officieren van de jagers van de West-Indische troepen, 1845",mixed-no-coords,Nederland | Suriname (Zuid-Amerika) | Nederlandse Antillen,Nederland | Suriname (Zuid-Amerika) | Nederlandse Antillen,edit | edit | edit, | Zuid-Amerika | 
+BI-B-FM-141-48,"Uniform van de officieren van de artillerie van de West-Indische troepen, 1845",mixed-no-coords,Nederland | Suriname (Zuid-Amerika) | Nederlandse Antillen,Nederland | Suriname (Zuid-Amerika) | Nederlandse Antillen,edit | edit | edit, | Zuid-Amerika | 
+RP-P-OB-89.598,"Spotprent op de plannen tot aflossing van de nationale schuld, 1875",mixed-no-coords,Suriname (Zuid-Amerika) | Java,Suriname (Zuid-Amerika) | Java,edit | edit,Zuid-Amerika | 
+RP-P-OB-90.288,"Politieke spotprent over West-Indië, 1882",mixed-no-coords,Nederlandse Antillen | Suriname (Zuid-Amerika),Nederlandse Antillen | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
+RP-F-2016-47-26,"Nickerie, Clarapolder. 1975",mixed-no-coords,Nickerie,Nickerie,edit,Suriname (Zuid-Amerika)
+RP-F-2016-47-29,"Nickerie, Clarapolder. 1975",mixed-no-coords,Nickerie,Nickerie,edit,Suriname (Zuid-Amerika)
+NG-2016-18,Opening luchtdienst Amsterdam-Paramaribo in 1949,mixed-no-coords,Amsterdam | Paramaribo (stad),Amsterdam | Paramaribo (stad),edit | edit, | Paramaribo (district)
 NG-2016-55,Herman Ritfeld (1924-2014) op het voetbaldveld van Tutubuka,no-geo-details,,,,
-NG-2016-53-25,Dorp van de Saramakanen,thesaurus-no-coords,Nieuw-Aurora,Nieuw-Aurora,thesaurus,Suriname (Zuid-Amerika)
-NG-2016-53-27,Dorp met doorkijkje naar rivier,thesaurus-no-coords,Nieuw-Aurora,Nieuw-Aurora,thesaurus,Suriname (Zuid-Amerika)
-NG-2016-53-28,Vrouwen hakken hout in het bos,thesaurus-no-coords,Nieuw-Aurora,Nieuw-Aurora,thesaurus,Suriname (Zuid-Amerika)
-NG-2016-53-29,Rivier bij het dorp Daome,thesaurus-no-coords,Daome,Daome,thesaurus,Suriname (Zuid-Amerika)
-NG-2016-53-30,Rust en Vredestraat in de wijk Frimangron,thesaurus-no-coords,Frimangron,Frimangron,thesaurus,Paramaribo (stad)
 RP-F-F01204-15,Drie vrouwen in winterjassen op een modderpad,no-geo-details,,,,
 RP-F-F01204-27-1,Kind met strik in het haar,unresolved-only,Nederland,Nederland,unresolved,
 RP-F-F01204-47-1,Vrouw aan het strand van Montevideo,unresolved-only,Montevideo,Montevideo,unresolved,
-NG-2016-53-26,Dorp met Hernhutterkerk,thesaurus-no-coords,Nieuw-Aurora,Nieuw-Aurora,thesaurus,Suriname (Zuid-Amerika)
-NG-2017-4,Houten juwelendoos met voorstellingen die betrekking hebben op de Gonini-expeditie,thesaurus-no-coords,Sipaliwini,Sipaliwini,thesaurus,Suriname (Zuid-Amerika)
-NG-2009-124-1-1,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-1-2,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-1-3,"Gezicht op Montreux aan het Meer van Genève, Zwitserland",unresolved-only,Montreux | Zwitserland,Montreux | Zwitserland,unresolved | unresolved, | 
-NG-2009-124-1-4,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-2-1,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-2-2,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-2-3,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-2-4,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-3-1,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-3-2,"Gezicht op Meiringen, Zwitserland",unresolved-only,Meiringen | Zwitserland,Meiringen | Zwitserland,unresolved | unresolved, | 
-NG-2009-124-3-3,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-3-4,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-4-2,Vakantie in Zwitserland,unresolved-only,Zwitserland,Zwitserland,unresolved,
-NG-2009-124-4-3,Vakantie in Zwitserland,unresolved-only,Zwitserland,Zwitserland,unresolved,
-NG-2009-124-5-1,Vakantie in Zwitserland,unresolved-only,Zwitserland,Zwitserland,unresolved,
-NG-2009-124-4-4,Vakantie in Zwitserland,unresolved-only,Zwitserland,Zwitserland,unresolved,
-NG-2009-124-6-1,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-6-2,Vakantie in Zwitserland,unresolved-only,Zwitserland | Vitznau,Zwitserland | Vitznau,unresolved | unresolved, | 
-NG-2009-124-6-3,Vakantie in Zwitserland,unresolved-only,Zwitserland,Zwitserland,unresolved,
-NG-2009-124-7-1,Vakantie in Zwitserland,unresolved-only,Zwitserland,Zwitserland,unresolved,
-NG-2009-124-7-2,Vakantie in Zwitserland,unresolved-only,Zwitserland,Zwitserland,unresolved,
-NG-2009-124-8-1,Vakantie in Zwitserland,unresolved-only,Zwitserland,Zwitserland,unresolved,
-NG-2009-124-8-2,"Boot Major Davel aan de steiger van Montreux op het Meer van Genève, Zwiterland",unresolved-only,Montreux | Zwitserland,Montreux | Zwitserland,unresolved | unresolved, | 
+RP-P-2017-2036,"Suriname, bezitting der Nederlanders op het vastland van Amerika. - 65,000 inwoners",mixed-no-coords,Fort Zeelandia (Paramaribo),Fort Zeelandia (Paramaribo),edit,Paramaribo (stad)
+NG-2009-124-1-1,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-1-2,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-1-3,"Gezicht op Montreux aan het Meer van Genève, Zwitserland",mixed-no-coords,Montreux | Zwitserland,Montreux | Zwitserland,edit | edit, | 
+NG-2009-124-1-4,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-2-1,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-2-2,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-2-3,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-2-4,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-3-1,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-3-2,"Gezicht op Meiringen, Zwitserland",mixed-no-coords,Meiringen | Zwitserland,Meiringen | Zwitserland,edit | edit, | 
+NG-2009-124-3-3,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-3-4,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-4-2,Vakantie in Zwitserland,mixed-no-coords,Zwitserland,Zwitserland,edit,
+NG-2009-124-4-3,Vakantie in Zwitserland,mixed-no-coords,Zwitserland,Zwitserland,edit,
+NG-2009-124-5-1,Vakantie in Zwitserland,mixed-no-coords,Zwitserland,Zwitserland,edit,
+NG-2009-124-4-4,Vakantie in Zwitserland,mixed-no-coords,Zwitserland,Zwitserland,edit,
+NG-2009-124-6-1,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-6-2,Vakantie in Zwitserland,mixed-no-coords,Zwitserland | Vitznau,Zwitserland | Vitznau,edit | edit, | 
+NG-2009-124-6-3,Vakantie in Zwitserland,mixed-no-coords,Zwitserland,Zwitserland,edit,
+NG-2009-124-7-1,Vakantie in Zwitserland,mixed-no-coords,Zwitserland,Zwitserland,edit,
+NG-2009-124-7-2,Vakantie in Zwitserland,mixed-no-coords,Zwitserland,Zwitserland,edit,
+NG-2009-124-8-1,Vakantie in Zwitserland,mixed-no-coords,Zwitserland,Zwitserland,edit,
+NG-2009-124-8-2,"Boot Major Davel aan de steiger van Montreux op het Meer van Genève, Zwiterland",mixed-no-coords,Montreux | Zwitserland,Montreux | Zwitserland,edit | edit, | 
 NG-2009-124-14,Albumblad met zes foto's,no-geo-details,,,,
-NG-2009-124-18-3,Cultuurtuin in Paramaribo,thesaurus-no-coords,Cultuurtuin,Cultuurtuin,thesaurus,Paramaribo (stad)
-NG-2011-18-28-3,Meisje in een raamkozijn op de plantage Mariënburg in Suriname,thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-NG-2011-18-28-15,Gezicht op de Rosakerk in Paramaribo,thesaurus-no-coords,Rosakerk,Rosakerk,thesaurus,Paramaribo (stad)
-NG-2011-18-28-23,Gezicht op het Oranjeplein met een standbeeld van Wilhelmina in Paramaribo,thesaurus-no-coords,Oranjeplein (Paramaribo),Oranjeplein (Paramaribo),thesaurus,Paramaribo (stad)
-NG-2011-18-28-25,Dansende mensen in de Bijlmer na de onafhankelijkheid van Suriname,unresolved-only,Bijlmer,Bijlmer,unresolved,
-NG-2011-18-28-30,Gezicht op het Onafhankelijkheidsplein met een standbeeld van Jopie Pengel in Paramaribo,thesaurus-no-coords,Onafhankelijkheidsplein,Onafhankelijkheidsplein,thesaurus,Paramaribo (stad)
-NG-2011-18-28-35,Gezicht op het Oranjeplein met een standbeeld van Jopie Pengel in Paramaribo,thesaurus-no-coords,Oranjeplein (Paramaribo),Oranjeplein (Paramaribo),thesaurus,Paramaribo (stad)
-NG-2011-18-28-60,Vrouw doet de afwas in een open raam van een huis op de plantage Mariënburg,thesaurus-no-coords,Plantage Mariënburg,Plantage Mariënburg,thesaurus,Commewijne
-NG-2011-18-28-62,Drie mannen en twee meisjes op een trap van een huis op de plantage Slootwijk in Suriname,thesaurus-no-coords,Slootwijk,Slootwijk,thesaurus,Suriname (Zuid-Amerika)
-NG-2011-18-28-71,Vrouw met een kind in Bigi Poika,thesaurus-no-coords,Bigi Poika,Bigi Poika,thesaurus,Suriname (Zuid-Amerika)
+NG-2011-18-28-25,Dansende mensen in de Bijlmer na de onafhankelijkheid van Suriname,mixed-no-coords,Bijlmer,Bijlmer,edit,
 RP-T-BR-2017-1-5-19,Halsbandcotinga (Cotinga cayana),no-geo-details,,,,
+NG-2015-4-1-16,"R.K. Kerk, Gravenstraat",mixed-no-coords,Suriname (Zuid-Amerika) | Paramaribo (stad) | Gravenstraat (Paramaribo) | Sint-Petrus-en-Pauluskathedraal,Suriname (Zuid-Amerika) | Paramaribo (stad) | Gravenstraat (Paramaribo) | Sint-Petrus-en-Pauluskathedraal,edit | edit | edit | edit,Zuid-Amerika | Paramaribo (district) | Paramaribo (stad) | Paramaribo (stad)
+NG-2016-18-1-1,Opening luchtdienst Amsterdam-Paramaribo in 1949,mixed-no-coords,Amsterdam | Paramaribo (stad),Amsterdam | Paramaribo (stad),edit | edit, | Paramaribo (district)
 NG-2016-18-1-2,Doosje horend bij de penning Opening luchtdienst Amsterdam-Paramaribo in 1949,no-geo-details,,,,
-RP-F-2016-145,"Gezicht op Mäaboberg, Suriname",thesaurus-no-coords,Maäbo Heuvel,Maäbo Heuvel,thesaurus,Suriname (Zuid-Amerika)
+RP-F-2016-145,"Gezicht op Mäaboberg, Suriname",mixed-no-coords,Maäbo Heuvel,Maäbo Heuvel,edit,Suriname (Zuid-Amerika)
 RP-F-2018-66,Portret van een onbekende vrouw,no-geo-details,,,,
-RP-P-2017-7127-392-9,Gran Rio,thesaurus-no-coords,Gran Rio,Gran Rio,thesaurus,Brokopondo
-RP-P-2017-7127-392-8,Gran Rio,thesaurus-no-coords,Gran Rio,Gran Rio,thesaurus,Brokopondo
-RP-P-2018-3145,"Kaart van Suriname met Caraïben, Curaçao en West-Afrika",unresolved-only,Ghana | Nederlandse Antillen,Ghana | Nederlandse Antillen,unresolved | unresolved, | 
 NG-2018-570,Cornelis van Aerssen van Sommelsdijck,no-geo-details,,,,
 NG-2018-576,Joan Jacob Mauricius,no-geo-details,,,,
 NG-2018-578,Jan Gerhard Wichers,no-geo-details,,,,
+NG-2018-581,Portret van Charles Pierre Schimpf,mixed-no-coords,Den Haag,Den Haag,edit,
+NG-2018-582,Portret van Maurits Adriaan de Savornin Lohman,mixed-no-coords,Den Haag,Den Haag,edit,
 NG-2018-583,Jhr. Mr. T.A.J. van Asch van Wijck / Gouverneur van Suriname,no-geo-details,,,,
 NG-2018-584,Ir. Cornelis Lely,no-geo-details,,,,
 NG-2018-585,Johannes graaf van der Bosch,no-geo-details,,,,
@@ -304,8 +327,8 @@ NG-2018-586,Dirck Fock,no-geo-details,,,,
 RP-F-2019-244,Krijger in tooi ten tijde van de Toemoek expeditie,no-geo-details,,,,
 RP-F-2019-245,Portret van een bewoner van het gebied rond de Tapanahoni-rivier,no-geo-details,,,,
 RP-F-2019-246,Groepje Indianen bij een rituele dans ten tijde van de Toemoek expeditie,no-geo-details,,,,
+NG-2019-193-3,Franse tekst over de strafkolonie te St. Jean,mixed-no-coords,Suriname (Zuid-Amerika) | Saint-Jean-du-Maroni,Suriname (Zuid-Amerika) | Saint-Jean-du-Maroni,edit | edit,Zuid-Amerika | 
 RP-F-2019-267-3,Demonstratie voor een onafhankelijk Suriname bij de Dokwerker,unresolved-only,Jonas Daniël Meijerplein,Jonas Daniël Meijerplein,unresolved,
-RP-F-00-11994-05,"Man en kind met vogelkooi op het Johan Adolf Pengel International Airport nabij Zanderij, Suriname",thesaurus-no-coords,Zanderij,Zanderij,thesaurus,Surinamerivier
 RP-P-RMA1665,Suriname/Sranan,no-geo-details,,,,
 RP-P-RMA1965,Suriname in houtsnijwerk en beelden,no-geo-details,,,,
 RP-P-RMA2538,Natuurbescherming in Suriname en de Nederlandse Antillen,no-geo-details,,,,
@@ -313,79 +336,36 @@ RP-P-RMA4820,Dierenleven in Suriname,no-geo-details,,,,
 RP-P-RMA5023,"Suriname, ver land dichtbij",no-geo-details,,,,
 RP-D-2020-1-3,Vrij Nederland pagina Suriname,no-geo-details,,,,
 RP-D-2020-1-4,Vrij Nederland pagina Suriname,no-geo-details,,,,
-NG-2009-36-10,Gouvernementspaleis,thesaurus-no-coords,Gouvernementspaleis | Gouvernementsplein,Gouvernementspaleis | Gouvernementsplein,thesaurus | thesaurus,Paramaribo (stad) | Paramaribo (stad)
-NG-2009-36-11,Gouvernementspaleis en Palmentuin,thesaurus-no-coords,Gouvernementspaleis | Palmentuin,Gouvernementspaleis | Palmentuin,thesaurus | thesaurus,Paramaribo (stad) | Paramaribo (stad)
+NG-2021-2-18,Ketikoti,mixed-no-coords,Nederland | Suriname (Zuid-Amerika),Nederland | Suriname (Zuid-Amerika),edit | edit, | Zuid-Amerika
 KOG-MP-1-5293,"4 duiten van Suriname, 1679",no-geo-details,,,,
 KOG-MP-1-5294,"4 duiten van Suriname, 1679",no-geo-details,,,,
 KOG-MP-1-5295,"Duit van Suriname, 1764",no-geo-details,,,,
 KOG-MP-1-5294A,"2 duiten van Suriname, 1679",no-geo-details,,,,
-RP-F-2019-298-43-92,"Surinaamse familie vlak na aankomst in Nederland, in de Ferdinand Bolstraat, Amsterdam",unresolved-only,Ferdinand Bolstraat,Ferdinand Bolstraat,unresolved,
-RP-F-2019-298-43-97,"Affiche in een ontmoetingscentrum voor Surinaamse bewoners in de Bijlmer, Amsterdam",unresolved-only,Bijlmer,Bijlmer,unresolved,
-RP-F-2019-298-43-100,"Ontmoetingscentrum voor Surinaamse bewoners in de Bijlmer, Amsterdam",unresolved-only,Bijlmer,Bijlmer,unresolved,
-RP-F-2019-298-43-101,"Portret van een onbekende jonge Surinaamse man, Amsterdam",unresolved-only,Bijlmer,Bijlmer,unresolved,
+RP-F-2022-73-33,"Mariënburg, Suriname",mixed-no-coords,Amsterdam | Marienburg,Amsterdam | Marienburg,edit | edit, | 
+NG-2023-4-1,De nieuwe Sint: Sinterklaasfeest,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-2019-298-43-91,Surinaamse jongeman tijdens kritisch betoog,mixed-no-coords,Amsterdam,Amsterdam,edit,
+RP-F-2019-298-43-92,"Surinaamse familie vlak na aankomst in Nederland, in de Ferdinand Bolstraat, Amsterdam",mixed-no-coords,Ferdinand Bolstraat,Ferdinand Bolstraat,edit,
+RP-F-2019-298-43-97,"Affiche in een ontmoetingscentrum voor Surinaamse bewoners in de Bijlmer, Amsterdam",mixed-no-coords,Bijlmer,Bijlmer,edit,
+RP-F-2019-298-43-100,"Ontmoetingscentrum voor Surinaamse bewoners in de Bijlmer, Amsterdam",mixed-no-coords,Bijlmer,Bijlmer,edit,
+RP-F-2019-298-43-101,"Portret van een onbekende jonge Surinaamse man, Amsterdam",mixed-no-coords,Bijlmer,Bijlmer,edit,
 KOG-ZG-1-11-60,Gedicht op de aanstelling van Geoctroyeerde Sociëteit van Suriname,no-geo-details,,,,
 RP-F-2019-242-17-13,Vrijend stel (Latour) op handen en knieën,no-geo-details,,,,
-RP-F-2019-299-21-1,"Dode brulapen in Sipaliwini, Suriname",thesaurus-no-coords,Sipaliwini,Sipaliwini,thesaurus,Suriname (Zuid-Amerika)
-KOG-AA-2-30-758,Gezicht op de Overtoomse Sluis aan de Kostverlorenvaart met rechts het Surinameplein,unresolved-only,Kostverlorenvaart | Surinameplein,Kostverlorenvaart | Surinameplein,unresolved | unresolved, | 
-KOG-AA-2-31-824,Gezicht op de Slotervaart vanaf het Surinameplein,unresolved-only,Slotervaart | Surinameplein,Slotervaart | Surinameplein,unresolved | unresolved, | 
-KOG-AA-2-31-825,Gezicht op de Slotervaart vanaf het Surinameplein,unresolved-only,Slotervaart | Surinameplein,Slotervaart | Surinameplein,unresolved | unresolved, | 
-KOG-AA-2-31-826,Gezicht op de Slotervaart vanaf het Surinameplein,unresolved-only,Slotervaart | Surinameplein,Slotervaart | Surinameplein,unresolved | unresolved, | 
-KOG-AA-2-30-810R,Gezicht op het Surinameplein,unresolved-only,Surinameplein,Surinameplein,unresolved,
-KOG-AA-2-31-823,Gezicht op de Slotervaart gezien vanaf het Surinameplein,unresolved-only,Slotervaart | Surinameplein,Slotervaart | Surinameplein,unresolved | unresolved, | 
+KOG-AA-2-30-758,Gezicht op de Overtoomse Sluis aan de Kostverlorenvaart met rechts het Surinameplein,mixed-no-coords,Kostverlorenvaart | Surinameplein,Kostverlorenvaart | Surinameplein,edit | edit, | 
+KOG-AA-2-31-824,Gezicht op de Slotervaart vanaf het Surinameplein,mixed-no-coords,Slotervaart | Surinameplein,Slotervaart | Surinameplein,edit | edit, | 
+KOG-AA-2-31-825,Gezicht op de Slotervaart vanaf het Surinameplein,mixed-no-coords,Slotervaart | Surinameplein,Slotervaart | Surinameplein,edit | edit, | 
+KOG-AA-2-31-826,Gezicht op de Slotervaart vanaf het Surinameplein,mixed-no-coords,Slotervaart | Surinameplein,Slotervaart | Surinameplein,edit | edit, | 
+KOG-AA-2-30-810R,Gezicht op het Surinameplein,mixed-no-coords,Surinameplein,Surinameplein,edit,
+KOG-AA-2-31-823,Gezicht op de Slotervaart gezien vanaf het Surinameplein,mixed-no-coords,Slotervaart | Surinameplein,Slotervaart | Surinameplein,edit | edit, | 
 NG-2024-42,Gezicht op Paramaribo,no-geo-details,,,,
 NG-2022-1-2-1909,"Vijf kaarten met Nederland, de Nederlandse Antillen, Suriname en Indonesië",no-geo-details,,,,
-NG-2022-1-2-2220,Groeten uit Blakka Watra,thesaurus-no-coords,Blaka Watra,Blaka Watra,thesaurus,Suriname (Zuid-Amerika)
-NG-2022-1-2-2225,Suriname - In de groote stadskerk te Paramaribo,thesaurus-no-coords,Grote Stadskerk,Grote Stadskerk,thesaurus,Paramaribo (stad)
-NG-2022-1-2-2237,Holl. Guyana: Paramaribo : Maagdenstraat,thesaurus-no-coords,Maagdenstraat,Maagdenstraat,thesaurus,Paramaribo (stad)
-NG-2022-1-2-2238,Holl. Guyana: Paramaribo : Waterkant,thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
-NG-2022-1-2-2241,Paramaribo. Aan den Waterkant,thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
-NG-2022-1-2-2245,Paramaribo : Waterkant. Luth. Kerk. Willemschool,thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
 NG-2022-1-2-2255,Portret van een onbekende vrouw uit Suriname,no-geo-details,,,,
-NG-2022-1-2-2257,Paramaribo : De overdekte markt aan den Heiligenweg,thesaurus-no-coords,Heiligenweg,Heiligenweg,thesaurus,Paramaribo (stad)
-NG-2022-1-2-2265,"Paramaribo, Waterkant",thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
-NG-2022-1-2-2266,"Op het placer ""Dien mersi"" Sarakreek, Suriname. Werkplaats in het gebergte",thesaurus-no-coords,Sarakreek,Sarakreek,thesaurus,Brokopondo
 NG-2022-1-2-2268,Per eerste vliegtocht Nickerie - Paramaribo,no-geo-details,,,,
 RP-F-2022-43-8-253-68,Gezicht op een raderstoomboot van Yarrow & Co. bestemd voor Suriname,no-geo-details,,,,
 BI-2024-2536-1,"Titelpagina voor: Maria Sibylla Merian, Metamorphosis insectorum Surinamensium (...), 1705",no-geo-details,,,,
 NG-2024-77,Intimiteit,no-geo-details,,,,
-NG-2022-1-3-2,Gezicht op de Watermolenstraat te Paramaribo,thesaurus-no-coords,Watermolenstraat,Watermolenstraat,thesaurus,Paramaribo (stad)
-NG-2022-1-3-3,Gezicht op de Heerenstraat te Paramaribo,thesaurus-no-coords,Heerenstraat (Paramaribo),Heerenstraat (Paramaribo),thesaurus,Paramaribo (stad)
-NG-2022-1-3-5,Gezicht op een begrafenisstoet in vermoedelijk de Heerenstraat te Paramaribo,thesaurus-no-coords,Heerenstraat (Paramaribo),Heerenstraat (Paramaribo),thesaurus,Paramaribo (stad)
-NG-2022-1-3-6,Gezicht op de Keizerstraat te Paramaribo,thesaurus-no-coords,Keizerstraat,Keizerstraat,thesaurus,Paramaribo (stad)
-NG-2022-1-3-7,Mensenmenigte bij de opening van de Lawaspoorweg bij station Vaillantsplein te Paramaribo,thesaurus-no-coords,Vaillantsplein,Vaillantsplein,thesaurus,Paramaribo (stad)
-NG-2022-1-3-10,Gezicht op de Heerenstraat te Paramaribo,thesaurus-no-coords,Heerenstraat (Paramaribo),Heerenstraat (Paramaribo),thesaurus,Paramaribo (stad)
-NG-2022-31-31,Hof van Justitie in Paramaribo,thesaurus-no-coords,Hof van Justitie,Hof van Justitie,thesaurus,Paramaribo (stad)
-NG-2022-31-32,"Gezicht op begraafplaats Nieuwe Oranjetuin, buiten Paramaribo",thesaurus-no-coords,Nieuwe Oranjetuin (begraafplaats),Nieuwe Oranjetuin (begraafplaats),thesaurus,Paramaribo (stad)
+KOG-ZG-1-11-135,Kaart van de Colonie de Berbice gelegen in Bat.s Guiana in America. Tusschen de Colonien van Demerarie en van Surinamen (...),mixed-no-coords,Berbice | Suriname (Zuid-Amerika) | Demerary,Berbice | Suriname (Zuid-Amerika) | Demerary,edit | edit | edit, | Zuid-Amerika | 
 NG-2022-31-34,Slavenmarkt in Suriname,no-geo-details,,,,
 NG-2022-31-35,Groentemarkt in Paramaribo,no-geo-details,,,,
-NG-2022-1-10-19,"Gezicht op een onbekende vrouw en kind die cassave-bier bereidt in Corneliskondre, Suriname",thesaurus-no-coords,Corneliskondre,Corneliskondre,thesaurus,Sipaliwini
-NG-2022-1-10-21,Fotoreproductie van een foto met een gezicht op onbekende mensen die suikerriet omkappen in de suikerrietplantage Groot-Marseille in Suriname,thesaurus-no-coords,Groot-Marseille,Groot-Marseille,thesaurus,Suriname (Zuid-Amerika)
 NG-2022-1-10-24,Fotoreproductie van een prent met een plantage-eigenaar en zijn gevolg in Suriname,no-geo-details,,,,
-NG-2022-1-11-5,"Gezicht op de Heerenstraat in Paramaribo, Suriname",thesaurus-no-coords,Heerenstraat (Paramaribo),Heerenstraat (Paramaribo),thesaurus,Paramaribo (stad)
-NG-2022-1-11-11,"Portret van een Lokono man in Pierrekondre, Suriname",thesaurus-no-coords,Pierrekondre,Pierrekondre,thesaurus,Suriname (Zuid-Amerika)
-NG-2022-1-11-22,"Arbeider in de boomgaard van boer Van Dijk die sinaasappels plukt in Kwatta, Suriname",thesaurus-no-coords,Kwatta (plantage),Kwatta (plantage),thesaurus,Suriname (Zuid-Amerika)
-NG-2022-1-11-25,"Gezicht op het aanbrengen van springstof op het terrein van de Surinaamse Bauxiet Maatschappij in Paranam, Suriname",thesaurus-no-coords,Paranam,Paranam,thesaurus,Suriname (Zuid-Amerika)
-NG-2022-1-11-26,Bauxietwinning bij de Surinaamse Bauxiet Maatschappij bij Paranam in Suriname,thesaurus-no-coords,Paranam,Paranam,thesaurus,Suriname (Zuid-Amerika)
-NG-2022-1-11-27,"Schip van de Alcoa Mining Corp. in de Surinamerivier aan de steiger van de Surinaamse Bauxiet Maatschappij te Paranam, Suriname",thesaurus-no-coords,Paranam,Paranam,thesaurus,Suriname (Zuid-Amerika)
-NG-2022-1-12-2,"Gezicht op een korjaal op de Marowijnerivier bij Langatabbetje, Suriname",thesaurus-no-coords,Langatabbetje,Langatabbetje,thesaurus,Sipaliwini
-NG-2022-1-12-8,"Portret van Willem Alexander, kapitein van Ganzee in Suriname",thesaurus-no-coords,Ganzee,Ganzee,thesaurus,Brokopondo
-NG-2022-1-12-17,"Twee vrouwen in Corneliskondre, van wie de linker een kruik boetseert",thesaurus-no-coords,Corneliskondre,Corneliskondre,thesaurus,Sipaliwini
-NG-2022-1-12-18,Riviergezicht met korjalen en een dorp in de verte van de Surinamerivier,thesaurus-no-coords,Ganzee,Ganzee,thesaurus,Brokopondo
 NG-2022-1-12-19,Fotoreproductie van een statistiek met vermoedelijk de verdeling van gelovigen in Suriname,no-geo-details,,,,
-NG-2022-1-12-23,"Gezicht op een Javaanse moskee bij Meerzorg, Suriname",thesaurus-no-coords,Meerzorg,Meerzorg,thesaurus,Suriname (Zuid-Amerika)
-NG-2025-20-1,Gezicht op de Waterkant in Paramaribo,thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
-NG-2025-20-2,Gouvernementsplein in Paramaribo,thesaurus-no-coords,Hof van Justitie | Administratie van Financiën | Huis Du Plessis,Hof van Justitie | Administratie van Financiën | Huis Du Plessis,thesaurus | thesaurus | thesaurus,Paramaribo (stad) | Paramaribo (stad) | Paramaribo (stad)
-NG-2025-20-3,Woonhuizen aan het Gouvernementsplein in Paramaribo,thesaurus-no-coords,Gouvernementsplein,Gouvernementsplein,thesaurus,Paramaribo (stad)
-NG-2025-20-4,Gouvernementspaleis in Paramaribo,thesaurus-no-coords,Presidentieel Paleis,Presidentieel Paleis,thesaurus,Paramaribo (stad)
-NG-2025-20-6,Gezicht op de Waterkant in Paramaribo,thesaurus-no-coords,Waterkant,Waterkant,thesaurus,Paramaribo (stad)
-NG-2025-20-7,Gezicht op de Watermolenstraat in Paramaribo,thesaurus-no-coords,Watermolenstraat,Watermolenstraat,thesaurus,Paramaribo (stad)
-NG-2025-20-8,Markt aan de Heiligenweg in Paramaribo,thesaurus-no-coords,Heiligenweg,Heiligenweg,thesaurus,Paramaribo (stad)
-NG-2025-20-9,Gezicht op de Keizerstraat in Paramaribo,thesaurus-no-coords,Keizerstraat,Keizerstraat,thesaurus,Paramaribo (stad)
-NG-2025-20-10,Gezicht op de Heiligenweg in Paramaribo,thesaurus-no-coords,Heiligenweg,Heiligenweg,thesaurus,Paramaribo (stad)
-NG-2025-20-11,Gezicht op de Saramaccastraat in Paramaribo,thesaurus-no-coords,Saramaccastraat,Saramaccastraat,thesaurus,Paramaribo (stad)
-NG-2025-20-12,Lutherse kerk in Paramaribo,thesaurus-no-coords,Maarten Lutherkerk (Paramaribo),Maarten Lutherkerk (Paramaribo),thesaurus,Paramaribo (stad)
-NG-2025-20-13,Grote Stadskerk in Paramaribo,thesaurus-no-coords,Grote Stadskerk,Grote Stadskerk,thesaurus,Paramaribo (stad)
-NG-2025-20-14,Woonhuis van de familie Van Emden aan de Wagenwegstraat in Paramaribo,thesaurus-no-coords,Wagenwegstraat,Wagenwegstraat,thesaurus,Paramaribo (stad)
-NG-2025-20-15,Synagoge Neve Shalom in Paramaribo,thesaurus-no-coords,Synagoge Neve Shalom,Synagoge Neve Shalom,thesaurus,Paramaribo (stad)
-NG-2025-20-16,Gezicht op de Wagenwegstraat in Paramaribo,thesaurus-no-coords,Wagenwegstraat,Wagenwegstraat,thesaurus,Paramaribo (stad)
-NG-2025-20-17,Begraafplaats de Nieuwe Oranjetuin in Paramaribo,thesaurus-no-coords,Nieuwe Oranjetuin (begraafplaats),Nieuwe Oranjetuin (begraafplaats),thesaurus,Paramaribo (stad)
+NG-2025-20-15,Synagoge Neve Shalom in Paramaribo,mixed-no-coords,Synagoge Neve Shalom,Synagoge Neve Shalom,edit,Paramaribo (stad)
