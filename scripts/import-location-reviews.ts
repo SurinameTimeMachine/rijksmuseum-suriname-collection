@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 
 import {
   appendLocationEdit,
+  applyStmFirstLocation,
   buildLatestLocationEditMap,
   loadLocationEdits,
   normalizeWikidataReference,
@@ -263,6 +264,17 @@ function normalizeLocationKey(value: string): string {
     .toLowerCase();
 }
 
+function makeLooseMatcherKey(value: string): string {
+  return normalizeLocationKey(value).replace(/[^a-z0-9]+/g, '');
+}
+
+function normalizeReviewLocationInput(value: string): string {
+  return value
+    .replace(/\s*\[[^\]]*\]\s*$/g, '')
+    .split('|')[0]
+    .trim();
+}
+
 function buildCandidateLocation(partial: Partial<WorkbookCandidateLocation>): WorkbookCandidateLocation | null {
   const label = toTrimmedString(partial.label);
   const qidRef = normalizeWikidataReference(toTrimmedString(partial.qid || partial.wikidataUrl || ''));
@@ -392,13 +404,22 @@ function candidateHasCoords(candidate: WorkbookCandidateLocation): boolean {
 
 function candidateMatchesInput(candidate: WorkbookCandidateLocation, input: string): boolean {
   const normalizedInput = normalizeLocationKey(input);
+  const looseInput = makeLooseMatcherKey(input);
   const qidInput = normalizeWikidataReference(input).qid;
+
+  const matchesLoose = (value: string | null | undefined): boolean => {
+    if (!value || !looseInput) return false;
+    return makeLooseMatcherKey(value) === looseInput;
+  };
 
   return Boolean(
     normalizedInput && (
       normalizedInput === normalizeLocationKey(candidate.label) ||
       (candidate.stmId && normalizedInput === normalizeLocationKey(candidate.stmId)) ||
       (candidate.qid && normalizedInput === normalizeLocationKey(candidate.qid)) ||
+      matchesLoose(candidate.label) ||
+      matchesLoose(candidate.stmId) ||
+      matchesLoose(candidate.qid) ||
       (qidInput && candidate.qid && qidInput === candidate.qid)
     ),
   );
@@ -427,14 +448,42 @@ function resolveCandidateFromGazetteer(input: string, gazetteer: StmGazetteerInd
 }
 
 function pickAcceptCandidate(row: EvaluationRow, gazetteer: StmGazetteerIndexes): CandidateLocation | null {
+  const bestSuggestion = normalizeReviewLocationInput(
+    toTrimmedString(row.beste_locatiesuggestie),
+  );
+  if (!bestSuggestion) return null;
+
   const candidates = buildWorkbookCandidates(row);
-  const withCoords = candidates.find((candidate) => candidateHasCoords(candidate));
-  if (withCoords) return withCoords;
+  const matchingCandidates = candidates.filter((candidate) =>
+    candidateMatchesInput(candidate, bestSuggestion),
+  );
+  const matchWithCoords = matchingCandidates.find((candidate) =>
+    candidateHasCoords(candidate),
+  );
+  if (matchWithCoords) return matchWithCoords;
+  if (matchingCandidates[0]) return matchingCandidates[0];
 
-  const stmSuggestion = resolveCandidateFromGazetteer(toTrimmedString(row.stm_gazetteer_suggestie_id), gazetteer);
-  if (stmSuggestion && candidateHasCoords(stmSuggestion)) return stmSuggestion;
+  const gazetteerCandidate = resolveCandidateFromGazetteer(
+    bestSuggestion,
+    gazetteer,
+  );
+  if (gazetteerCandidate) return gazetteerCandidate;
 
-  return candidates[0] || stmSuggestion || null;
+  const qidRef = normalizeWikidataReference(bestSuggestion);
+  if (qidRef.qid || qidRef.url) {
+    const wikiCoords = qidRef.qid ? resolveWikidataCoordinates(qidRef.qid) : null;
+    return {
+      label: bestSuggestion,
+      qid: qidRef.qid,
+      wikidataUrl: qidRef.url,
+      gazetteerUrl: null,
+      lat: wikiCoords?.lat ?? null,
+      lng: wikiCoords?.lng ?? null,
+      resolutionLevel: 'exact',
+    };
+  }
+
+  return null;
 }
 
 function pickCustomCandidate(
@@ -442,16 +491,22 @@ function pickCustomCandidate(
   reviewLoc: string,
   gazetteer: StmGazetteerIndexes,
 ): CandidateLocation | null {
+  const normalizedReviewLoc = normalizeReviewLocationInput(reviewLoc);
   const candidates = buildWorkbookCandidates(row);
-  const matchingCandidates = candidates.filter((candidate) => candidateMatchesInput(candidate, reviewLoc));
+  const matchingCandidates = candidates.filter((candidate) =>
+    candidateMatchesInput(candidate, normalizedReviewLoc),
+  );
   const matchWithCoords = matchingCandidates.find((candidate) => candidateHasCoords(candidate));
   if (matchWithCoords) return matchWithCoords;
   if (matchingCandidates[0]) return matchingCandidates[0];
 
-  const gazetteerCandidate = resolveCandidateFromGazetteer(reviewLoc, gazetteer);
+  const gazetteerCandidate = resolveCandidateFromGazetteer(
+    normalizedReviewLoc,
+    gazetteer,
+  );
   if (gazetteerCandidate) return gazetteerCandidate;
 
-  const qidRef = normalizeWikidataReference(reviewLoc);
+  const qidRef = normalizeWikidataReference(normalizedReviewLoc);
   const resolution =
     normalizeResolution(toTrimmedString(row.huidige_curatie_resolution_level)) ||
     normalizeResolution(toTrimmedString(row.beste_beschikbare_locatie_resolution_level)) ||
@@ -461,7 +516,7 @@ function pickCustomCandidate(
   const wikiCoords = qidRef.qid ? resolveWikidataCoordinates(qidRef.qid) : null;
 
   return {
-    label: reviewLoc,
+    label: normalizedReviewLoc,
     qid: qidRef.qid,
     wikidataUrl: qidRef.url,
     gazetteerUrl: null,
@@ -582,8 +637,8 @@ function main() {
   const locationEditsPath = path.join(process.cwd(), 'data', 'location-edits.jsonl');
 
   for (const [objectnummer, groupRows] of groups.entries()) {
-    // Determine if we have "specific" locations in this group (not Suriname/Paramaribo)
-    // and they are either accepted or custom.
+    // Determine if we have specific locations in this group (not generic broader terms)
+    // and they are either accepted, custom, or rejected with an explicit replacement.
     const hasSpecific = groupRows.some(row => {
         const term = normalizeTerm(row);
         const reviewLoc = toTrimmedString(row.ef_review_locatie);
@@ -594,7 +649,8 @@ function main() {
           normalizeReviewStatus(row.ef_review_status) ||
           deriveLegacyReviewStatus(reviewLoc);
         const isSpecific = !BROADER_TERMS.includes(term);
-        return isSpecific && (status === 'accept' || status === 'custom');
+        const hasExplicitReplacement = status === 'reject' && Boolean(reviewLoc);
+        return isSpecific && (status === 'accept' || status === 'custom' || hasExplicitReplacement);
     });
 
     for (const row of groupRows) {
@@ -641,14 +697,15 @@ function main() {
       let evidenceSource: LocationEvidenceSource = 'bevestigd';
       let candidate: CandidateLocation | null = null;
 
-      const isBroader = BROADER_TERMS.includes(originalTerm);
-      
-      if (reviewStatus === 'reject') {
-          summary.skippedNegativeReview += 1;
-          continue;
-      }
-
-      if (reviewStatus === 'remove-broader' || (isBroader && hasSpecific)) {
+      if (reviewStatus === 'remove-broader') {
+          if (!hasSpecific) {
+            summary.skippedUnmatched += 1;
+            summary.errors += 1;
+            summary.errorDetails.push(
+              `Object ${objectnummer}, Term ${originalTerm}: remove-broader zonder specifieke tegenhanger in hetzelfde object.`,
+            );
+            continue;
+          }
           evidenceSource = 'rejected';
           candidate = {
               label: originalTerm,
@@ -659,6 +716,30 @@ function main() {
               lng: null,
               resolutionLevel: 'broader'
           };
+      } else if (reviewStatus === 'reject') {
+          if (reviewLoc) {
+            candidate = pickCustomCandidate(row, reviewLoc, gazetteerIndexes);
+            if (!candidate) {
+              summary.skippedUnmatched += 1;
+              summary.errors += 1;
+              summary.errorDetails.push(
+                `Object ${objectnummer}, Term ${originalTerm}: reject met alternatief maar onresolveerbare ef_review_locatie "${reviewLoc}".`,
+              );
+              continue;
+            }
+          } else {
+            // Explicitly reject this term when no acceptable Suriname replacement exists.
+            evidenceSource = 'rejected';
+            candidate = {
+              label: originalTerm,
+              qid: null,
+              wikidataUrl: null,
+              gazetteerUrl: null,
+              lat: null,
+              lng: null,
+              resolutionLevel: 'broader',
+            };
+          }
       } else {
           candidate = pickCandidateLocation(
             row,
@@ -671,6 +752,10 @@ function main() {
       if (!candidate) {
         if (reviewStatus === 'accept') {
           summary.skippedEmptyAccept += 1;
+          summary.errors += 1;
+          summary.errorDetails.push(
+            `Object ${objectnummer}, Term ${originalTerm}: accept zonder resolvebare beste_locatiesuggestie.`,
+          );
           continue;
         }
         summary.skippedUnmatched += 1;
@@ -683,18 +768,22 @@ function main() {
 
       const key = `${recordnummer}::${originalTerm.toLowerCase()}`;
       const existingLatest = latestByKey.get(key);
+      const normalizedCandidate = applyStmFirstLocation(candidate);
+      const normalizedWikidataQid =
+        normalizeWikidataReference(normalizedCandidate.wikidataUrl || '').qid ||
+        candidate.qid;
 
       const incoming: LocationEditRecord = {
         recordnummer,
         objectnummer,
         originalTerm,
-        resolvedLocationLabel: candidate.label,
-        wikidataQid: candidate.qid,
-        wikidataUrl: candidate.wikidataUrl,
-        gazetteerUrl: candidate.gazetteerUrl,
-        lat: candidate.lat,
-        lng: candidate.lng,
-        resolutionLevel: candidate.resolutionLevel,
+        resolvedLocationLabel: normalizedCandidate.label,
+        wikidataQid: normalizedWikidataQid,
+        wikidataUrl: normalizedCandidate.wikidataUrl,
+        gazetteerUrl: normalizedCandidate.gazetteerUrl,
+        lat: normalizedCandidate.lat,
+        lng: normalizedCandidate.lng,
+        resolutionLevel: normalizedCandidate.resolutionLevel,
         evidenceSource: evidenceSource,
         evidenceText: reviewRemark || null,
         author: options.author,

@@ -120561,6 +120561,45 @@
           "isPreferred": true
         }
       ]
+    },
+    {
+      "@id": "https://data.suriname-timemachine.org/place/stm-new-1776701050288",
+      "@type": [
+        "E26_Physical_Feature"
+      ],
+      "id": "stm-new-1776701050288",
+      "type": "creek",
+      "broader": null,
+      "description": "Creek record added from GeoNames",
+      "location": {
+        "lat": 5.67536,
+        "lng": -54.42536,
+        "wkt": null,
+        "crs": "EPSG:4326"
+      },
+      "sources": [
+        "geonames"
+      ],
+      "wikidataQid": null,
+      "fid": null,
+      "psurIds": [],
+      "district": "Marowijne",
+      "locationDescription": "Marowijne District",
+      "locationDescriptionOriginal": null,
+      "placeType": "creek",
+      "modifiedBy": "Thunnis van Oort",
+      "modifiedAt": "2026-05-11",
+      "externalLinks": [
+        "https://www.geonames.org/3383168/ricanau-kreek.html"
+      ],
+      "names": [
+        {
+          "text": "Ricanau Kreek",
+          "language": "nl",
+          "type": "official",
+          "isPreferred": true
+        }
+      ]
     }
   ]
 }

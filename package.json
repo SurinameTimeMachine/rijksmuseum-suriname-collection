@@ -17,6 +17,7 @@
     "report:location-evaluation": "npx tsx scripts/export-location-evaluation-workbook.ts",
     "report:location-problem-review": "npx tsx scripts/export-problem-review-workbook.ts",
     "import:location-reviews": "npx tsx scripts/import-location-reviews.ts",
+    "backfill:stm-first": "npx tsx scripts/backfill-stm-first-location-edits.ts",
     "export:rijksmuseum-delta": "npx tsx scripts/export-rijksmuseum-location-delta.ts",
     "ef:apply-street-suggestions": "npx tsx scripts/apply-street-suggestions-to-ef.ts"
   },

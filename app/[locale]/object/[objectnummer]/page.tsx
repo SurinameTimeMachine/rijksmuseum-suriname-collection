@@ -235,10 +235,22 @@ export default async function ObjectPage({
                           </div>
                         )}
                         {detail &&
-                          (detail.wikidataUri ||
+                          (detail.stmGazetteerUrl ||
+                            detail.wikidataUri ||
                             detail.gettyUri ||
                             detail.geonamesUri) && (
                             <div className="flex flex-wrap gap-2 mt-1">
+                              {detail.stmGazetteerUrl && (
+                                <a
+                                  href={detail.stmGazetteerUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-0.5 text-blue-700 hover:underline"
+                                >
+                                  STM
+                                  <ExternalLink size={9} />
+                                </a>
+                              )}
                               {detail.wikidataUri && (
                                 <a
                                   href={detail.wikidataUri}
