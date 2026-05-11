@@ -71,7 +71,16 @@ export default async function GalleryPage({
       sort,
       page,
     ),
-    getFacets(),
+    getFacets({
+      query: query || undefined,
+      objectTypes: types.length > 0 ? types : undefined,
+      geographicKeywords: locations.length > 0 ? locations : undefined,
+      subjects: subjects.length > 0 ? subjects : undefined,
+      licenseStatuses:
+        licenses.length > 0
+          ? (licenses as Array<'public-domain' | 'copyrighted' | 'unknown'>)
+          : undefined,
+    }),
   ]);
 
   return (

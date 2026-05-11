@@ -1,10 +1,10 @@
+import { getLicenseShortName } from '@/lib/utils';
 import type {
   CollectionObject,
   CollectionStats,
   FilterOptions,
   SortOption,
 } from '@/types/collection';
-import { getLicenseShortName } from '@/lib/utils';
 import { cache } from 'react';
 
 function getObjectLicenseStatus(
@@ -36,16 +36,13 @@ export async function getObjectByNumber(
 }
 
 /**
- * Apply filters and search to the collection.
+ * Apply filter predicates to a collection slice. Pure function — no side effects.
  */
-export async function getFilteredObjects(
+function applyFilters(
+  collection: CollectionObject[],
   filters: Partial<FilterOptions>,
-  sort: SortOption = 'date-desc',
-  page: number = 1,
-  pageSize: number = 48,
-): Promise<{ objects: CollectionObject[]; total: number; totalPages: number }> {
-  const collection = await getCollection();
-  let filtered = [...collection];
+): CollectionObject[] {
+  let filtered = collection;
 
   // Full-text search
   if (filters.query) {
@@ -123,6 +120,21 @@ export async function getFilteredObjects(
   } else if (filters.hasImage === false) {
     filtered = filtered.filter((obj) => !obj.hasImage);
   }
+
+  return filtered;
+}
+
+/**
+ * Apply filters and search to the collection.
+ */
+export async function getFilteredObjects(
+  filters: Partial<FilterOptions>,
+  sort: SortOption = 'date-desc',
+  page: number = 1,
+  pageSize: number = 48,
+): Promise<{ objects: CollectionObject[]; total: number; totalPages: number }> {
+  const collection = await getCollection();
+  const filtered = applyFilters(collection, filters);
 
   // Sort
   switch (sort) {
@@ -227,9 +239,26 @@ export async function getStatistics(): Promise<CollectionStats> {
 
 /**
  * Get all unique values for filter facets.
+ * When `activeFilters` is provided, counts are computed from the already-filtered
+ * subset so each category shows how many results remain within the current selection.
+ *
+ * For each facet category the counts use the collection filtered by every OTHER
+ * active filter (excluding that category's own constraint), so you always see
+ * non-zero options for the active selections.
  */
-export async function getFacets() {
+export async function getFacets(activeFilters?: Partial<FilterOptions>) {
   const collection = await getCollection();
+
+  // Helper: get collection with all filters applied EXCEPT the named category
+  const base = (omit: keyof FilterOptions) => {
+    if (!activeFilters) return collection;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [omit]: _omitted, ...rest } = activeFilters as Record<
+      string,
+      unknown
+    >;
+    return applyFilters(collection, rest as Partial<FilterOptions>);
+  };
 
   const objectTypes = new Map<string, number>();
   const creators = new Map<string, number>();
@@ -238,15 +267,25 @@ export async function getFacets() {
   const materials = new Map<string, number>();
   const licenseStatuses = new Map<string, number>();
 
-  for (const obj of collection) {
+  for (const obj of base('objectTypes')) {
     for (const t of obj.objectTypes)
       objectTypes.set(t, (objectTypes.get(t) || 0) + 1);
+  }
+  for (const obj of base('creators')) {
     for (const c of obj.creators) creators.set(c, (creators.get(c) || 0) + 1);
+  }
+  for (const obj of base('geographicKeywords')) {
     for (const g of obj.geographicKeywords)
       geographicKeywords.set(g, (geographicKeywords.get(g) || 0) + 1);
+  }
+  for (const obj of base('subjects')) {
     for (const s of obj.subjects) subjects.set(s, (subjects.get(s) || 0) + 1);
+  }
+  for (const obj of base('materials')) {
     for (const m of obj.materials)
       materials.set(m, (materials.get(m) || 0) + 1);
+  }
+  for (const obj of base('licenseStatuses')) {
     const licenseStatus = getObjectLicenseStatus(obj);
     licenseStatuses.set(
       licenseStatus,
