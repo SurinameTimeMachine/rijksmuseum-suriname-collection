@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 import type {
   CollectionObject,
   GeoFlag,
@@ -6,8 +9,6 @@ import type {
   LocationResolutionLevel,
   TermDefault,
 } from '@/types/collection';
-import fs from 'fs';
-import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const LOCATION_EDITS_PATH = path.join(DATA_DIR, 'location-edits.jsonl');
@@ -37,6 +38,7 @@ type StmGazetteerDataset = {
 type StmGazetteerResolvedPlace = {
   stmId: string;
   gazetteerUrl: string;
+  label: string;
   wikidataUrl: string | null;
   lat: number | null;
   lng: number | null;
@@ -185,14 +187,14 @@ function getStmGazetteerIndex(): StmGazetteerIndex {
       const stmId = fromId || fromUrl;
       if (!stmId) continue;
 
-      const qidRef = normalizeWikidataReference(
-        (place.wikidataQid || '').trim(),
-      );
+      const qidRef = normalizeWikidataReference((place.wikidataQid || '').trim());
+      const preferredName = (place.names || []).find((name) => name.isPreferred)?.text;
+      const fallbackName = (place.names || []).find((name) => (name.text || '').trim())?.text;
+      const label = (preferredName || fallbackName || stmId || '').trim();
       const resolved: StmGazetteerResolvedPlace = {
         stmId,
-        gazetteerUrl: (
-          place['@id'] || `https://data.suriname-timemachine.org/place/${stmId}`
-        ).trim(),
+        gazetteerUrl: (place['@id'] || `https://data.suriname-timemachine.org/place/${stmId}`).trim(),
+        label,
         wikidataUrl: qidRef.url,
         lat: place.location?.lat ?? null,
         lng: place.location?.lng ?? null,
@@ -259,13 +261,26 @@ export function applyStmFirstLocation<
   const hasStmCoords =
     resolved !== null && resolved.lat !== null && resolved.lng !== null;
 
-  return {
+  const output: T & {
+    label?: string | null;
+    resolvedLocationLabel?: string | null;
+    matchedLabel?: string | null;
+  } = {
     ...input,
     wikidataUrl: input.wikidataUrl ?? resolved?.wikidataUrl ?? null,
     gazetteerUrl: input.gazetteerUrl ?? resolved?.gazetteerUrl ?? null,
     lat: hasStmCoords ? (resolved?.lat ?? null) : input.lat,
     lng: hasStmCoords ? (resolved?.lng ?? null) : input.lng,
   };
+
+  // Canonicalize human-facing labels when we can resolve to a unique STM place.
+  if (resolved?.label) {
+    if ('label' in output) output.label = resolved.label;
+    if ('resolvedLocationLabel' in output) output.resolvedLocationLabel = resolved.label;
+    if ('matchedLabel' in output) output.matchedLabel = resolved.label;
+  }
+
+  return output;
 }
 
 /**
