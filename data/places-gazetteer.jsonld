@@ -250,15 +250,15 @@
       "broader": null,
       "description": "Administrative district/division from Surinaamse Almanakken",
       "location": {
-        "lat": null,
-        "lng": null,
+        "lat": 3.96693,
+        "lng": -55.5751,
         "wkt": null,
         "crs": "EPSG:4326"
       },
       "sources": [
         "almanakken"
       ],
-      "wikidataQid": null,
+      "wikidataQid": "Q2582096",
       "fid": null,
       "psurIds": [],
       "district": null,
@@ -29178,8 +29178,8 @@
       "broader": "stm-00007",
       "description": "Plantation from Surinaamse Almanakken (no QGIS geometry)",
       "location": {
-        "lat": null,
-        "lng": null,
+        "lat": 5.413277023767906,
+        "lng": -54.952979323444545,
         "wkt": null,
         "crs": "EPSG:4326"
       },
@@ -72463,8 +72463,8 @@
       "broader": "stm-00004",
       "description": "Plantation from Surinaamse Almanakken (no QGIS geometry)",
       "location": {
-        "lat": null,
-        "lng": null,
+        "lat": 5.904624576282581,
+        "lng": -55.10087600839836,
         "wkt": null,
         "crs": "EPSG:4326"
       },
@@ -73658,8 +73658,8 @@
       "broader": "stm-00004",
       "description": "Plantation from Surinaamse Almanakken (no QGIS geometry)",
       "location": {
-        "lat": null,
-        "lng": null,
+        "lat": 5.906132,
+        "lng": -55.066188,
         "wkt": null,
         "crs": "EPSG:4326"
       },
@@ -106253,15 +106253,15 @@
       "broader": null,
       "description": "Road or path from Surinaamse Almanakken",
       "location": {
-        "lat": null,
-        "lng": null,
+        "lat": 5.8181444444444,
+        "lng": -55.159122222222,
         "wkt": null,
         "crs": "EPSG:4326"
       },
       "sources": [
         "almanakken"
       ],
-      "wikidataQid": null,
+      "wikidataQid": "Q635545",
       "fid": null,
       "psurIds": [],
       "district": null,

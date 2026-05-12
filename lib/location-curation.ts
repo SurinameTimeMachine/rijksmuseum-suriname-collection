@@ -246,7 +246,11 @@ export function applyStmFirstLocation<
 >(input: T): T {
   const index = getStmGazetteerIndex();
   const qid = normalizeWikidataReference(input.wikidataUrl || '').qid;
-  const stmId = normalizeStmId(input.gazetteerUrl);
+  // Also try resolvedLocationLabel as STM id source: "bevestigd" edits often
+  // store the STM id there while gazetteerUrl is null.
+  const stmId =
+    normalizeStmId(input.gazetteerUrl) ||
+    normalizeStmId(input.resolvedLocationLabel);
   const labelKey = normalizeLabelKey(
     input.resolvedLocationLabel || input.matchedLabel || '',
   );
@@ -258,8 +262,23 @@ export function applyStmFirstLocation<
     labelResolved ||
     null;
 
+  // Warn when a resolved STM place has no coordinates so it can be enriched.
+  if (resolved && resolved.lat === null && resolved.lng === null) {
+    console.warn(
+      `[location-curation] STM place "${resolved.stmId}" has no coordinates — object will fall back to generic location.`,
+    );
+  }
+
   const hasStmCoords =
-    resolved !== null && resolved.lat !== null && resolved.lng !== null;
+    resolved !== null &&
+    resolved.lat !== null &&
+    resolved.lng !== null;
+  const hasExplicitCoords = input.lat !== null && input.lng !== null;
+  const explicitStmIntent =
+    Boolean(normalizeStmId(input.gazetteerUrl)) ||
+    Boolean(normalizeStmId(input.resolvedLocationLabel || ''));
+  const shouldApplyResolved =
+    hasStmCoords && (!hasExplicitCoords || explicitStmIntent);
 
   const output: T & {
     label?: string | null;
@@ -267,10 +286,14 @@ export function applyStmFirstLocation<
     matchedLabel?: string | null;
   } = {
     ...input,
-    wikidataUrl: input.wikidataUrl ?? resolved?.wikidataUrl ?? null,
-    gazetteerUrl: input.gazetteerUrl ?? resolved?.gazetteerUrl ?? null,
-    lat: hasStmCoords ? (resolved?.lat ?? null) : input.lat,
-    lng: hasStmCoords ? (resolved?.lng ?? null) : input.lng,
+    wikidataUrl:
+      input.wikidataUrl ??
+      (shouldApplyResolved ? (resolved?.wikidataUrl ?? null) : null),
+    gazetteerUrl:
+      input.gazetteerUrl ??
+      (shouldApplyResolved ? (resolved?.gazetteerUrl ?? null) : null),
+    lat: shouldApplyResolved ? (resolved?.lat ?? null) : input.lat,
+    lng: shouldApplyResolved ? (resolved?.lng ?? null) : input.lng,
   };
 
   // Canonicalize human-facing labels when we can resolve to a unique STM place.
@@ -386,11 +409,18 @@ export function applyLocationEditsToObject(
         return null;
       }
 
-      const normalizedEdit = applyStmFirstLocation(edit);
+      const hasExplicitEditCoords = edit.lat !== null && edit.lng !== null;
+      const normalizedEdit = applyStmFirstLocation({
+        ...edit,
+        wikidataUrl: edit.wikidataUrl ?? detail.wikidataUri ?? null,
+        gazetteerUrl:
+          edit.gazetteerUrl ??
+          (hasExplicitEditCoords ? null : (detail.stmGazetteerUrl ?? null)),
+      });
 
       return {
         ...detail,
-        matchedLabel: edit.resolvedLocationLabel,
+        matchedLabel: normalizedEdit.resolvedLocationLabel ?? edit.resolvedLocationLabel,
         wikidataUri: normalizedEdit.wikidataUrl ?? detail.wikidataUri,
         stmGazetteerUrl:
           normalizedEdit.gazetteerUrl ?? detail.stmGazetteerUrl ?? null,

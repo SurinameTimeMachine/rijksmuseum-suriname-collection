@@ -1,8 +1,12 @@
+import {
+  getTranslations,
+  setRequestLocale,
+} from 'next-intl/server';
+
 import MapClientWrapper from '@/components/MapClientWrapper';
 import ScrollReveal from '@/components/ScrollReveal';
 import { getObjectsByLocation } from '@/lib/collection';
 import type { CollectionObject } from '@/types/collection';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 const MAP_BUCKET_COORD_PRECISION = 5;
 const MAP_BUCKET_NEAR_COORD_THRESHOLD = 0.00005;
@@ -10,6 +14,10 @@ const MAP_DOMINANT_MERGE_MAX_DISTANCE = 0.35;
 const MAP_DOMINANT_MERGE_MAX_SHARE = 0.2;
 const MAP_DOMINANT_MERGE_MAX_COUNT = 25;
 const AMBIGUOUS_LABELS = new Set(['suriname']);
+const FORCE_SINGLE_BUCKET_LABELS = new Set(['suriname', 'paramaribo', 'sara kreek']);
+const OUT_OF_SCOPE_MAP_KEYS = new Set([
+  'den haag',
+]);
 const GENERIC_MAP_LABELS = new Set([
   'suriname',
   'suriname (zuid-amerika)',
@@ -43,6 +51,50 @@ function normalizeMapLabelKey(input: string | null | undefined): string {
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function getCanonicalMapNameKey(input: string | null | undefined): string {
+  const normalized = normalizeMapLabelKey(input);
+  if (!normalized) return '';
+
+  // Collapse Dutch and historic variants for the country label.
+  if (
+    normalized === 'surinam' ||
+    normalized === 'suriname' ||
+    normalized === 'suriname zuid amerika'
+  ) {
+    return 'suriname';
+  }
+
+  // Collapse common qualifier variant: "Paramaribo (stad)" -> "Paramaribo"
+  if (normalized === 'paramaribo stad') return 'paramaribo';
+
+  // Collapse known Ricanau spelling/qualifier variants to one place key.
+  if (
+    normalized === 'ricanau' ||
+    normalized === 'ricanau kreek' ||
+    normalized === 'rikanau kreek'
+  ) {
+    return 'ricanau kreek';
+  }
+
+  // Collapse spelling/spacing variants for Sara Kreek.
+  if (normalized === 'sarakreek' || normalized === 'sara kreek') {
+    return 'sara kreek';
+  }
+
+  return normalized;
+}
+
+function getCanonicalMapDisplayName(
+  input: string | null | undefined,
+  canonicalKey: string,
+): string {
+  if (canonicalKey === 'suriname') return 'Suriname';
+  if (canonicalKey === 'paramaribo') return 'Paramaribo';
+  if (canonicalKey === 'ricanau kreek') return 'Ricanau Kreek';
+  if (canonicalKey === 'sara kreek') return 'Sara Kreek';
+  return (input || '').trim();
 }
 
 function getDetailSpecificityScore(
@@ -133,13 +185,30 @@ export default async function MapPage({
       const detail = pickPrimaryMapDetail(obj);
       if (!detail || detail.lat == null || detail.lng == null) continue;
 
-      const name = detail.matchedLabel?.trim() || detail.term;
+      const rawName = detail.matchedLabel?.trim() || detail.term;
+      let canonicalNameKey = getCanonicalMapNameKey(rawName);
+      const normalizedWikidata = (detail.wikidataUri || '').trim().toLowerCase();
+
+      // Guard against generic country proxy coordinates that can leak into
+      // specific labels (e.g. Patrick Savanna -> Q730 at 4,-56).
+      if (
+        normalizedWikidata.endsWith('/q730') &&
+        !detail.stmGazetteerUrl &&
+        detail.lat === 4 &&
+        detail.lng === -56
+      ) {
+        canonicalNameKey = 'suriname';
+      }
+
+      if (OUT_OF_SCOPE_MAP_KEYS.has(canonicalNameKey)) continue;
+
+      const name = getCanonicalMapDisplayName(rawName, canonicalNameKey);
       const region = detail.region ?? ('other' as const);
       const bucketLat = normalizeBucketCoordinate(detail.lat);
       const bucketLng = normalizeBucketCoordinate(detail.lng);
-      const nameRegionKey = `${name}::${region}`;
+      const nameRegionKey = `${canonicalNameKey || normalizeMapLabelKey(name)}::${region}`;
 
-      let bucketId = `${name}::${bucketLat}::${bucketLng}::${region}`;
+  let bucketId = `${canonicalNameKey || normalizeMapLabelKey(name)}::${bucketLat}::${bucketLng}::${region}`;
       const candidateKeys = bucketsByNameRegion.get(nameRegionKey) || [];
       for (const existingKey of candidateKeys) {
         const existing = locationBuckets.get(existingKey);
@@ -217,6 +286,36 @@ export default async function MapPage({
       if (share > MAP_DOMINANT_MERGE_MAX_SHARE) continue;
       if (distance > MAP_DOMINANT_MERGE_MAX_DISTANCE) continue;
 
+      dominant.objects.push(...candidate.objects);
+      for (const keyword of candidate.keywords) {
+        if (!dominant.keywords.includes(keyword)) {
+          dominant.keywords.push(keyword);
+        }
+      }
+      dominant.geo.objectCount = dominant.objects.length;
+      locationBuckets.delete(candidate.id);
+    }
+  }
+
+  // For high-level canonical labels, always keep one bucket per region.
+  // This prevents duplicate sidebar entries such as multiple "Suriname" rows.
+  for (const [nameRegionKey, bucketKeys] of bucketsByNameRegion.entries()) {
+    const [name] = nameRegionKey.split('::');
+    if (!FORCE_SINGLE_BUCKET_LABELS.has(name.trim().toLowerCase())) continue;
+    if (bucketKeys.length < 2) continue;
+
+    const buckets = bucketKeys
+      .map((key) => locationBuckets.get(key))
+      .filter((bucket): bucket is NonNullable<typeof bucket> => Boolean(bucket));
+    if (buckets.length < 2) continue;
+
+    const dominant = [...buckets].sort(
+      (a, b) => b.geo.objectCount - a.geo.objectCount,
+    )[0];
+    if (!dominant) continue;
+
+    for (const candidate of buckets) {
+      if (candidate.id === dominant.id) continue;
       dominant.objects.push(...candidate.objects);
       for (const keyword of candidate.keywords) {
         if (!dominant.keywords.includes(keyword)) {
