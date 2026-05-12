@@ -275,6 +275,37 @@ function normalizeReviewLocationInput(value: string): string {
     .trim();
 }
 
+function extractDirectRefFromInput(input: string): CandidateLocation | null {
+  const qidRef = normalizeWikidataReference(input);
+  if (qidRef.qid || qidRef.url) {
+    const wikiCoords = qidRef.qid ? resolveWikidataCoordinates(qidRef.qid) : null;
+    return {
+      label: normalizeReviewLocationInput(input) || input,
+      qid: qidRef.qid,
+      wikidataUrl: qidRef.url,
+      gazetteerUrl: null,
+      lat: wikiCoords?.lat ?? null,
+      lng: wikiCoords?.lng ?? null,
+      resolutionLevel: 'exact',
+    };
+  }
+
+  const stmMatch = input.match(/\bstm-[a-z0-9-]+\b/i);
+  if (stmMatch) {
+    return {
+      label: normalizeReviewLocationInput(input) || stmMatch[0],
+      qid: null,
+      wikidataUrl: null,
+      gazetteerUrl: `https://data.suriname-timemachine.org/place/${stmMatch[0].toLowerCase()}`,
+      lat: null,
+      lng: null,
+      resolutionLevel: 'exact',
+    };
+  }
+
+  return null;
+}
+
 function buildCandidateLocation(partial: Partial<WorkbookCandidateLocation>): WorkbookCandidateLocation | null {
   const label = toTrimmedString(partial.label);
   const qidRef = normalizeWikidataReference(toTrimmedString(partial.qid || partial.wikidataUrl || ''));
@@ -448,9 +479,8 @@ function resolveCandidateFromGazetteer(input: string, gazetteer: StmGazetteerInd
 }
 
 function pickAcceptCandidate(row: EvaluationRow, gazetteer: StmGazetteerIndexes): CandidateLocation | null {
-  const bestSuggestion = normalizeReviewLocationInput(
-    toTrimmedString(row.beste_locatiesuggestie),
-  );
+  const rawBestSuggestion = toTrimmedString(row.beste_locatiesuggestie);
+  const bestSuggestion = normalizeReviewLocationInput(rawBestSuggestion);
   if (!bestSuggestion) return null;
 
   const candidates = buildWorkbookCandidates(row);
@@ -469,19 +499,17 @@ function pickAcceptCandidate(row: EvaluationRow, gazetteer: StmGazetteerIndexes)
   );
   if (gazetteerCandidate) return gazetteerCandidate;
 
-  const qidRef = normalizeWikidataReference(bestSuggestion);
-  if (qidRef.qid || qidRef.url) {
-    const wikiCoords = qidRef.qid ? resolveWikidataCoordinates(qidRef.qid) : null;
-    return {
-      label: bestSuggestion,
-      qid: qidRef.qid,
-      wikidataUrl: qidRef.url,
-      gazetteerUrl: null,
-      lat: wikiCoords?.lat ?? null,
-      lng: wikiCoords?.lng ?? null,
-      resolutionLevel: 'exact',
-    };
-  }
+  const rawGazetteerCandidate = resolveCandidateFromGazetteer(
+    rawBestSuggestion,
+    gazetteer,
+  );
+  if (rawGazetteerCandidate) return rawGazetteerCandidate;
+
+  const fromRaw = extractDirectRefFromInput(rawBestSuggestion);
+  if (fromRaw) return fromRaw;
+
+  const fromNormalized = extractDirectRefFromInput(bestSuggestion);
+  if (fromNormalized) return fromNormalized;
 
   return null;
 }
