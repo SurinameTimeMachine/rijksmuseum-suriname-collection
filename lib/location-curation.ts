@@ -7,12 +7,10 @@ import type {
   TermDefault,
 } from '@/types/collection';
 import fs from 'fs';
-import Papa from 'papaparse';
 import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const LOCATION_EDITS_PATH = path.join(DATA_DIR, 'location-edits.jsonl');
-const COUNTRY_CODES_PATH = path.join(DATA_DIR, 'country_codes.csv');
 const TERM_DEFAULTS_PATH = path.join(DATA_DIR, 'term-wikidata-map.json');
 const STM_GAZETTEER_PATH = path.join(DATA_DIR, 'places-gazetteer.jsonld');
 
@@ -406,47 +404,6 @@ export function applyLocationEditsToObject(
   };
 }
 
-type CountryCodeRow = {
-  geografisch_trefwoord?: string;
-  Location?: string;
-  Country?: string;
-};
-
-function addTerm(set: Set<string>, value: string | undefined) {
-  if (!value) return;
-  const trimmed = value.trim();
-  if (!trimmed) return;
-  set.add(trimmed.toLowerCase());
-}
-
-/**
- * Load location terms marked as SU from country_codes.csv.
- * Uses exact values only to avoid false positives from split composite terms.
- */
-export function loadSurinameLocationTerms(): string[] {
-  if (!fs.existsSync(COUNTRY_CODES_PATH)) return [];
-
-  const csv = fs.readFileSync(COUNTRY_CODES_PATH, 'utf-8');
-  const parsed = Papa.parse<CountryCodeRow>(csv, {
-    header: true,
-    delimiter: ';',
-    skipEmptyLines: true,
-  });
-
-  const terms = new Set<string>();
-
-  for (const row of parsed.data) {
-    if ((row.Country || '').trim().toUpperCase() !== 'SU') continue;
-
-    const raw = (row.geografisch_trefwoord || '').trim();
-    if (raw) addTerm(terms, raw);
-
-    addTerm(terms, row.Location);
-  }
-
-  return Array.from(terms.values());
-}
-
 export function loadTermDefaults(): Map<string, TermDefault> {
   if (!fs.existsSync(TERM_DEFAULTS_PATH)) return new Map();
 
@@ -458,31 +415,6 @@ export function loadTermDefaults(): Map<string, TermDefault> {
   } catch {
     return new Map();
   }
-}
-
-// Serialize concurrent saveTermDefault calls within a single Node process
-// so a read-modify-write cycle cannot drop sibling updates.
-let termDefaultsWriteQueue: Promise<void> = Promise.resolve();
-
-export function saveTermDefault(entry: TermDefault): Promise<void> {
-  termDefaultsWriteQueue = termDefaultsWriteQueue
-    .catch(() => {})
-    .then(() => {
-      const existing = loadTermDefaults();
-      const key = entry.term.trim().toLowerCase();
-      existing.set(key, entry);
-
-      const plain: Record<string, TermDefault> = {};
-      for (const [k, v] of existing.entries()) {
-        plain[k] = v;
-      }
-
-      const tmpPath = `${TERM_DEFAULTS_PATH}.tmp`;
-      fs.writeFileSync(tmpPath, JSON.stringify(plain, null, 2) + '\n', 'utf-8');
-      fs.renameSync(tmpPath, TERM_DEFAULTS_PATH);
-    });
-
-  return termDefaultsWriteQueue;
 }
 
 export function applyTermDefaultsToObject(

@@ -322,23 +322,6 @@ export async function getFacets(activeFilters?: Partial<FilterOptions>) {
 }
 
 /**
- * Return objects with unresolved location interpretation for QA review.
- */
-export async function getLocationQaObjects(): Promise<CollectionObject[]> {
-  const collection = await getCollection();
-  return collection.filter((obj) =>
-    obj.geoKeywordDetails.some(
-      (d) =>
-        d.source === 'unresolved' ||
-        d.flags.includes('outside-suriname') ||
-        d.resolutionLevel === 'broader' ||
-        d.resolutionLevel === 'city' ||
-        d.resolutionLevel === 'country',
-    ),
-  );
-}
-
-/**
  * Get objects grouped by geographic keyword for the map view.
  */
 export async function getObjectsByLocation(): Promise<
