@@ -420,9 +420,19 @@ const GENERIC_MAP_LABELS = new Set([
 
 /**
  * Specific location labels we exclude from the landing map because their
- * coordinates fall at the extreme edge of Suriname or are otherwise unreliable.
+ * coordinates fall at the extreme edge of Suriname or are otherwise unreliable,
+ * or they represent the country as a whole rather than a specific place.
+ * Values are stored pre-normalized via normalizeMapLabelKey.
  */
-const EXCLUDED_LOCATION_LABELS = new Set(['sipaliwini savanna']);
+const EXCLUDED_LOCATION_LABELS: ReadonlySet<string> = new Set(
+  [
+    'Sipaliwini Savanna',
+    // Generic country-level terms — objects only tagged with "Suriname" as a
+    // whole are not useful in the map (no specific location information).
+    'Suriname',
+    'Suriname (Zuid-Amerika)',
+  ].map(normalizeMapLabelKey),
+);
 
 function normalizeMapLabelKey(input: string | null | undefined): string {
   return (input || '')
