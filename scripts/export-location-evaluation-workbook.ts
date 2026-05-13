@@ -2,7 +2,6 @@ import fs from 'fs';
 import Papa from 'papaparse';
 import path from 'path';
 import * as XLSX from 'xlsx';
-
 import {
   buildLatestLocationEditMap,
   inferResolutionLevel,
@@ -24,8 +23,14 @@ const THESAURUS_PATH = path.join(
   DATA_DIR,
   'Geo-thesau-Suriname-TO-added_wiki_ids.csv',
 );
-const STREET_ALIASES_PATH = path.join(DATA_DIR, 'paramaribo-street-aliases.json');
-const WIKIDATA_COMMONS_PATH = path.join(DATA_DIR, 'results_wikidata_commons.csv');
+const STREET_ALIASES_PATH = path.join(
+  DATA_DIR,
+  'paramaribo-street-aliases.json',
+);
+const WIKIDATA_COMMONS_PATH = path.join(
+  DATA_DIR,
+  'results_wikidata_commons.csv',
+);
 const STM_GAZETTEER_LOCAL_PATH = path.join(DATA_DIR, 'places-gazetteer.jsonld');
 
 const SOURCE_WEIGHTS = {
@@ -299,10 +304,13 @@ type ObjectReviewContext = {
   resolutionLevel: LocationResolutionLevel | null;
 };
 
-function inferReviewResolutionLevel(reviewValue: string): LocationResolutionLevel {
+function inferReviewResolutionLevel(
+  reviewValue: string,
+): LocationResolutionLevel {
   const normalized = normalizeMatcherText(reviewValue);
   if (!normalized) return 'exact';
-  if (normalized.includes('suriname') || normalized.includes('surinam')) return 'country';
+  if (normalized.includes('suriname') || normalized.includes('surinam'))
+    return 'country';
   if (normalized.includes('paramaribo')) return 'city';
   return 'exact';
 }
@@ -334,7 +342,11 @@ function buildReviewAwareContext(
 
   if (!existingReview.efReviewStatus && explicitLocation) {
     const normalizedLegacy = explicitLocation.toLowerCase();
-    if (normalizedLegacy !== 'x' && normalizedLegacy !== 'y' && normalizedLegacy !== 'b') {
+    if (
+      normalizedLegacy !== 'x' &&
+      normalizedLegacy !== 'y' &&
+      normalizedLegacy !== 'b'
+    ) {
       return {
         term,
         activeLabel: explicitLocation,
@@ -494,7 +506,9 @@ function loadStmGazetteerPlaces(): StmGazetteerPlace[] {
     if (!id) continue;
 
     const names = Array.isArray(row.names) ? row.names : [];
-    const preferred = names.find((name) => name.isPreferred && (name.text || '').trim());
+    const preferred = names.find(
+      (name) => name.isPreferred && (name.text || '').trim(),
+    );
     const fallback = names.find((name) => (name.text || '').trim());
     const label = (preferred?.text || fallback?.text || '').trim();
     if (!label) continue;
@@ -528,7 +542,10 @@ function getStmGazetteerSuggestions(
   const existingTerms = new Set(
     [
       ...terms,
-      ...thesaurusMatches.flatMap((entry) => [entry.term, entry.matchedLabel || '']),
+      ...thesaurusMatches.flatMap((entry) => [
+        entry.term,
+        entry.matchedLabel || '',
+      ]),
     ]
       .map((value) => normalizeMatcherText(value))
       .filter(Boolean),
@@ -551,7 +568,10 @@ function getStmGazetteerSuggestions(
       if (!normalizedVariant || normalizedVariant.length < 7) continue;
       if (normalizedVariant.length > 200) continue;
 
-      const pattern = new RegExp(`(^|\\b)${escapeRegExp(normalizedVariant)}(\\b|$)`, 'i');
+      const pattern = new RegExp(
+        `(^|\\b)${escapeRegExp(normalizedVariant)}(\\b|$)`,
+        'i',
+      );
 
       for (const source of sources) {
         if (!pattern.test(source.normalized)) continue;
@@ -590,7 +610,9 @@ function getReviewKey(recordnummer: number, term: string) {
 }
 
 function normalizeReviewStatus(value: unknown): EfReviewStatus | null {
-  const normalized = String(value || '').trim().toLowerCase();
+  const normalized = String(value || '')
+    .trim()
+    .toLowerCase();
   if (
     normalized === 'accept' ||
     normalized === 'remove-broader' ||
@@ -602,7 +624,9 @@ function normalizeReviewStatus(value: unknown): EfReviewStatus | null {
   return null;
 }
 
-function loadExistingEfReviewMap(reviewPath: string | null): Map<string, ExistingEfReview> {
+function loadExistingEfReviewMap(
+  reviewPath: string | null,
+): Map<string, ExistingEfReview> {
   const reviewMap = new Map<string, ExistingEfReview>();
   if (!reviewPath || !fs.existsSync(reviewPath)) return reviewMap;
 
@@ -615,7 +639,9 @@ function loadExistingEfReviewMap(reviewPath: string | null): Map<string, Existin
     for (const row of rows) {
       const recordnummer = Number.parseInt(String(row.recordnummer || ''), 10);
       const term = String(
-        row.geografisch_trefwoord || row.rijksmuseum_geografisch_trefwoord_atomair || '',
+        row.geografisch_trefwoord ||
+          row.rijksmuseum_geografisch_trefwoord_atomair ||
+          '',
       ).trim();
       if (!Number.isFinite(recordnummer) || !term) continue;
 
@@ -652,7 +678,13 @@ function loadExistingEfReviewMap(reviewPath: string | null): Map<string, Existin
         migratieBron = 'status-kolom';
       }
 
-      if (!efReviewStatus && !efReviewLocatie && !reviewNote && !legacyReviewLocatie) continue;
+      if (
+        !efReviewStatus &&
+        !efReviewLocatie &&
+        !reviewNote &&
+        !legacyReviewLocatie
+      )
+        continue;
 
       reviewMap.set(getReviewKey(recordnummer, term), {
         efReviewStatus,
@@ -756,13 +788,14 @@ function loadEnrichedGeoThesaurus(): Map<string, GeoThesaurusEntry> {
       lng,
       coordsWkt: (cols[12] || '').trim() || null,
       resolutionLevel: inferResolutionLevel(broaderTerm, hasWikidata),
-      enrichmentStatus: hasWikidata && hasCoords
-        ? 'wikidata+coords'
-        : hasWikidata
-          ? 'wikidata'
-          : hasCoords
-            ? 'coords'
-            : 'none',
+      enrichmentStatus:
+        hasWikidata && hasCoords
+          ? 'wikidata+coords'
+          : hasWikidata
+            ? 'wikidata'
+            : hasCoords
+              ? 'coords'
+              : 'none',
       matchType: hasWikidata ? 'exact' : broaderTerm ? 'broader' : 'none',
     });
   }
@@ -822,7 +855,10 @@ function getStreetSuggestions(
   const existingTerms = new Set(
     [
       ...terms,
-      ...thesaurusMatches.flatMap((entry) => [entry.term, entry.matchedLabel || '']),
+      ...thesaurusMatches.flatMap((entry) => [
+        entry.term,
+        entry.matchedLabel || '',
+      ]),
     ]
       .map((value) => normalizeMatcherText(value))
       .filter(Boolean),
@@ -997,8 +1033,10 @@ function getQualityAssessment(
 } {
   const hasQid = Boolean(activeLocation.qid || activeLocation.wikidataUrl);
   const hasCoords =
-    activeLocation.lat !== null && Number.isFinite(activeLocation.lat) &&
-    activeLocation.lng !== null && Number.isFinite(activeLocation.lng);
+    activeLocation.lat !== null &&
+    Number.isFinite(activeLocation.lat) &&
+    activeLocation.lng !== null &&
+    Number.isFinite(activeLocation.lng);
 
   if (activeLocation.resolutionLevel === 'exact' && hasQid && hasCoords) {
     return {
@@ -1014,8 +1052,11 @@ function getQualityAssessment(
     return {
       qualityLabel: 'B waarschijnlijk exact bekend',
       score: 85,
-      reason: 'Exacte locatie lijkt bekend, maar identifiers of coordinaten zijn onvolledig.',
-      improvementOpportunity: hasCoords ? 'wikidata-id toevoegen' : 'coordinaten toevoegen',
+      reason:
+        'Exacte locatie lijkt bekend, maar identifiers of coordinaten zijn onvolledig.',
+      improvementOpportunity: hasCoords
+        ? 'wikidata-id toevoegen'
+        : 'coordinaten toevoegen',
       recommendedAction: 'aanvullen en bevestigen',
     };
   }
@@ -1024,7 +1065,8 @@ function getQualityAssessment(
     return {
       qualityLabel: 'B waarschijnlijk exact bekend',
       score: Math.min(82, topStreetSuggestion.score + 10),
-      reason: 'Sterke straatmatch gevonden in titel, beschrijving of Commons-bestandsnaam.',
+      reason:
+        'Sterke straatmatch gevonden in titel, beschrijving of Commons-bestandsnaam.',
       improvementOpportunity: 'straatmatch verifieren',
       recommendedAction: 'handmatig controleren en overnemen indien correct',
     };
@@ -1044,7 +1086,8 @@ function getQualityAssessment(
     return {
       qualityLabel: 'C alleen bredere plaats bekend',
       score: 65,
-      reason: 'Er is een gekoppelde bredere locatie, maar geen exacte afgebeelde plek.',
+      reason:
+        'Er is een gekoppelde bredere locatie, maar geen exacte afgebeelde plek.',
       improvementOpportunity: 'specifieker maken',
       recommendedAction: 'nadere plaats of straat zoeken',
     };
@@ -1067,7 +1110,8 @@ function getQualityAssessment(
     return {
       qualityLabel: 'E onvoldoende onderbouwd',
       score: 20,
-      reason: 'Er is wel een hint of term, maar de locatie is nog niet betrouwbaar vastgesteld.',
+      reason:
+        'Er is wel een hint of term, maar de locatie is nog niet betrouwbaar vastgesteld.',
       improvementOpportunity: 'manual review nodig',
       recommendedAction: 'inhoudelijk beoordelen',
     };
@@ -1082,7 +1126,9 @@ function getQualityAssessment(
   };
 }
 
-function describeEnrichmentStatus(entry: GeoThesaurusEntry | undefined): string {
+function describeEnrichmentStatus(
+  entry: GeoThesaurusEntry | undefined,
+): string {
   if (!entry || entry.enrichmentStatus === 'none') return 'geen';
   if (entry.enrichmentStatus === 'wikidata+coords') return 'wikidata+coords';
   if (entry.enrichmentStatus === 'wikidata') return 'wikidata';
@@ -1102,13 +1148,20 @@ function getChangeAgainstRijksmuseum(
   }
 
   if (normalizedOriginal && normalizedOriginal === normalizedActive) {
-    if (activeLocation.qid || activeLocation.lat !== null || activeLocation.lng !== null) {
+    if (
+      activeLocation.qid ||
+      activeLocation.lat !== null ||
+      activeLocation.lng !== null
+    ) {
       return 'zelfde term, identifiers/coordinaten toegevoegd';
     }
     return 'geen zichtbare wijziging';
   }
 
-  if (thesaurusEntry && normalizeMatcherText(thesaurusEntry.term) === normalizedOriginal) {
+  if (
+    thesaurusEntry &&
+    normalizeMatcherText(thesaurusEntry.term) === normalizedOriginal
+  ) {
     return 'zelfde trefwoord, verrijkt of aangescherpt';
   }
 
@@ -1120,11 +1173,16 @@ function getChangeAgainstExistingStm(
   thesaurusEntry: GeoThesaurusEntry | undefined,
   topStreetSuggestion: StreetSuggestion | undefined,
 ): string {
-  if (activeLocation.source === 'object-edit') return 'objectspecifieke curatie toegevoegd';
-  if (activeLocation.source === 'term-default') return 'term-default toegevoegd';
-  if (activeLocation.source === 'thesaurus' && thesaurusEntry) return 'reeds aanwezig in thesaurusverrijking';
-  if (activeLocation.source === 'street-suggestion' && topStreetSuggestion) return 'nieuwe straatsuggestie nog niet bevestigd';
-  if (activeLocation.source === 'stm-gazetteer-suggestion') return 'nieuwe STM-gazetteersuggestie nog niet bevestigd';
+  if (activeLocation.source === 'object-edit')
+    return 'objectspecifieke curatie toegevoegd';
+  if (activeLocation.source === 'term-default')
+    return 'term-default toegevoegd';
+  if (activeLocation.source === 'thesaurus' && thesaurusEntry)
+    return 'reeds aanwezig in thesaurusverrijking';
+  if (activeLocation.source === 'street-suggestion' && topStreetSuggestion)
+    return 'nieuwe straatsuggestie nog niet bevestigd';
+  if (activeLocation.source === 'stm-gazetteer-suggestion')
+    return 'nieuwe STM-gazetteersuggestie nog niet bevestigd';
   return 'geen bestaande stm-verrijking';
 }
 
@@ -1146,7 +1204,11 @@ function getResolutionSpecificity(
   level: LocationResolutionLevel | null,
   normalizedLabel: string = '',
 ): number {
-  if (normalizedLabel.includes('suriname') || normalizedLabel.includes('surinam')) return 1;
+  if (
+    normalizedLabel.includes('suriname') ||
+    normalizedLabel.includes('surinam')
+  )
+    return 1;
   if (normalizedLabel.includes('paramaribo')) return 3;
   if (level === 'country') return 1;
   if (level === 'broader') return 2;
@@ -1159,9 +1221,14 @@ function getAutoReviewSuggestion(
   current: ObjectReviewContext,
   allContexts: ObjectReviewContext[],
 ): AutoReviewSuggestion | null {
-  const currentLabel = normalizeMatcherText(current.activeLabel || current.term);
+  const currentLabel = normalizeMatcherText(
+    current.activeLabel || current.term,
+  );
   const currentBroader = normalizeMatcherText(current.broaderTerm);
-  const currentSpecificity = getResolutionSpecificity(current.resolutionLevel, currentLabel);
+  const currentSpecificity = getResolutionSpecificity(
+    current.resolutionLevel,
+    currentLabel,
+  );
 
   if (!currentLabel) return null;
 
@@ -1170,14 +1237,20 @@ function getAutoReviewSuggestion(
 
     const otherLabel = normalizeMatcherText(other.activeLabel || other.term);
     const otherBroader = normalizeMatcherText(other.broaderTerm);
-    const otherSpecificity = getResolutionSpecificity(other.resolutionLevel, otherLabel);
+    const otherSpecificity = getResolutionSpecificity(
+      other.resolutionLevel,
+      otherLabel,
+    );
     if (!otherLabel) continue;
 
     const isCountrySuperset =
       (currentLabel.includes('suriname') || currentLabel.includes('surinam')) &&
       otherSpecificity > currentSpecificity;
-    const isCitySuperset = currentLabel.includes('paramaribo') && otherSpecificity === 4;
-    const isBroaderLink = Boolean(currentLabel && otherBroader && currentLabel === otherBroader);
+    const isCitySuperset =
+      currentLabel.includes('paramaribo') && otherSpecificity === 4;
+    const isBroaderLink = Boolean(
+      currentLabel && otherBroader && currentLabel === otherBroader,
+    );
 
     if (isCountrySuperset || isCitySuperset || isBroaderLink) {
       return {
@@ -1191,7 +1264,9 @@ function getAutoReviewSuggestion(
   if (currentSpecificity === 1) {
     for (const other of allContexts) {
       if (other.term === current.term) continue;
-      if (getResolutionSpecificity(other.resolutionLevel) > currentSpecificity) {
+      if (
+        getResolutionSpecificity(other.resolutionLevel) > currentSpecificity
+      ) {
         return {
           status: 'remove-broader',
           reason: `Landniveau overbodig door specifiekere locatie: ${other.activeLabel || other.term}`,
@@ -1204,7 +1279,10 @@ function getAutoReviewSuggestion(
   return null;
 }
 
-function autosizeColumns(sheet: XLSX.WorkSheet, rows: Array<Record<string, unknown>>) {
+function autosizeColumns(
+  sheet: XLSX.WorkSheet,
+  rows: Array<Record<string, unknown>>,
+) {
   const headers = rows.length > 0 ? Object.keys(rows[0]) : [];
   sheet['!cols'] = headers.map((header) => {
     const maxValueLength = rows.reduce((max, row) => {
@@ -1240,7 +1318,9 @@ function applyDefaultFont(sheet: XLSX.WorkSheet) {
       const cell = sheet[cellRef] as XLSX.CellObject | undefined;
       if (!cell) continue;
 
-      const styledCell = cell as XLSX.CellObject & { s?: Record<string, unknown> };
+      const styledCell = cell as XLSX.CellObject & {
+        s?: Record<string, unknown>;
+      };
       const existingStyle = (styledCell.s ?? {}) as Record<string, unknown>;
       const existingFont =
         existingStyle.font && typeof existingStyle.font === 'object'
@@ -1267,11 +1347,17 @@ function makeWorksheet(rows: Array<Record<string, unknown>>): XLSX.WorkSheet {
 }
 
 function makeEvaluatieWorksheet(rows: EvaluationRow[]): XLSX.WorkSheet {
-  const worksheet = makeWorksheet(rows as unknown as Array<Record<string, unknown>>);
+  const worksheet = makeWorksheet(
+    rows as unknown as Array<Record<string, unknown>>,
+  );
   rows.forEach((row, i) => {
     if (!row.pid_werk_uri) return;
     const cellRef = XLSX.utils.encode_cell({ r: i + 1, c: 0 }); // r=0 is header row
-    worksheet[cellRef] = { t: 's', v: row.titel, l: { Target: row.pid_werk_uri } };
+    worksheet[cellRef] = {
+      t: 's',
+      v: row.titel,
+      l: { Target: row.pid_werk_uri },
+    };
   });
   return worksheet;
 }
@@ -1361,7 +1447,9 @@ function main() {
       const hasThesaurusEnrichment =
         Boolean(thesaurusEntry) && thesaurusEntry?.enrichmentStatus !== 'none';
       const bestSuggestion = formatBestLocationSuggestion(activeLocation);
-      const existingReview = existingReviewMap.get(getReviewKey(recordnummer, term || row.geografisch_trefwoord));
+      const existingReview = existingReviewMap.get(
+        getReviewKey(recordnummer, term || row.geografisch_trefwoord),
+      );
 
       pendingContexts.push(
         buildReviewAwareContext(
@@ -1408,44 +1496,56 @@ function main() {
         thesaurus_resolution_level: thesaurusEntry?.resolutionLevel || '',
         thesaurus_match_type: thesaurusEntry?.matchType || '',
         stm_bestaande_verrijking: hasThesaurusEnrichment ? 'ja' : 'nee',
-        stm_bestaande_verrijking_velden: describeEnrichmentStatus(thesaurusEntry),
+        stm_bestaande_verrijking_velden:
+          describeEnrichmentStatus(thesaurusEntry),
         stm_bestaande_verrijking_bron: hasThesaurusEnrichment
           ? 'geo-thesaurus-enriched'
           : '',
         huidige_curatie_bron: activeLocation.source,
-        huidige_curatie_label: activeLocation.source === 'thesaurus'
-          ? ''
-          : activeLocation.label || '',
-        huidige_curatie_qid: activeLocation.source === 'thesaurus'
-          ? ''
-          : activeLocation.qid || '',
-        huidige_curatie_wikidata_uri: activeLocation.source === 'thesaurus'
-          ? ''
-          : activeLocation.wikidataUrl || '',
-        huidige_curatie_lat: activeLocation.source === 'thesaurus'
-          ? ''
-          : activeLocation.lat ?? '',
-        huidige_curatie_lng: activeLocation.source === 'thesaurus'
-          ? ''
-          : activeLocation.lng ?? '',
-        huidige_curatie_resolution_level: activeLocation.source === 'thesaurus'
-          ? ''
-          : activeLocation.resolutionLevel || '',
-        huidige_curatie_auteur: activeLocation.source === 'object-edit' || activeLocation.source === 'term-default'
-          ? activeLocation.author
-          : '',
-        huidige_curatie_timestamp: activeLocation.source === 'object-edit' || activeLocation.source === 'term-default'
-          ? activeLocation.timestamp
-          : '',
-        huidige_curatie_opmerking: activeLocation.source === 'object-edit' || activeLocation.source === 'term-default'
-          ? activeLocation.remark
-          : '',
+        huidige_curatie_label:
+          activeLocation.source === 'thesaurus'
+            ? ''
+            : activeLocation.label || '',
+        huidige_curatie_qid:
+          activeLocation.source === 'thesaurus' ? '' : activeLocation.qid || '',
+        huidige_curatie_wikidata_uri:
+          activeLocation.source === 'thesaurus'
+            ? ''
+            : activeLocation.wikidataUrl || '',
+        huidige_curatie_lat:
+          activeLocation.source === 'thesaurus'
+            ? ''
+            : (activeLocation.lat ?? ''),
+        huidige_curatie_lng:
+          activeLocation.source === 'thesaurus'
+            ? ''
+            : (activeLocation.lng ?? ''),
+        huidige_curatie_resolution_level:
+          activeLocation.source === 'thesaurus'
+            ? ''
+            : activeLocation.resolutionLevel || '',
+        huidige_curatie_auteur:
+          activeLocation.source === 'object-edit' ||
+          activeLocation.source === 'term-default'
+            ? activeLocation.author
+            : '',
+        huidige_curatie_timestamp:
+          activeLocation.source === 'object-edit' ||
+          activeLocation.source === 'term-default'
+            ? activeLocation.timestamp
+            : '',
+        huidige_curatie_opmerking:
+          activeLocation.source === 'object-edit' ||
+          activeLocation.source === 'term-default'
+            ? activeLocation.remark
+            : '',
         beste_beschikbare_locatie_bron: activeLocation.source,
         beste_beschikbare_locatie_label: activeLocation.label || '',
         beste_beschikbare_locatie_qid: activeLocation.qid || '',
         beste_beschikbare_locatie_lat: activeLocation.lat ?? '',
         beste_beschikbare_locatie_lng: activeLocation.lng ?? '',
-        beste_beschikbare_locatie_resolution_level: activeLocation.resolutionLevel || '',
+        beste_beschikbare_locatie_resolution_level:
+          activeLocation.resolutionLevel || '',
         straat_suggestie_aantal: streetSuggestions.length,
         straat_suggestie_top_label: topStreetSuggestion?.label || '',
         straat_suggestie_top_qid: topStreetSuggestion?.wikidataQid || '',
@@ -1454,12 +1554,15 @@ function main() {
         straat_suggestie_top_snippet: topStreetSuggestion?.snippet || '',
         stm_gazetteer_suggestie_id: topStmGazetteerSuggestion?.stmId || '',
         stm_gazetteer_suggestie_label: topStmGazetteerSuggestion?.label || '',
-        stm_gazetteer_suggestie_qid: topStmGazetteerSuggestion?.wikidataQid || '',
+        stm_gazetteer_suggestie_qid:
+          topStmGazetteerSuggestion?.wikidataQid || '',
         stm_gazetteer_suggestie_lat: topStmGazetteerSuggestion?.lat ?? '',
         stm_gazetteer_suggestie_lng: topStmGazetteerSuggestion?.lng ?? '',
-        stm_gazetteer_suggestie_bronveld: topStmGazetteerSuggestion?.source || '',
+        stm_gazetteer_suggestie_bronveld:
+          topStmGazetteerSuggestion?.source || '',
         stm_gazetteer_suggestie_score: topStmGazetteerSuggestion?.score ?? '',
-        stm_gazetteer_suggestie_snippet: topStmGazetteerSuggestion?.snippet || '',
+        stm_gazetteer_suggestie_snippet:
+          topStmGazetteerSuggestion?.snippet || '',
         beoordelingsreden: quality.reason,
         verbetermogelijkheid: quality.improvementOpportunity,
         aanbevolen_actie: quality.recommendedAction,
@@ -1486,16 +1589,26 @@ function main() {
 
     pendingRows.forEach((candidateRow, index) => {
       const existingReview = existingReviewMap.get(
-        getReviewKey(recordnummer, candidateRow.rijksmuseum_geografisch_trefwoord_atomair || candidateRow.geografisch_trefwoord),
+        getReviewKey(
+          recordnummer,
+          candidateRow.rijksmuseum_geografisch_trefwoord_atomair ||
+            candidateRow.geografisch_trefwoord,
+        ),
       );
-      const autoSuggestion = getAutoReviewSuggestion(pendingContexts[index], pendingContexts);
+      const autoSuggestion = getAutoReviewSuggestion(
+        pendingContexts[index],
+        pendingContexts,
+      );
       const hasExistingReview = Boolean(
         existingReview?.efReviewStatus ||
         existingReview?.efReviewLocatie ||
         existingReview?.efReviewOpmerking,
       );
 
-      if (!candidateRow.ef_review_status && existingReview?.migratieBron === 'legacy-x') {
+      if (
+        !candidateRow.ef_review_status &&
+        existingReview?.migratieBron === 'legacy-x'
+      ) {
         candidateRow.ef_review_status = autoSuggestion?.status || 'reject';
       }
 
@@ -1528,26 +1641,54 @@ function main() {
     match_type: entry.matchType,
   }));
 
-  const qualityCounts = evaluationRows.reduce<Record<string, number>>((acc, row) => {
-    acc[row.locatiekwaliteit] = (acc[row.locatiekwaliteit] || 0) + 1;
-    return acc;
-  }, {});
+  const qualityCounts = evaluationRows.reduce<Record<string, number>>(
+    (acc, row) => {
+      acc[row.locatiekwaliteit] = (acc[row.locatiekwaliteit] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
-  const actionCounts = evaluationRows.reduce<Record<string, number>>((acc, row) => {
-    acc[row.aanbevolen_actie] = (acc[row.aanbevolen_actie] || 0) + 1;
-    return acc;
-  }, {});
+  const actionCounts = evaluationRows.reduce<Record<string, number>>(
+    (acc, row) => {
+      acc[row.aanbevolen_actie] = (acc[row.aanbevolen_actie] || 0) + 1;
+      return acc;
+    },
+    {},
+  );
 
   const summaryRows: SummaryRow[] = [
     { metric: 'objecten in broncsv', value: objectRows.length },
     { metric: 'rijen in evaluatietab', value: evaluationRows.length },
-    { metric: 'automatisch gefilterde bredere rijen', value: autoFilteredRows.length },
-    { metric: 'objecten met straatsuggestie', value: new Set(streetSuggestionRows.map((row) => row.objectnummer)).size },
+    {
+      metric: 'automatisch gefilterde bredere rijen',
+      value: autoFilteredRows.length,
+    },
+    {
+      metric: 'objecten met straatsuggestie',
+      value: new Set(streetSuggestionRows.map((row) => row.objectnummer)).size,
+    },
     { metric: 'totaal straatsuggesties', value: streetSuggestionRows.length },
-    { metric: 'stm-gazetteer plaatsen geladen', value: stmGazetteerPlaces.length },
-    { metric: 'rijen met stm-gazetteersuggestie', value: evaluationRows.filter((row) => row.stm_gazetteer_suggestie_id).length },
-    { metric: 'overgenomen bestaande ef-reviews', value: evaluationRows.filter((row) => row.ef_review_locatie || row.ef_review_opmerking).length },
-    { metric: 'thesaurustermen met verrijking', value: thesaurusRows.filter((row) => row.enrichment_status !== 'none').length },
+    {
+      metric: 'stm-gazetteer plaatsen geladen',
+      value: stmGazetteerPlaces.length,
+    },
+    {
+      metric: 'rijen met stm-gazetteersuggestie',
+      value: evaluationRows.filter((row) => row.stm_gazetteer_suggestie_id)
+        .length,
+    },
+    {
+      metric: 'overgenomen bestaande ef-reviews',
+      value: evaluationRows.filter(
+        (row) => row.ef_review_locatie || row.ef_review_opmerking,
+      ).length,
+    },
+    {
+      metric: 'thesaurustermen met verrijking',
+      value: thesaurusRows.filter((row) => row.enrichment_status !== 'none')
+        .length,
+    },
   ];
 
   for (const [label, value] of Object.entries(qualityCounts).sort()) {
@@ -1561,27 +1702,34 @@ function main() {
   const legendRows = [
     {
       veld: 'locatiekwaliteit',
-      betekenis: 'Filterbare beoordeling van hoe goed de afgebeelde locatie nu bekend is.',
-      waarden: 'A exact bekend | B waarschijnlijk exact bekend | C alleen bredere plaats bekend | D alleen land of stad bekend | E onvoldoende onderbouwd | F geen bruikbare locatie',
+      betekenis:
+        'Filterbare beoordeling van hoe goed de afgebeelde locatie nu bekend is.',
+      waarden:
+        'A exact bekend | B waarschijnlijk exact bekend | C alleen bredere plaats bekend | D alleen land of stad bekend | E onvoldoende onderbouwd | F geen bruikbare locatie',
     },
     {
       veld: 'stm_bestaande_verrijking',
-      betekenis: 'Geeft aan of Geo-thesau-Suriname-TO-added_wiki_ids al een verrijking bevat voor het trefwoord.',
+      betekenis:
+        'Geeft aan of Geo-thesau-Suriname-TO-added_wiki_ids al een verrijking bevat voor het trefwoord.',
       waarden: 'ja | nee',
     },
     {
       veld: 'huidige_curatie_bron',
-      betekenis: 'Laat zien of er al objectspecifieke of term-brede curatie in de site aanwezig is.',
-      waarden: 'object-edit | term-default | thesaurus | street-suggestion | none',
+      betekenis:
+        'Laat zien of er al objectspecifieke of term-brede curatie in de site aanwezig is.',
+      waarden:
+        'object-edit | term-default | thesaurus | street-suggestion | none',
     },
     {
       veld: 'ef_review_status',
-      betekenis: 'Nieuwe hoofdstatus voor reviewbeslissing. Shorthands: a of y = accept.',
+      betekenis:
+        'Nieuwe hoofdstatus voor reviewbeslissing. Shorthands: a of y = accept.',
       waarden: 'accept (a/y) | remove-broader | reject | custom',
     },
     {
       veld: 'ef_review_locatie',
-      betekenis: 'Alleen invullen bij status custom: gebruik hier je concrete primaire locatie, Wikidata-id of STM-id. Shorthands: s = Suriname (Q730), b = buiten scope (niet importeren).',
+      betekenis:
+        'Alleen invullen bij status custom: gebruik hier je concrete primaire locatie, Wikidata-id of STM-id. Shorthands: s = Suriname (Q730), b = buiten scope (niet importeren).',
       waarden: 'vrije tekst / QID / STM-id / s / b',
     },
     {
@@ -1591,17 +1739,21 @@ function main() {
     },
     {
       veld: 'ef_review_migratie_bron',
-      betekenis: 'Laat zien hoe een bestaande review uit het oude formulier is omgezet.',
-      waarden: 'status-kolom | legacy-y | legacy-y-empty | legacy-x | legacy-custom',
+      betekenis:
+        'Laat zien hoe een bestaande review uit het oude formulier is omgezet.',
+      waarden:
+        'status-kolom | legacy-y | legacy-y-empty | legacy-x | legacy-custom',
     },
     {
       veld: 'auto_review_status / auto_review_reden',
-      betekenis: 'Automatische suggestie om bredere locaties buiten de hoofdreview te houden.',
+      betekenis:
+        'Automatische suggestie om bredere locaties buiten de hoofdreview te houden.',
       waarden: 'alleen informatief',
     },
     {
       veld: 'stm_gazetteer_suggestie_*',
-      betekenis: 'Aanvullende suggestie vanuit STM places gazetteer (https://suriname-database-model.vercel.app/data/places-gazetteer.jsonld).',
+      betekenis:
+        'Aanvullende suggestie vanuit STM places gazetteer (https://suriname-database-model.vercel.app/data/places-gazetteer.jsonld).',
       waarden: 'id/label/qid/lat/lng/bronveld/score/snippet',
     },
     {
@@ -1612,11 +1764,31 @@ function main() {
   ];
 
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, makeEvaluatieWorksheet(evaluationRows), 'Evaluatie');
-  XLSX.utils.book_append_sheet(workbook, makeWorksheet(autoFilteredRows), 'Auto-gefilterd');
-  XLSX.utils.book_append_sheet(workbook, makeWorksheet(streetSuggestionRows), 'Straatsuggesties');
-  XLSX.utils.book_append_sheet(workbook, makeWorksheet(thesaurusRows), 'Termbron');
-  XLSX.utils.book_append_sheet(workbook, makeWorksheet(summaryRows), 'Samenvatting');
+  XLSX.utils.book_append_sheet(
+    workbook,
+    makeEvaluatieWorksheet(evaluationRows),
+    'Evaluatie',
+  );
+  XLSX.utils.book_append_sheet(
+    workbook,
+    makeWorksheet(autoFilteredRows),
+    'Auto-gefilterd',
+  );
+  XLSX.utils.book_append_sheet(
+    workbook,
+    makeWorksheet(streetSuggestionRows),
+    'Straatsuggesties',
+  );
+  XLSX.utils.book_append_sheet(
+    workbook,
+    makeWorksheet(thesaurusRows),
+    'Termbron',
+  );
+  XLSX.utils.book_append_sheet(
+    workbook,
+    makeWorksheet(summaryRows),
+    'Samenvatting',
+  );
   XLSX.utils.book_append_sheet(workbook, makeWorksheet(legendRows), 'Legenda');
 
   XLSX.writeFile(workbook, outputPath, { cellStyles: true });

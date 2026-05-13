@@ -19,7 +19,9 @@ type BackfillSummary = {
   writeMode: 'dry-run' | 'write';
 };
 
-function getEditKey(record: Pick<LocationEditRecord, 'recordnummer' | 'originalTerm'>): string {
+function getEditKey(
+  record: Pick<LocationEditRecord, 'recordnummer' | 'originalTerm'>,
+): string {
   return `${record.recordnummer}::${record.originalTerm.toLowerCase()}`;
 }
 
@@ -64,7 +66,10 @@ function normalizeRecord(
   };
 }
 
-function didRecordChange(a: LocationEditRecord, b: LocationEditRecord): boolean {
+function didRecordChange(
+  a: LocationEditRecord,
+  b: LocationEditRecord,
+): boolean {
   return (
     a.wikidataQid !== b.wikidataQid ||
     a.wikidataUrl !== b.wikidataUrl ||
@@ -97,7 +102,10 @@ function main() {
   };
 
   for (const latest of latestByKey.values()) {
-    const normalized = normalizeRecord(latest, latestWithCoordsByKey.get(getEditKey(latest)));
+    const normalized = normalizeRecord(
+      latest,
+      latestWithCoordsByKey.get(getEditKey(latest)),
+    );
 
     if (!didRecordChange(latest, normalized)) {
       summary.unchanged += 1;
