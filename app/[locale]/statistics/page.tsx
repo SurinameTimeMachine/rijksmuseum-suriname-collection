@@ -1,6 +1,7 @@
 import ScrollReveal from '@/components/ScrollReveal';
 import StatsClient from '@/components/StatsClient';
-import { getStatistics } from '@/lib/collection';
+import { getCurationStats, getStatistics } from '@/lib/collection';
+import { getRawCollectionStats } from '@/lib/raw-collection';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 export async function generateMetadata({
@@ -22,18 +23,24 @@ export default async function StatisticsPage({
   setRequestLocale(locale);
 
   const t = await getTranslations({ locale, namespace: 'statistics' });
-  const stats = await getStatistics();
+  const [stats, rawStats, curation] = await Promise.all([
+    getStatistics(),
+    getRawCollectionStats(),
+    getCurationStats(),
+  ]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <ScrollReveal>
-        <div className="mb-10">
+        <div className="mb-12 max-w-3xl">
           <h1>{t('title')}</h1>
-          <p className="mt-2 text-(--color-warm-gray)">{t('subtitle')}</p>
+          <p className="mt-3 text-(--color-warm-gray) leading-relaxed">
+            {t('subtitle')}
+          </p>
         </div>
       </ScrollReveal>
 
-      <StatsClient stats={stats} />
+      <StatsClient stats={stats} rawStats={rawStats} curation={curation} />
     </div>
   );
 }

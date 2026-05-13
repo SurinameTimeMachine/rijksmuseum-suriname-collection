@@ -1,24 +1,15 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import {
-  BarChart3,
-  Clock,
-  Globe,
-  Grid3X3,
-  MapPin,
-  Menu,
-  X,
-} from 'lucide-react';
+import { BarChart3, Compass, Globe, Grid3X3, Menu, X } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 const navItems = [
+  { href: '', labelKey: 'explore' as const, icon: Compass },
   { href: '/gallery', labelKey: 'gallery' as const, icon: Grid3X3 },
-  { href: '/timeline', labelKey: 'timeline' as const, icon: Clock },
-  { href: '/map', labelKey: 'map' as const, icon: MapPin },
   { href: '/statistics', labelKey: 'statistics' as const, icon: BarChart3 },
 ];
 
@@ -58,7 +49,10 @@ export default function Navigation() {
           <nav className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const href = `/${locale}${item.href}`;
-              const isActive = pathname.startsWith(href);
+              const isActive =
+                item.href === ''
+                  ? pathname === `/${locale}` || pathname === `/${locale}/`
+                  : pathname.startsWith(href);
               return (
                 <Link
                   key={item.href}
@@ -103,7 +97,10 @@ export default function Navigation() {
           <nav className="md:hidden pb-4 border-t border-(--color-border) pt-3">
             {navItems.map((item) => {
               const href = `/${locale}${item.href}`;
-              const isActive = pathname.startsWith(href);
+              const isActive =
+                item.href === ''
+                  ? pathname === `/${locale}` || pathname === `/${locale}/`
+                  : pathname.startsWith(href);
               return (
                 <Link
                   key={item.href}

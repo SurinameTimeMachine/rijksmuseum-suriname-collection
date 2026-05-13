@@ -9,7 +9,10 @@ import { getLicenseShortName } from '@/lib/utils';
 import type {
   CollectionObject,
   CollectionStats,
+  CurationStats,
   FilterOptions,
+  GeoKeywordDetail,
+  MapTimelineObject,
   SortOption,
 } from '@/types/collection';
 import { cache } from 'react';
@@ -398,4 +401,193 @@ export async function getRelatedObjects(
     .slice(0, limit);
 
   return scored.map((s) => s.object);
+}
+
+/* ============================================================
+ * Honeycomb / map-timeline helpers
+ * ============================================================ */
+
+const GENERIC_MAP_LABELS = new Set([
+  'suriname',
+  'suriname (zuid-amerika)',
+  'paramaribo',
+  'paramaribo (stad)',
+  'nickerie',
+]);
+
+function normalizeMapLabelKey(input: string | null | undefined): string {
+  return (input || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getDetailSpecificityScore(detail: GeoKeywordDetail): number {
+  const name = detail.matchedLabel?.trim() || detail.term;
+  const normalizedName = normalizeMapLabelKey(name);
+  const normalizedTerm = normalizeMapLabelKey(detail.term);
+  const isGeneric =
+    GENERIC_MAP_LABELS.has(normalizedName) ||
+    GENERIC_MAP_LABELS.has(normalizedTerm);
+
+  const resolutionScore =
+    detail.resolutionLevel === 'exact'
+      ? 40
+      : detail.resolutionLevel === 'city'
+        ? 20
+        : detail.resolutionLevel === 'broader'
+          ? 15
+          : detail.resolutionLevel === 'country'
+            ? 10
+            : 5;
+  const sourceScore = detail.source === 'edit' ? 15 : 0;
+  const stmScore = detail.stmGazetteerUrl ? 20 : 0;
+  const nonGenericScore = isGeneric ? 0 : 100;
+
+  return nonGenericScore + resolutionScore + sourceScore + stmScore;
+}
+
+/**
+ * Pick the most specific Suriname-region geo detail with valid coordinates.
+ * Returns null when the object has no usable Suriname point.
+ */
+export function pickPrimarySurinameDetail(
+  obj: CollectionObject,
+): GeoKeywordDetail | null {
+  const mappable = obj.geoKeywordDetails.filter(
+    (d) =>
+      d.lat !== null &&
+      d.lng !== null &&
+      d.region === 'suriname' &&
+      // Exclude country-level fallback so the honeycomb is not swamped
+      // by a single point representing "Suriname" as a whole.
+      d.resolutionLevel !== 'country',
+  );
+  if (mappable.length === 0) return null;
+  return [...mappable].sort(
+    (a, b) => getDetailSpecificityScore(b) - getDetailSpecificityScore(a),
+  )[0];
+}
+
+/**
+ * Pick the most specific geo detail with valid coordinates in any region.
+ * Retained for the existing /map clustering logic.
+ */
+export function pickPrimaryMapDetail(
+  obj: CollectionObject,
+): GeoKeywordDetail | null {
+  const mappable = obj.geoKeywordDetails.filter(
+    (d) => d.lat !== null && d.lng !== null,
+  );
+  if (mappable.length === 0) return null;
+  return [...mappable].sort(
+    (a, b) => getDetailSpecificityScore(b) - getDetailSpecificityScore(a),
+  )[0];
+}
+
+/**
+ * Objects prepared for the honeycomb landing map: showable (public-domain
+ * image with a usable IIIF URL), with a year, and resolving to a specific
+ * (non-country-level) point inside Suriname.
+ */
+export async function getMapTimelineObjects(): Promise<MapTimelineObject[]> {
+  const collection = await getCollection();
+  const out: MapTimelineObject[] = [];
+
+  for (const obj of collection) {
+    if (!obj.hasImage) continue;
+    if (!obj.isPublicDomain) continue;
+    if (!obj.imageUrl) continue;
+    if (obj.year === null) continue;
+
+    const detail = pickPrimarySurinameDetail(obj);
+    if (!detail || detail.lat === null || detail.lng === null) continue;
+
+    out.push({
+      objectnummer: obj.objectnummer,
+      title: obj.titles[0] || obj.objectnummer,
+      year: obj.year,
+      creators: obj.creators,
+      objectTypes: obj.objectTypes,
+      thumbnailUrl: obj.thumbnailUrl,
+      imageUrl: obj.imageUrl,
+      isPublicDomain: obj.isPublicDomain,
+      lat: detail.lat,
+      lng: detail.lng,
+      locationLabel: detail.matchedLabel?.trim() || detail.term,
+      resolutionLevel: detail.resolutionLevel ?? 'exact',
+    });
+  }
+
+  return out;
+}
+
+/**
+ * Counts that document each step of the curation pipeline:
+ * raw → resolved location → Suriname → Wikidata → Commons → public domain
+ * → showable on the landing map.
+ */
+export async function getCurationStats(): Promise<CurationStats> {
+  const collection = await getCollection();
+  const editsApplied = buildLatestLocationEditMap(loadLocationEdits()).size;
+  const termDefaultsApplied = loadTermDefaults().size;
+
+  let withGeographicKeyword = 0;
+  let withResolvedLocation = 0;
+  let withSurinameLocation = 0;
+  let withSurinameSpecificLocation = 0;
+  let withWikidata = 0;
+  let withCommons = 0;
+  let withImage = 0;
+  let publicDomain = 0;
+  let showable = 0;
+
+  for (const obj of collection) {
+    if (obj.geographicKeywords.length > 0) withGeographicKeyword += 1;
+
+    const resolved = obj.geoKeywordDetails.filter(
+      (d) => d.lat !== null && d.lng !== null,
+    );
+    if (resolved.length > 0) withResolvedLocation += 1;
+
+    const suriname = resolved.filter((d) => d.region === 'suriname');
+    if (suriname.length > 0) withSurinameLocation += 1;
+
+    if (suriname.some((d) => d.resolutionLevel !== 'country')) {
+      withSurinameSpecificLocation += 1;
+    }
+
+    if (obj.wikidataUrl) withWikidata += 1;
+    if (obj.wikimediaUrl) withCommons += 1;
+    if (obj.hasImage) withImage += 1;
+    if (obj.isPublicDomain && obj.hasImage) publicDomain += 1;
+
+    if (
+      obj.hasImage &&
+      obj.isPublicDomain &&
+      obj.imageUrl &&
+      obj.year !== null &&
+      pickPrimarySurinameDetail(obj) !== null
+    ) {
+      showable += 1;
+    }
+  }
+
+  return {
+    totalObjects: collection.length,
+    withGeographicKeyword,
+    withResolvedLocation,
+    withSurinameLocation,
+    withSurinameSpecificLocation,
+    withWikidata,
+    withCommons,
+    withImage,
+    publicDomain,
+    showable,
+    locationEditsApplied: editsApplied,
+    termDefaultsApplied,
+  };
 }

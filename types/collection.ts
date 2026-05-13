@@ -15,11 +15,7 @@ export interface GeoKeywordDetail {
   provenance: LocationProvenance | null;
 }
 
-export type LocationResolutionLevel =
-  | 'exact'
-  | 'broader'
-  | 'city'
-  | 'country';
+export type LocationResolutionLevel = 'exact' | 'broader' | 'city' | 'country';
 
 export type LocationEvidenceSource =
   | 'trefwoord'
@@ -133,3 +129,59 @@ export interface GeoLocation {
 export type SortOption = 'date-asc' | 'date-desc' | 'title' | 'relevance';
 
 export type Locale = 'en' | 'nl';
+
+/**
+ * Aggregated statistics computed from the raw Rijksmuseum CSV export
+ * (data/Suriname_objecten_export.csv) — before any enrichment, geocoding,
+ * Wikidata linking or curation.
+ */
+export interface RawCollectionStats {
+  totalObjects: number;
+  objectsByType: Record<string, number>;
+  objectsByDecade: Record<string, number>;
+  topCreators: { name: string; count: number }[];
+  topGeographicKeywords: { name: string; count: number }[];
+  dateRange: { earliest: number; latest: number };
+  uniqueCreators: number;
+  uniqueGeographicKeywords: number;
+  anonymousCount: number;
+}
+
+/**
+ * Counts that document the curation pipeline: how many records survive each
+ * step from the raw CSV to a fully showable, geolocated, public-domain object.
+ */
+export interface CurationStats {
+  totalObjects: number;
+  withGeographicKeyword: number;
+  withResolvedLocation: number;
+  withSurinameLocation: number;
+  withSurinameSpecificLocation: number;
+  withWikidata: number;
+  withCommons: number;
+  withImage: number;
+  publicDomain: number;
+  showable: number;
+  locationEditsApplied: number;
+  termDefaultsApplied: number;
+}
+
+/**
+ * A single object prepared for the honeycomb landing map: only records that
+ * are showable (public-domain image + IIIF URL), have a year, and resolve to
+ * a specific point in Suriname.
+ */
+export interface MapTimelineObject {
+  objectnummer: string;
+  title: string;
+  year: number;
+  creators: string[];
+  objectTypes: string[];
+  thumbnailUrl: string | null;
+  imageUrl: string | null;
+  isPublicDomain: boolean;
+  lat: number;
+  lng: number;
+  locationLabel: string;
+  resolutionLevel: LocationResolutionLevel;
+}

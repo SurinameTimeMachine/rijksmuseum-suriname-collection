@@ -5,24 +5,31 @@
   },
   "nav": {
     "home": "Home",
+    "explore": "Verkennen",
     "gallery": "Galerij",
-    "timeline": "Tijdlijn",
-    "map": "Kaart",
     "statistics": "Statistieken",
     "language": "Taal"
   },
   "home": {
-    "title": "Suriname Collectie",
-    "subtitle": "Rijksmuseum Amsterdam",
-    "intro": "Verken {count} objecten uit het Rijksmuseum met een connectie tot Suriname — van 17e-eeuwse plantageschilderijen tot 20e-eeuwse documentaire fotografie.",
-    "browseGallery": "Bekijk Galerij",
-    "exploreTimeline": "Verken Tijdlijn",
-    "viewMap": "Bekijk Kaart",
-    "viewStatistics": "Bekijk Statistieken",
-    "featuredObjects": "Uitgelichte Objecten",
-    "objectTypes": "Objectsoorten",
-    "dateRange": "Dateringsbereik",
-    "withImages": "Met Afbeeldingen"
+    "title": "Rijksmuseum Suriname Collectie",
+    "subtitle": "{count} objecten met een publiek-domein afbeelding, een datering en een locatie in Suriname — geclusterd in benaderende honingraat-gebieden.",
+    "aboutData": "Over deze data"
+  },
+  "explore": {
+    "objectsShown": "objecten in beeld",
+    "clickHexHint": "Klik op een honingraat om de objecten te zien die in dat gebied geplaatst zijn.",
+    "play": "Afspelen",
+    "pause": "Pauze",
+    "reset": "Herstel",
+    "from": "Vanaf jaar",
+    "to": "Tot jaar"
+  },
+  "hexSidebar": {
+    "approximateLocation": "Benaderend gebied",
+    "untitledArea": "Suriname",
+    "objectsHere": "{count, plural, =1 {1 object} other {# objecten}} in dit gebied geplaatst",
+    "emptyHex": "Geen objecten in dit gebied voor de gekozen periode.",
+    "close": "Sluiten"
   },
   "gallery": {
     "title": "Galerij",
@@ -82,58 +89,73 @@
     "anonymous": "Anoniem",
     "back": "Terug"
   },
-  "timeline": {
-    "title": "Tijdlijn",
-    "subtitle": "Objecten door de tijd — van {start} tot {end}",
-    "objects": "{count, plural, =1 {1 object} other {# objecten}}",
-    "decade": "{decade}",
-    "events": {
-      "1667": "Vrede van Breda — Suriname wordt Nederlands",
-      "1683": "Cornelis van Aerssen wordt gouverneur",
-      "1863": "Afschaffing van de slavernij in Suriname",
-      "1873": "Einde verplichte arbeidsperiode",
-      "1883": "Koloniale Tentoonstelling in Amsterdam",
-      "1954": "Suriname wordt autonoom binnen het Koninkrijk",
-      "1975": "Onafhankelijkheid van Suriname"
-    }
-  },
-  "map": {
-    "title": "Kaart",
-    "subtitle": "Geografische spreiding van de collectie",
-    "suriname": "Suriname",
-    "netherlands": "Nederland",
-    "showSuriname": "Toon Suriname",
-    "showNetherlands": "Toon Nederland",
-    "showBoth": "Beide Regio's",
-    "objectsAtLocation": "{count, plural, =1 {1 object} other {# objecten}} bij {location}",
-    "locations": "locaties",
-    "objects": "objecten",
-    "objectType": "Objectsoort",
-    "clearFilters": "Filters wissen",
-    "searchLocations": "Zoek locaties…",
-    "noLocations": "Geen locaties gevonden",
-    "viewInGallery": "Bekijk in galerij",
-    "showMore": "Bekijk er nog {remaining}…",
-    "showLess": "Toon minder",
-    "markerSize": "Grootte = aantal objecten",
-    "heatmap": "Hittekaart",
-    "markers": "Markers",
-    "heatDensity": "Dichtheid = aantal objecten",
-    "allRegions": "Alle regio's"
-  },
   "statistics": {
-    "title": "Statistieken",
-    "subtitle": "Data-overzicht van de collectie",
-    "totalObjects": "Totaal Objecten",
-    "withImages": "Met Afbeeldingen",
+    "title": "De data achter de collectie",
+    "subtitle": "Een kritische blik op de Suriname-dataset van het Rijksmuseum — wat we ontvingen, wat we hebben aangepast, en wat de bron zelf onthult over wiens geschiedenis is vastgelegd.",
+    "totalObjects": "Totaal objecten",
+    "withImages": "Met afbeeldingen",
     "uniqueCreators": "Vervaardigers",
     "uniqueLocations": "Locaties",
-    "objectsByType": "Objecten per Soort",
-    "objectsByDecade": "Objecten per Decennium",
-    "topCreators": "Meest Vertegenwoordigde Vervaardigers",
-    "topLocations": "Meest Genoemde Locaties",
-    "topSubjects": "Meest Voorkomende Onderwerpen",
-    "topMaterials": "Meest Gebruikte Materialen"
+    "namedCreators": "Benoemde vervaardigers",
+    "anonymousObjects": "Anonieme objecten",
+    "rawGeoKeywords": "Unieke geo-trefwoorden",
+    "rawObjectsByDecade": "Oorspronkelijke verdeling per decennium",
+    "rawObjectsByType": "Oorspronkelijke objecten per soort",
+    "rawTopGeographicKeywords": "Meest gebruikte oorspronkelijke geo-trefwoorden",
+    "objectsByType": "Objecten per soort",
+    "objectsByDecade": "Objecten per decennium",
+    "topCreators": "Meest vertegenwoordigde vervaardigers",
+    "topLocations": "Meest genoemde locaties",
+    "topSubjects": "Meest voorkomende onderwerpen",
+    "topMaterials": "Meest gebruikte materialen",
+    "locationEditsApplied": "Handmatige locatiecorrecties",
+    "termDefaultsApplied": "Trefwoord-standaarden",
+    "withWikidata": "Gekoppeld aan Wikidata",
+    "showable": "Toonbaar op de kaart",
+    "eyebrows": {
+      "source": "I. De bron",
+      "raw": "II. Ruwe dataset",
+      "deltas": "III. Curatie-verschillen",
+      "curated": "IV. Gecureerde dataset",
+      "missing": "V. Wat ontbreekt"
+    },
+    "sectionSource": {
+      "title": "Een koloniale dataset, gecatalogiseerd in Amsterdam",
+      "lead": "Alles wat volgt begint bij één CSV-bestand: de export van het Rijksmuseum met objecten uit de collectie die met Suriname verbonden zijn. Dat bestand is geen neutrale weerspiegeling van de Surinaamse geschiedenis — het is een museumcatalogus, geschreven in het Nederlands, door een Amsterdamse instelling, met daarin objecten die zijn gemaakt, gekocht, verhandeld of meegenomen tijdens en na het Nederlandse koloniale bestuur.",
+      "body": "De statistieken op deze pagina behandelen die bron op twee manieren als bewijsmateriaal. De sectie Ruwe dataset toont de catalogus zoals wij hem ontvingen, vóór elke curatie. De sectie Gecureerde dataset toont wat wij hebben aangepast door verrijking met geocoderingen, Wikidata-identifiers en afbeeldingen op Wikimedia Commons. De verschillen daartussen zijn zelf een register van waar de oorspronkelijke metadata tekortschoot."
+    },
+    "sectionRaw": {
+      "title": "Wat het Rijksmuseum ons gaf",
+      "subtitle": "Cijfers rechtstreeks berekend uit de CSV-export — zonder verrijking of correcties."
+    },
+    "sectionDeltas": {
+      "title": "Van catalogus naar toonbaar object",
+      "subtitle": "Hoeveel objecten elke stap van de curatie overleven.",
+      "body": "Elke balk smalt de dataset af met één extra voorwaarde. Het verschil tussen 'heeft een geografisch trefwoord' en 'specifiek punt in Suriname' laat zien hoe vaak de oorspronkelijke metadata enkel verwijst naar 'Suriname (Zuid-Amerika)' of naar een Nederlandse plaats. De laatste balk — 'Toonbaar op de kaart' — is de strikte selectie die we op de startpagina gebruiken: een publiek-domein afbeelding, een bruikbare IIIF-URL, een datering en een specifiek punt in Suriname."
+    },
+    "sectionCurated": {
+      "title": "Wat wij ervan maakten",
+      "subtitle": "Dezelfde collectie, na geocodering, Wikidata-koppeling en licentie-normalisatie."
+    },
+    "sectionMissing": {
+      "title": "Wat de data nog steeds niet vertelt",
+      "body": "Ook na curatie draagt de catalogus de stiltes van de instelling die haar maakte:",
+      "bullet1": "{count} objecten hebben geen genoemde vervaardiger — inheemse, tot slaaf gemaakte en Afro-Surinaamse makers werden zelden vermeld.",
+      "bullet2": "{count} objecten kunnen nog steeds niet op een specifiek punt in Suriname geplaatst worden; zij zijn alleen aan het land als geheel of aan havensteden onderweg gekoppeld.",
+      "bullet3": "{count} objecten hebben geen afbeelding die wij mogen publiceren, of überhaupt geen afbeelding — auteursrecht- en toegangsbeslissingen vallen ver buiten Paramaribo.",
+      "bullet4": "Het taalgebruik in de catalogus weerspiegelt 17e- tot 20e-eeuwse Europese perspectieven; trefwoorden als 'oorspronkelijke bewoners' of 'overzeese geschiedenis' kaderen de objecten in vanuit een koloniaal standpunt."
+    },
+    "funnel": {
+      "total": "Alle objecten in de export",
+      "withGeographicKeyword": "Heeft een geografisch trefwoord",
+      "withResolvedLocation": "Heeft coördinaten",
+      "withSurinameLocation": "Locatie ligt in Suriname",
+      "withSurinameSpecificLocation": "Specifiek punt in Suriname",
+      "withWikidata": "Gekoppeld aan Wikidata",
+      "withCommons": "Afbeelding op Wikimedia Commons",
+      "publicDomain": "Afbeelding is publiek domein",
+      "showable": "Toonbaar op de kaart"
+    }
   },
   "common": {
     "loading": "Laden…",

@@ -5,24 +5,31 @@
   },
   "nav": {
     "home": "Home",
+    "explore": "Explore",
     "gallery": "Gallery",
-    "timeline": "Timeline",
-    "map": "Map",
     "statistics": "Statistics",
     "language": "Language"
   },
   "home": {
-    "title": "Suriname Collection",
-    "subtitle": "Rijksmuseum Amsterdam",
-    "intro": "Explore {count} objects from the Rijksmuseum connected to Suriname — from 17th-century plantation paintings to 20th-century documentary photography.",
-    "browseGallery": "Browse Gallery",
-    "exploreTimeline": "Explore Timeline",
-    "viewMap": "View Map",
-    "viewStatistics": "View Statistics",
-    "featuredObjects": "Featured Objects",
-    "objectTypes": "Object Types",
-    "dateRange": "Date Range",
-    "withImages": "With Images"
+    "title": "Rijksmuseum Suriname Collection",
+    "subtitle": "{count} objects with a public-domain image, a date, and a location in Suriname — clustered into approximate honeycomb regions.",
+    "aboutData": "About this data"
+  },
+  "explore": {
+    "objectsShown": "objects in view",
+    "clickHexHint": "Click a honeycomb to see the objects approximated to that area.",
+    "play": "Play",
+    "pause": "Pause",
+    "reset": "Reset",
+    "from": "From year",
+    "to": "To year"
+  },
+  "hexSidebar": {
+    "approximateLocation": "Approximate area",
+    "untitledArea": "Suriname",
+    "objectsHere": "{count, plural, =1 {1 object} other {# objects}} placed in this area",
+    "emptyHex": "No objects in this area for the selected time range.",
+    "close": "Close"
   },
   "gallery": {
     "title": "Gallery",
@@ -82,58 +89,73 @@
     "anonymous": "Anonymous",
     "back": "Back"
   },
-  "timeline": {
-    "title": "Timeline",
-    "subtitle": "Objects through time — from {start} to {end}",
-    "objects": "{count, plural, =1 {1 object} other {# objects}}",
-    "decade": "{decade}",
-    "events": {
-      "1667": "Treaty of Breda — Suriname becomes Dutch",
-      "1683": "Cornelis van Aerssen becomes Governor",
-      "1863": "Abolition of slavery in Suriname",
-      "1873": "End of mandatory labour period",
-      "1883": "Colonial Exhibition in Amsterdam",
-      "1954": "Suriname becomes autonomous within the Kingdom",
-      "1975": "Independence of Suriname"
-    }
-  },
-  "map": {
-    "title": "Map",
-    "subtitle": "Geographic distribution of the collection",
-    "suriname": "Suriname",
-    "netherlands": "Netherlands",
-    "showSuriname": "Show Suriname",
-    "showNetherlands": "Show Netherlands",
-    "showBoth": "Both Regions",
-    "objectsAtLocation": "{count, plural, =1 {1 object} other {# objects}} at {location}",
-    "locations": "locations",
-    "objects": "objects",
-    "objectType": "Object Type",
-    "clearFilters": "Clear filters",
-    "searchLocations": "Search locations…",
-    "noLocations": "No locations found",
-    "viewInGallery": "View in Gallery",
-    "showMore": "Show {remaining} more…",
-    "showLess": "Show less",
-    "markerSize": "Size = object count",
-    "heatmap": "Heatmap",
-    "markers": "Markers",
-    "heatDensity": "Density = object count",
-    "allRegions": "All Regions"
-  },
   "statistics": {
-    "title": "Statistics",
-    "subtitle": "Data overview of the collection",
-    "totalObjects": "Total Objects",
-    "withImages": "With Images",
+    "title": "The Data Behind the Collection",
+    "subtitle": "A critical look at the Rijksmuseum's Suriname dataset — what we received, what we changed, and what the source itself reveals about whose history was recorded.",
+    "totalObjects": "Total objects",
+    "withImages": "With images",
     "uniqueCreators": "Creators",
     "uniqueLocations": "Locations",
-    "objectsByType": "Objects by Type",
-    "objectsByDecade": "Objects by Decade",
-    "topCreators": "Most Represented Creators",
-    "topLocations": "Most Mentioned Locations",
-    "topSubjects": "Most Common Subjects",
-    "topMaterials": "Most Used Materials"
+    "namedCreators": "Named creators",
+    "anonymousObjects": "Anonymous objects",
+    "rawGeoKeywords": "Distinct geo keywords",
+    "rawObjectsByDecade": "Original distribution by decade",
+    "rawObjectsByType": "Original objects by type",
+    "rawTopGeographicKeywords": "Most-used original geo keywords",
+    "objectsByType": "Objects by type",
+    "objectsByDecade": "Objects by decade",
+    "topCreators": "Most-represented creators",
+    "topLocations": "Most-mentioned locations",
+    "topSubjects": "Most common subjects",
+    "topMaterials": "Most used materials",
+    "locationEditsApplied": "Manual location edits",
+    "termDefaultsApplied": "Keyword defaults",
+    "withWikidata": "Linked to Wikidata",
+    "showable": "Showable on the map",
+    "eyebrows": {
+      "source": "I. The source",
+      "raw": "II. Raw dataset",
+      "deltas": "III. Curation deltas",
+      "curated": "IV. Curated dataset",
+      "missing": "V. What is missing"
+    },
+    "sectionSource": {
+      "title": "A colonial dataset, catalogued in Amsterdam",
+      "lead": "Everything that follows starts from a single CSV file: the Rijksmuseum's export of objects in its collection associated with Suriname. That file is not a neutral mirror of Surinamese history — it is a museum catalogue, written in Dutch, by an Amsterdam institution, describing objects that were made, bought, sold or captured during and after Dutch colonial rule.",
+      "body": "The statistics on this page treat that source as evidence in two ways. The Raw dataset section shows the catalogue as we received it, before any curation. The Curated dataset section shows what we changed by enriching it with geocoded locations, Wikidata identifiers and Wikimedia Commons images. The deltas in between are themselves a record of where the original metadata fell short."
+    },
+    "sectionRaw": {
+      "title": "What the Rijksmuseum gave us",
+      "subtitle": "Counts computed directly from the CSV export — no enrichment, no corrections."
+    },
+    "sectionDeltas": {
+      "title": "From catalogue to showable record",
+      "subtitle": "How many objects survive each step of the curation pipeline.",
+      "body": "Each bar narrows the dataset by one constraint. The drop from 'has a geographic keyword' to 'has a location specifically inside Suriname' shows how often the original metadata only points to 'Suriname (Zuid-Amerika)' or to a Dutch place. The final bar — 'Showable on the map' — is the strict slice we use on the landing page: a public-domain image, a usable IIIF URL, a year, and a specific point inside Suriname."
+    },
+    "sectionCurated": {
+      "title": "What we made of it",
+      "subtitle": "The same collection after geocoding, Wikidata linking and license normalisation."
+    },
+    "sectionMissing": {
+      "title": "What the data still does not say",
+      "body": "Even after curation, the catalogue carries the silences of the institution that produced it:",
+      "bullet1": "{count} objects have no named maker — Indigenous, enslaved and African-Surinamese creators were rarely credited.",
+      "bullet2": "{count} objects still cannot be placed at a specific point inside Suriname; they are tagged only with the country as a whole or with the harbour cities the objects passed through.",
+      "bullet3": "{count} objects either have no image we are allowed to publish, or no image at all — copyright and access decisions are made far from Paramaribo.",
+      "bullet4": "Descriptive language in the catalogue reflects 17th–20th century European perspectives; subject terms like 'oorspronkelijke bewoners' or 'overzeese geschiedenis' frame the objects from a colonial vantage point."
+    },
+    "funnel": {
+      "total": "All objects in the export",
+      "withGeographicKeyword": "Has a geographic keyword",
+      "withResolvedLocation": "Has resolved coordinates",
+      "withSurinameLocation": "Location is in Suriname",
+      "withSurinameSpecificLocation": "Specific point inside Suriname",
+      "withWikidata": "Linked to Wikidata",
+      "withCommons": "Image on Wikimedia Commons",
+      "publicDomain": "Image is public domain",
+      "showable": "Showable on the map"
+    }
   },
   "common": {
     "loading": "Loading…",
