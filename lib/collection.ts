@@ -12,6 +12,9 @@ import type {
   CurationStats,
   FilterOptions,
   GeoKeywordDetail,
+  HoneycombBackgroundCell,
+  HoneycombBin,
+  HoneycombData,
   MapTimelineObject,
   SortOption,
 } from '@/types/collection';
@@ -415,6 +418,12 @@ const GENERIC_MAP_LABELS = new Set([
   'nickerie',
 ]);
 
+/**
+ * Specific location labels we exclude from the landing map because their
+ * coordinates fall at the extreme edge of Suriname or are otherwise unreliable.
+ */
+const EXCLUDED_LOCATION_LABELS = new Set(['sipaliwini savanna']);
+
 function normalizeMapLabelKey(input: string | null | undefined): string {
   return (input || '')
     .normalize('NFKD')
@@ -464,7 +473,11 @@ export function pickPrimarySurinameDetail(
       d.region === 'suriname' &&
       // Exclude country-level fallback so the honeycomb is not swamped
       // by a single point representing "Suriname" as a whole.
-      d.resolutionLevel !== 'country',
+      d.resolutionLevel !== 'country' &&
+      // Exclude specific labels with unreliable / edge-case coordinates.
+      !EXCLUDED_LOCATION_LABELS.has(
+        normalizeMapLabelKey(d.matchedLabel || d.term),
+      ),
   );
   if (mappable.length === 0) return null;
   return [...mappable].sort(
@@ -591,3 +604,53 @@ export async function getCurationStats(): Promise<CurationStats> {
     termDefaultsApplied,
   };
 }
+
+/**
+ * Precompute hex bins at every resolution the landing map switches between.
+ * Done on the server so the heavy `h3-js` (emscripten) bundle never ships
+ * to the browser. Each bin lists the indices of the objects that fall into
+ * it; the client filters those indices by the active year range.
+ */
+export const getHoneycombData = cache(async (): Promise<HoneycombData> => {
+  const { cellToBoundary, gridDisk, latLngToCell } = await import('h3-js');
+  const objects = await getMapTimelineObjects();
+
+  const resolutions = [4, 5, 6, 7, 8];
+  const binsByResolution: Record<number, HoneycombBin[]> = {};
+  const backgroundByResolution: Record<number, HoneycombBackgroundCell[]> = {};
+
+  for (const resolution of resolutions) {
+    // Build data bins
+    const map = new Map<string, number[]>();
+    for (let i = 0; i < objects.length; i++) {
+      const obj = objects[i];
+      const id = latLngToCell(obj.lat, obj.lng, resolution);
+      const arr = map.get(id);
+      if (arr) arr.push(i);
+      else map.set(id, [i]);
+    }
+    binsByResolution[resolution] = Array.from(map.entries()).map(
+      ([id, indices]) => ({
+        id,
+        boundary: cellToBoundary(id) as [number, number][],
+        indices,
+      }),
+    );
+
+    // Build background hex grid: immediate neighbors of data hexes that
+    // are not themselves data hexes. Gives the honeycomb structural look.
+    const filledIds = new Set(map.keys());
+    const bgIds = new Set<string>();
+    for (const id of filledIds) {
+      for (const neighbor of gridDisk(id, 1)) {
+        if (!filledIds.has(neighbor)) bgIds.add(neighbor);
+      }
+    }
+    backgroundByResolution[resolution] = Array.from(bgIds).map((id) => ({
+      id,
+      boundary: cellToBoundary(id) as [number, number][],
+    }));
+  }
+
+  return { objects, binsByResolution, backgroundByResolution };
+});

@@ -3,8 +3,7 @@
 import HexSidebar from '@/components/HexSidebar';
 import type { HexCell } from '@/components/HoneycombMap';
 import TimeSliderControl from '@/components/TimeSliderControl';
-import type { MapTimelineObject } from '@/types/collection';
-import { cellToBoundary, latLngToCell } from 'h3-js';
+import type { HoneycombData, MapTimelineObject } from '@/types/collection';
 import { Layers } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
@@ -18,7 +17,7 @@ const HoneycombMap = dynamic(() => import('@/components/HoneycombMap'), {
 });
 
 interface ExploreViewProps {
-  objects: MapTimelineObject[];
+  data: HoneycombData;
   minYear: number;
   maxYear: number;
 }
@@ -32,11 +31,12 @@ function resolutionForZoom(zoom: number): number {
 }
 
 export default function ExploreView({
-  objects,
+  data,
   minYear,
   maxYear,
 }: ExploreViewProps) {
   const t = useTranslations('explore');
+  const { objects, binsByResolution } = data;
 
   const [fromYear, setFromYear] = useState(minYear);
   const [toYear, setToYear] = useState(maxYear);
@@ -44,30 +44,48 @@ export default function ExploreView({
   const [selectedHexId, setSelectedHexId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(7);
 
-  const filteredObjects = useMemo(
-    () => objects.filter((o) => o.year >= fromYear && o.year <= toYear),
-    [objects, fromYear, toYear],
-  );
+  // Build a per-cell view that respects the active year range.
+  const { hexes, backgroundHexes, selectedObjects, totalInView } =
+    useMemo(() => {
+      const resolution = resolutionForZoom(zoom);
+      const bins = binsByResolution[resolution] ?? [];
+      const background = data.backgroundByResolution[resolution] ?? [];
 
-  const hexes: HexCell[] = useMemo(() => {
-    const resolution = resolutionForZoom(zoom);
-    const bins = new Map<string, MapTimelineObject[]>();
-    for (const obj of filteredObjects) {
-      const id = latLngToCell(obj.lat, obj.lng, resolution);
-      if (!bins.has(id)) bins.set(id, []);
-      bins.get(id)!.push(obj);
-    }
-    return Array.from(bins.entries()).map(([id, objs]) => ({
-      id,
-      boundary: cellToBoundary(id) as [number, number][],
-      count: objs.length,
-      objects: objs,
-    }));
-  }, [filteredObjects, zoom]);
+      const cells: HexCell[] = [];
+      let total = 0;
+      let selected: MapTimelineObject[] = [];
 
-  const selectedHex = selectedHexId
-    ? hexes.find((h) => h.id === selectedHexId)
-    : null;
+      for (const bin of bins) {
+        let count = 0;
+        const matched: MapTimelineObject[] = [];
+        for (const idx of bin.indices) {
+          const obj = objects[idx];
+          if (obj.year >= fromYear && obj.year <= toYear) {
+            count += 1;
+            if (selectedHexId === bin.id) matched.push(obj);
+          }
+        }
+        if (count === 0) continue;
+        total += count;
+        cells.push({ id: bin.id, boundary: bin.boundary, count });
+        if (selectedHexId === bin.id) selected = matched;
+      }
+
+      return {
+        hexes: cells,
+        backgroundHexes: background,
+        selectedObjects: selected,
+        totalInView: total,
+      };
+    }, [
+      binsByResolution,
+      data.backgroundByResolution,
+      objects,
+      zoom,
+      fromYear,
+      toYear,
+      selectedHexId,
+    ]);
 
   const handleRangeChange = (from: number, to: number) => {
     setFromYear(from);
@@ -75,9 +93,10 @@ export default function ExploreView({
   };
 
   return (
-    <div className="relative w-full h-[calc(100vh-4rem)]">
+    <div className="relative w-full h-[calc(100dvh-4rem)]">
       <HoneycombMap
         hexes={hexes}
+        backgroundHexes={backgroundHexes}
         selectedHexId={selectedHexId}
         onSelectHex={setSelectedHexId}
         onZoomChange={setZoom}
@@ -88,7 +107,7 @@ export default function ExploreView({
         <Layers size={14} className="text-(--color-charcoal-light)" />
         <span className="text-(--color-charcoal)">
           <strong className="font-semibold">
-            {filteredObjects.length.toLocaleString()}
+            {totalInView.toLocaleString()}
           </strong>{' '}
           <span className="text-(--color-warm-gray)">{t('objectsShown')}</span>
         </span>
@@ -116,8 +135,8 @@ export default function ExploreView({
 
       {/* Sidebar */}
       <HexSidebar
-        open={Boolean(selectedHex)}
-        objects={selectedHex?.objects ?? []}
+        open={Boolean(selectedHexId)}
+        objects={selectedObjects}
         onClose={() => setSelectedHexId(null)}
       />
     </div>

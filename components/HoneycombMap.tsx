@@ -1,7 +1,7 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
-import type { MapTimelineObject } from '@/types/collection';
+import type { HoneycombBackgroundCell } from '@/types/collection';
 import { useEffect } from 'react';
 import {
   MapContainer,
@@ -16,11 +16,11 @@ export interface HexCell {
   id: string;
   boundary: [number, number][];
   count: number;
-  objects: MapTimelineObject[];
 }
 
 interface HoneycombMapProps {
   hexes: HexCell[];
+  backgroundHexes: HoneycombBackgroundCell[];
   selectedHexId: string | null;
   onSelectHex: (hexId: string | null) => void;
   onZoomChange: (zoom: number) => void;
@@ -39,6 +39,7 @@ function ZoomTracker({ onZoom }: { onZoom: (zoom: number) => void }) {
 
 export default function HoneycombMap({
   hexes,
+  backgroundHexes,
   selectedHexId,
   onSelectHex,
   onZoomChange,
@@ -60,9 +61,27 @@ export default function HoneycombMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <ZoomTracker onZoom={onZoomChange} />
+
+      {/* Background grid: empty neighbor hexes for structural honeycomb feel */}
+      {backgroundHexes.map((hex) => (
+        <Polygon
+          key={`bg-${hex.id}`}
+          positions={hex.boundary}
+          pathOptions={{
+            color: '#7a6e62',
+            weight: 0.8,
+            opacity: 0.3,
+            fillColor: '#c8bfb0',
+            fillOpacity: 0.05,
+            interactive: false,
+          }}
+        />
+      ))}
+
+      {/* Data hexes */}
       {hexes.map((hex) => {
         const ratio = Math.log(1 + hex.count) / Math.log(1 + maxCount);
-        const fillOpacity = 0.25 + ratio * 0.55;
+        const fillOpacity = 0.3 + ratio * 0.55;
         const isSelected = selectedHexId === hex.id;
         return (
           <Polygon
@@ -70,7 +89,7 @@ export default function HoneycombMap({
             positions={hex.boundary}
             pathOptions={{
               color: isSelected ? '#1b3a35' : '#9a3e31',
-              weight: isSelected ? 2.5 : 1,
+              weight: isSelected ? 2.5 : 1.2,
               fillColor: '#c0503e',
               fillOpacity: isSelected ? 0.9 : fillOpacity,
             }}

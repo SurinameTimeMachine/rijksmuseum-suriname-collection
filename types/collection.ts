@@ -185,3 +185,25 @@ export interface MapTimelineObject {
   locationLabel: string;
   resolutionLevel: LocationResolutionLevel;
 }
+
+/**
+ * Hex bin precomputed on the server. Boundary is a polygon ring of
+ * [lat, lng] pairs ready for Leaflet. Indices reference items in the
+ * shared `MapTimelineObject[]` array passed alongside.
+ */
+export interface HoneycombBin {
+  id: string;
+  boundary: [number, number][];
+  indices: number[];
+}
+
+export interface HoneycombBackgroundCell {
+  id: string;
+  boundary: [number, number][];
+}
+
+export interface HoneycombData {
+  objects: MapTimelineObject[];
+  binsByResolution: Record<number, HoneycombBin[]>;
+  backgroundByResolution: Record<number, HoneycombBackgroundCell[]>;
+}
