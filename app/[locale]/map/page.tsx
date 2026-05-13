@@ -105,13 +105,14 @@ export default async function MapPage({
 
   // Build map buckets per object-specific resolved detail.
   // This avoids pinning all objects with the same keyword to objects[0].
-  // `id` is a synthetic clustering id; `keyword` is the original gallery
-  // search term so the "View in Gallery" link still filters correctly.
+  // `id` is a synthetic clustering id; `keywords` preserves every original
+  // gallery search term that contributed to the bucket so the
+  // "View in Gallery" link can reproduce the full marker contents.
   const locationBuckets = new Map<
     string,
     {
       id: string;
-      keyword: string;
+      keywords: string[];
       geo: {
         name: string;
         lat: number;
