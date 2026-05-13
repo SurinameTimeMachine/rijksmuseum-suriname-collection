@@ -1,5 +1,3 @@
-import { cache } from 'react';
-
 import {
   applyLocationEditsToObject,
   applyTermDefaultsToObject,
@@ -14,6 +12,7 @@ import type {
   FilterOptions,
   SortOption,
 } from '@/types/collection';
+import { cache } from 'react';
 
 function getObjectLicenseStatus(
   obj: CollectionObject,
