@@ -1,26 +1,26 @@
-import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import { getTranslations, setRequestLocale } from 'next-intl/server';
+import ObjectCard from '@/components/ObjectCard';
+import ObjectImage from '@/components/ObjectImage';
 import { getObjectByNumber, getRelatedObjects } from '@/lib/collection';
 import { getLicenseShortName } from '@/lib/utils';
-import ObjectImage from '@/components/ObjectImage';
-import ObjectCard from '@/components/ObjectCard';
 import {
+  AlertTriangle,
   ArrowLeft,
   Calendar,
-  Palette,
+  ExternalLink,
+  Globe,
+  Layers,
   MapPin,
+  Palette,
+  Scale,
   Tag,
   Users,
-  ExternalLink,
-  Layers,
-  Scale,
-  AlertTriangle,
-  Globe,
 } from 'lucide-react';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 
-// Return empty array so pages are rendered on-demand instead of at build time.
-// This avoids exceeding Vercel's 75 MB deploy size limit (~7 300+ objects × 2 locales).
+// Return empty array so pages are rendered on-demand instead of at build time,
+// avoiding excessive build output for ~7 300+ objects × 2 locales.
 export function generateStaticParams() {
   return [];
 }
@@ -214,11 +214,37 @@ export default async function ObjectPage({
                             {t('locationNeedsReview')}
                           </div>
                         )}
+                        {detail.flags.includes('outside-suriname') && (
+                          <div className="text-amber-700 mt-1">
+                            {t('locationOutsideSuriname')}
+                          </div>
+                        )}
+                        {detail.provenance && (
+                          <div className="text-(--color-warm-gray) mt-1">
+                            {detail.provenance.author} ·{' '}
+                            {detail.provenance.timestamp}
+                            {detail.provenance.remark
+                              ? ` · ${detail.provenance.remark}`
+                              : ''}
+                          </div>
+                        )}
                         {detail &&
-                          (detail.wikidataUri ||
+                          (detail.stmGazetteerUrl ||
+                            detail.wikidataUri ||
                             detail.gettyUri ||
                             detail.geonamesUri) && (
                             <div className="flex flex-wrap gap-2 mt-1">
+                              {detail.stmGazetteerUrl && (
+                                <a
+                                  href={detail.stmGazetteerUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-0.5 text-blue-700 hover:underline"
+                                >
+                                  STM
+                                  <ExternalLink size={9} />
+                                </a>
+                              )}
                               {detail.wikidataUri && (
                                 <a
                                   href={detail.wikidataUri}

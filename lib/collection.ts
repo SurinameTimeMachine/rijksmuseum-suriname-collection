@@ -1,3 +1,10 @@
+import {
+  applyLocationEditsToObject,
+  applyTermDefaultsToObject,
+  buildLatestLocationEditMap,
+  loadLocationEdits,
+  loadTermDefaults,
+} from '@/lib/location-curation';
 import { getLicenseShortName } from '@/lib/utils';
 import type {
   CollectionObject,
@@ -22,7 +29,13 @@ function getObjectLicenseStatus(
 export const getCollection = cache(async (): Promise<CollectionObject[]> => {
   // Dynamic import to read the JSON at build/request time
   const data = await import('@/data/collection.json');
-  return data.default as CollectionObject[];
+  const collection = data.default as CollectionObject[];
+  const latestLocationEdits = buildLatestLocationEditMap(loadLocationEdits());
+  const termDefaults = loadTermDefaults();
+
+  return collection
+    .map((obj) => applyLocationEditsToObject(obj, latestLocationEdits))
+    .map((obj) => applyTermDefaultsToObject(obj, termDefaults));
 });
 
 /**
@@ -306,16 +319,6 @@ export async function getFacets(activeFilters?: Partial<FilterOptions>) {
     materials: mapToSorted(materials),
     licenseStatuses: mapToSorted(licenseStatuses),
   };
-}
-
-/**
- * Return objects with unresolved location interpretation for QA review.
- */
-export async function getLocationQaObjects(): Promise<CollectionObject[]> {
-  const collection = await getCollection();
-  return collection.filter((obj) =>
-    obj.geoKeywordDetails.some((d) => d.source === 'unresolved'),
-  );
 }
 
 /**

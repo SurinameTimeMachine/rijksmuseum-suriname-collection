@@ -15,8 +15,21 @@
 import fs from 'fs';
 import Papa from 'papaparse';
 import path from 'path';
-import type { CollectionObject, GeoKeywordDetail } from '../types/collection';
+
 import { geoCoordinates } from '../data/geo-coordinates';
+import {
+  applyLocationEditsToObject,
+  buildLatestLocationEditMap,
+  getGeoFlags,
+  inferResolutionLevel,
+  loadLocationEdits,
+  normalizeWikidataReference,
+  parseWktPoint,
+} from '../lib/location-curation';
+import type {
+  CollectionObject,
+  GeoKeywordDetail,
+} from '../types/collection';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const CSV_PATH = path.join(DATA_DIR, 'Suriname_objecten_export.csv');
@@ -85,37 +98,82 @@ function loadGeoThesaurus(): Map<string, GeoKeywordDetail> {
     skipEmptyLines: true,
   });
 
+  const header = parsed.data[0] || [];
+  const isExpandedFormat = header.includes('coords') || header.length >= 13;
+
   // Skip header row (index 0)
   for (let i = 1; i < parsed.data.length; i++) {
     const cols = parsed.data[i];
     const term = (cols[1] || '').trim();
     if (!term) continue;
 
-    const broaderTerm = (cols[2] || '').trim() || null;
+    const broaderTerm = (cols[isExpandedFormat ? 4 : 2] || '').trim() || null;
+    const matchedLabel =
+      (cols[isExpandedFormat ? 2 : 1] || '').trim() || null;
 
-    // Columns 3-5 are all "PID_overige.URI" — categorize by domain
     let gettyUri: string | null = null;
     let wikidataUri: string | null = null;
     let geonamesUri: string | null = null;
 
-    for (let c = 3; c <= 5; c++) {
-      const uri = (cols[c] || '').trim();
-      if (!uri) continue;
-      if (uri.includes('vocab.getty.edu')) gettyUri = uri;
-      else if (uri.includes('wikidata.org')) wikidataUri = uri;
-      else if (uri.includes('geonames.org')) geonamesUri = uri;
+    let lat: number | null = null;
+    let lng: number | null = null;
+    let resolutionLevel = null;
+
+    if (isExpandedFormat) {
+      const uriColumns = [6, 7, 8];
+      const directQid = (cols[9] || '').trim();
+      const broaderQid = (cols[10] || '').trim();
+      const directWikidataUri = (cols[5] || '').trim() || (cols[3] || '').trim();
+
+      for (const c of uriColumns) {
+        const uri = (cols[c] || '').trim();
+        if (!uri) continue;
+        if (uri.includes('vocab.getty.edu')) gettyUri = uri;
+        else if (uri.includes('wikidata.org')) wikidataUri = uri;
+        else if (uri.includes('geonames.org')) geonamesUri = uri;
+      }
+
+      if (!wikidataUri && directWikidataUri) {
+        wikidataUri = directWikidataUri;
+      }
+
+      const fallbackRef = normalizeWikidataReference(directQid || broaderQid);
+      if (!wikidataUri && fallbackRef.url) {
+        wikidataUri = fallbackRef.url;
+      }
+
+      const point = parseWktPoint(cols[12]);
+      lat = point?.lat ?? geoCoordinates[term]?.lat ?? null;
+      lng = point?.lng ?? geoCoordinates[term]?.lng ?? null;
+      resolutionLevel = inferResolutionLevel(broaderTerm, Boolean(directQid));
+    } else {
+      for (let c = 3; c <= 5; c++) {
+        const uri = (cols[c] || '').trim();
+        if (!uri) continue;
+        if (uri.includes('vocab.getty.edu')) gettyUri = uri;
+        else if (uri.includes('wikidata.org')) wikidataUri = uri;
+        else if (uri.includes('geonames.org')) geonamesUri = uri;
+      }
+
+      lat = geoCoordinates[term]?.lat ?? null;
+      lng = geoCoordinates[term]?.lng ?? null;
+      resolutionLevel = inferResolutionLevel(broaderTerm, Boolean(wikidataUri));
     }
 
     map.set(term, {
       term,
       broaderTerm,
+      matchedLabel,
       gettyUri,
       wikidataUri,
       geonamesUri,
-      lat: geoCoordinates[term]?.lat ?? null,
-      lng: geoCoordinates[term]?.lng ?? null,
+      lat,
+      lng,
       region: geoCoordinates[term]?.region ?? null,
       source: 'thesaurus',
+      resolutionLevel,
+      flags: getGeoFlags(lat, lng),
+      provenance: null,
     });
   }
 
@@ -185,6 +243,7 @@ function buildGeoKeywordDetails(
       return {
         term: kw,
         broaderTerm: null,
+        matchedLabel: null,
         gettyUri: null,
         wikidataUri: null,
         geonamesUri: null,
@@ -192,12 +251,16 @@ function buildGeoKeywordDetails(
         lng: coord.lng,
         region: coord.region,
         source: 'coordinates',
+        resolutionLevel: null,
+        flags: getGeoFlags(coord.lat, coord.lng),
+        provenance: null,
       };
     }
 
     return {
       term: kw,
       broaderTerm: null,
+      matchedLabel: null,
       gettyUri: null,
       wikidataUri: null,
       geonamesUri: null,
@@ -205,6 +268,9 @@ function buildGeoKeywordDetails(
       lng: null,
       region: null,
       source: 'unresolved',
+      resolutionLevel: null,
+      flags: [],
+      provenance: null,
     };
   });
 }
@@ -477,6 +543,7 @@ async function processBatch(
   cache: ImageCache,
   geoThesaurus: Map<string, GeoKeywordDetail>,
   wikidataMap: Map<string, WikidataEntry>,
+  latestLocationEdits: Map<string, import('../types/collection').LocationEditRecord>,
 ): Promise<CollectionObject[]> {
   const results: CollectionObject[] = [];
 
@@ -541,7 +608,7 @@ async function processBatch(
       wikimediaUrl: wikidataMap.get(row.recordnummer)?.wikimediaUrl ?? null,
     };
 
-    results.push(obj);
+    results.push(applyLocationEditsToObject(obj, latestLocationEdits));
   }
 
   return results;
@@ -578,6 +645,8 @@ async function main() {
   console.log(`📍 Geo thesaurus: ${geoThesaurus.size} geographic terms`);
   const wikidataMap = loadWikidataCommons();
   console.log(`🔗 Wikidata/Commons: ${wikidataMap.size} linked objects`);
+  const latestLocationEdits = buildLatestLocationEditMap(loadLocationEdits());
+  console.log(`📝 Location edits: ${latestLocationEdits.size} applied overrides`);
 
   // Load cache
   const cache = loadCache();
@@ -598,7 +667,13 @@ async function main() {
   for (let i = 0; i < rows.length; i += CONCURRENCY) {
     const batch = rows.slice(i, i + CONCURRENCY);
     const batchNum = Math.floor(i / CONCURRENCY) + 1;
-    const results = await processBatch(batch, cache, geoThesaurus, wikidataMap);
+    const results = await processBatch(
+      batch,
+      cache,
+      geoThesaurus,
+      wikidataMap,
+      latestLocationEdits,
+    );
     allObjects.push(...results);
 
     const progress = Math.round(((i + batch.length) / rows.length) * 100);

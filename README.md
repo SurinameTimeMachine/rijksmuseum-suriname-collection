@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Rijksmuseum Suriname Collection
 
-## Getting Started
+A Next.js application that explores the Suriname-related holdings of the
+Rijksmuseum (Amsterdam) — paintings, prints, photographs, maps and objects
+connected to the colonial history of Suriname.
 
-First, run the development server:
+The site offers a gallery, timeline, interactive map and statistics view, in
+English and Dutch.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000); the middleware will
+redirect to the configured locale.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Useful scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm enrich                    # rebuild data/collection.json from CSV sources
+pnpm sync:stm-gazetteer        # refresh data/places-gazetteer.jsonld
+pnpm build:street-aliases      # rebuild data/paramaribo-street-aliases.json
+pnpm report:locations          # produce data/reports/location-report.*
+```
 
-## Learn More
+See `package.json` for the full list.
 
-To learn more about Next.js, take a look at the following resources:
+## Data
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+All site content is derived from the CSV/JSON files under `data/`. The
+production build reads `data/collection.json`, which is regenerated from the
+source CSVs via `pnpm enrich`. Curation overlays live in
+`data/location-edits.jsonl` and `data/term-wikidata-map.json`.

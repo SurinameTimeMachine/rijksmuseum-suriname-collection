@@ -9,7 +9,6 @@
     "timeline": "Timeline",
     "map": "Map",
     "statistics": "Statistics",
-    "locationQa": "Location QA",
     "language": "Language"
   },
   "home": {
@@ -53,14 +52,6 @@
     "noResults": "No objects match your filters.",
     "noResultsSuggestion": "Try adjusting your filters or search terms."
   },
-  "locationQa": {
-    "title": "Location QA",
-    "subtitle": "Objects with unresolved location interpretation",
-    "unresolvedTerms": "Unresolved terms",
-    "objects": "Objects",
-    "openObject": "Open object",
-    "noIssues": "No unresolved locations found."
-  },
   "object": {
     "description": "Description",
     "creators": "Creator(s)",
@@ -78,12 +69,15 @@
     "license": "License",
     "licenseUnknown": "License unknown — needs review",
     "locationNeedsReview": "Location could not be resolved automatically and should be reviewed",
+    "locationOutsideSuriname": "Coordinates fall outside Suriname and should be verified",
     "locationMap": "Location Map",
     "openInMap": "Open in map",
     "locationSource": {
       "thesaurus": "Source: Geo thesaurus",
       "coordinates": "Source: Coordinates table",
-      "unresolved": "Source: Unresolved"
+      "unresolved": "Source: Unresolved",
+      "edit": "Source: Local edit",
+      "term-default": "Source: Keyword default"
     },
     "anonymous": "Anonymous",
     "back": "Back"
@@ -121,7 +115,11 @@
     "viewInGallery": "View in Gallery",
     "showMore": "Show {remaining} more…",
     "showLess": "Show less",
-    "markerSize": "Size = object count"
+    "markerSize": "Size = object count",
+    "heatmap": "Heatmap",
+    "markers": "Markers",
+    "heatDensity": "Density = object count",
+    "allRegions": "All Regions"
   },
   "statistics": {
     "title": "Statistics",

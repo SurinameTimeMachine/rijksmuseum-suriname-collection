@@ -9,7 +9,6 @@
     "timeline": "Tijdlijn",
     "map": "Kaart",
     "statistics": "Statistieken",
-    "locationQa": "Locatie QA",
     "language": "Taal"
   },
   "home": {
@@ -53,14 +52,6 @@
     "noResults": "Geen objecten gevonden met deze filters.",
     "noResultsSuggestion": "Probeer de filters of zoektermen aan te passen."
   },
-  "locationQa": {
-    "title": "Locatie QA",
-    "subtitle": "Objecten met onopgeloste locatie-interpretatie",
-    "unresolvedTerms": "Onopgeloste termen",
-    "objects": "Objecten",
-    "openObject": "Open object",
-    "noIssues": "Geen onopgeloste locaties gevonden."
-  },
   "object": {
     "description": "Beschrijving",
     "creators": "Vervaardiger(s)",
@@ -78,12 +69,15 @@
     "license": "Licentie",
     "licenseUnknown": "Licentie onbekend — moet gecontroleerd worden",
     "locationNeedsReview": "Locatie kon niet automatisch worden bepaald en moet worden gecontroleerd",
+    "locationOutsideSuriname": "Coördinaten vallen buiten Suriname en moeten worden gecontroleerd",
     "locationMap": "Locatiekaart",
     "openInMap": "Openen in kaart",
     "locationSource": {
       "thesaurus": "Bron: Geo-thesaurus",
       "coordinates": "Bron: Coördinatentabel",
-      "unresolved": "Bron: Onopgelost"
+      "unresolved": "Bron: Onopgelost",
+      "edit": "Bron: Lokale bewerking",
+      "term-default": "Bron: Trefwoordstandaard"
     },
     "anonymous": "Anoniem",
     "back": "Terug"
@@ -118,10 +112,14 @@
     "clearFilters": "Filters wissen",
     "searchLocations": "Zoek locaties…",
     "noLocations": "Geen locaties gevonden",
-    "viewInGallery": "Bekijk in Galerij",
-    "showMore": "Toon {remaining} meer…",
+    "viewInGallery": "Bekijk in galerij",
+    "showMore": "Bekijk er nog {remaining}…",
     "showLess": "Toon minder",
-    "markerSize": "Grootte = aantal objecten"
+    "markerSize": "Grootte = aantal objecten",
+    "heatmap": "Hittekaart",
+    "markers": "Markers",
+    "heatDensity": "Dichtheid = aantal objecten",
+    "allRegions": "Alle regio's"
   },
   "statistics": {
     "title": "Statistieken",

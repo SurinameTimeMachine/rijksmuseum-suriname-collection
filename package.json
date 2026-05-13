@@ -3,18 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
+    "dev": "next dev",
+    "enrich": "npx tsx scripts/enrich-data.ts",
+    "export:rijksmuseum-delta": "npx tsx scripts/export-rijksmuseum-location-delta.ts",
     "lint": "eslint",
-    "enrich": "npx tsx scripts/enrich-data.ts"
+    "report:locations": "npx tsx scripts/export-location-report.ts",
+    "start": "next start",
+    "sync:stm-gazetteer": "npx tsx scripts/sync-stm-gazetteer.ts"
   },
   "dependencies": {
     "clsx": "^2.1.1",
     "leaflet": "^1.9.4",
+    "leaflet.heat": "^0.2.0",
     "lucide-react": "^0.574.0",
-    "next": "16.1.6",
-    "next-intl": "^4.8.3",
+    "next": "16.2.6",
+    "next-intl": "^4.12.0",
     "papaparse": "^5.5.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
