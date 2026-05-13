@@ -225,8 +225,10 @@ export default function MapClient({ locations }: MapClientProps) {
                 : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)'
             }`}
             title={t('markers')}
+            aria-label={t('markers')}
+            aria-pressed={viewMode === 'markers'}
           >
-            <MapIcon size={16} />
+            <MapIcon size={16} aria-hidden="true" />
           </button>
           <button
             onClick={() => setViewMode('heatmap')}
@@ -236,8 +238,10 @@ export default function MapClient({ locations }: MapClientProps) {
                 : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)'
             }`}
             title={t('heatmap')}
+            aria-label={t('heatmap')}
+            aria-pressed={viewMode === 'heatmap'}
           >
-            <Flame size={16} />
+            <Flame size={16} aria-hidden="true" />
           </button>
         </div>
 
