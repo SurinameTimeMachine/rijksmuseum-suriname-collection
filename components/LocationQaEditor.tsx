@@ -1,13 +1,12 @@
 'use client';
 
-import {
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useState,
-  useTransition,
-} from 'react';
-
+import streetAliases from '@/data/paramaribo-street-aliases.json';
+import type {
+  CollectionObject,
+  GeoKeywordDetail,
+  LocationEvidenceSource,
+  LocationResolutionLevel,
+} from '@/types/collection';
 import {
   AlertTriangle,
   Check,
@@ -21,20 +20,15 @@ import {
   Search,
   XCircle,
 } from 'lucide-react';
-import {
-  useLocale,
-  useTranslations,
-} from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-
-import streetAliases from '@/data/paramaribo-street-aliases.json';
-import type {
-  CollectionObject,
-  GeoKeywordDetail,
-  LocationEvidenceSource,
-  LocationResolutionLevel,
-} from '@/types/collection';
-
+import {
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+  useTransition,
+} from 'react';
 import ObjectImage from './ObjectImage';
 
 interface LocationQaEditorProps {
@@ -74,16 +68,21 @@ type QueueFilter =
   | 'outside-suriname'
   | 'unedited-only'
   | 'edited-only';
-type QueueSort = 'review-priority' | 'title-asc' | 'title-desc' | 'objectnummer';
+type QueueSort =
+  | 'review-priority'
+  | 'title-asc'
+  | 'title-desc'
+  | 'objectnummer';
 type QaViewMode = 'record' | 'spreadsheet';
 
 const DEFAULT_AUTHOR = 'TvO';
 const STREET_SUGGESTION_LIMIT = 3;
-const STREET_SUGGESTION_SOURCE_WEIGHTS: Record<StreetSuggestionSource, number> = {
-  title: 40,
-  commons: 30,
-  description: 20,
-};
+const STREET_SUGGESTION_SOURCE_WEIGHTS: Record<StreetSuggestionSource, number> =
+  {
+    title: 40,
+    commons: 30,
+    description: 20,
+  };
 const PARAMARIBO_HINTS = ['paramaribo', 'suriname'];
 const TEMP_STREET_ALIASES = streetAliases as StreetAliasEntry[];
 
@@ -208,7 +207,10 @@ function getStreetSuggestions(obj: CollectionObject): StreetNameSuggestion[] {
       const normalizedVariant = normalizeMatcherText(variant);
       if (!normalizedVariant || normalizedVariant.length < 8) continue;
 
-      const pattern = new RegExp(`(^|\\b)${escapeRegExp(normalizedVariant)}(\\b|$)`, 'i');
+      const pattern = new RegExp(
+        `(^|\\b)${escapeRegExp(normalizedVariant)}(\\b|$)`,
+        'i',
+      );
 
       for (const sourceEntry of searchSources) {
         if (!pattern.test(sourceEntry.normalized)) continue;
@@ -265,11 +267,17 @@ function getEfQualityScore(
   suggestion: StreetNameSuggestion | undefined,
 ) {
   if (!detail && !suggestion) return 0;
-  if (detail?.resolutionLevel === 'exact' && detail.wikidataUri && detail.lat !== null && detail.lng !== null) {
+  if (
+    detail?.resolutionLevel === 'exact' &&
+    detail.wikidataUri &&
+    detail.lat !== null &&
+    detail.lng !== null
+  ) {
     return 95;
   }
   if (detail?.resolutionLevel === 'exact') return 85;
-  if (suggestion && suggestion.score >= 55) return Math.min(82, suggestion.score + 10);
+  if (suggestion && suggestion.score >= 55)
+    return Math.min(82, suggestion.score + 10);
   if (detail?.resolutionLevel === 'broader') return 65;
   if (detail?.resolutionLevel === 'city') return 48;
   if (detail?.resolutionLevel === 'country') return 35;
@@ -285,7 +293,8 @@ function getEfSavePayload(
 ) {
   const normalized = reviewValue.trim();
   const acceptsSuggestion = normalized.toUpperCase() === 'Y';
-  const fallbackLabel = getEfBestSuggestion(detail, topSuggestion) || detail?.term || '';
+  const fallbackLabel =
+    getEfBestSuggestion(detail, topSuggestion) || detail?.term || '';
   const resolvedLocationLabel = acceptsSuggestion ? fallbackLabel : normalized;
 
   const wikidataReference = acceptsSuggestion
@@ -302,10 +311,12 @@ function getEfSavePayload(
     lat: acceptsSuggestion ? (detail?.lat ?? '') : '',
     lng: acceptsSuggestion ? (detail?.lng ?? '') : '',
     resolutionLevel: detail?.resolutionLevel || 'exact',
-    evidenceSource: topSuggestion && acceptsSuggestion ? 'beschrijving' : 'trefwoord',
-    evidenceText: topSuggestion && acceptsSuggestion
-      ? `${topSuggestion.source}: ${topSuggestion.snippet}`
-      : '',
+    evidenceSource:
+      topSuggestion && acceptsSuggestion ? 'beschrijving' : 'trefwoord',
+    evidenceText:
+      topSuggestion && acceptsSuggestion
+        ? `${topSuggestion.source}: ${topSuggestion.snippet}`
+        : '',
     author: DEFAULT_AUTHOR,
     remark: reviewNote.trim(),
   };
@@ -383,8 +394,12 @@ function SpreadsheetReviewRow({
         </div>
       </td>
       <td className="p-2 min-w-56">
-        <div className="font-medium text-(--color-charcoal)">{obj.titles[0] || obj.objectnummer}</div>
-        <div className="mt-1 text-xs text-(--color-warm-gray)">{obj.objectnummer}</div>
+        <div className="font-medium text-(--color-charcoal)">
+          {obj.titles[0] || obj.objectnummer}
+        </div>
+        <div className="mt-1 text-xs text-(--color-warm-gray)">
+          {obj.objectnummer}
+        </div>
         <Link
           href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}`}
           target="_blank"
@@ -396,7 +411,9 @@ function SpreadsheetReviewRow({
         </Link>
       </td>
       <td className="p-2 min-w-80 text-xs text-(--color-charcoal-light)">
-        <div className="line-clamp-3 whitespace-pre-wrap">{obj.description || t('noDescription')}</div>
+        <div className="line-clamp-3 whitespace-pre-wrap">
+          {obj.description || t('noDescription')}
+        </div>
       </td>
       <td className="p-2 min-w-56 text-xs">
         {detail?.term || obj.geographicKeywords[0] || '—'}
@@ -487,7 +504,9 @@ function getPreferredDetail(
   preferredOriginalTerm?: string | null,
 ) {
   return (
-    obj.geoKeywordDetails.find((detail) => detail.term === preferredOriginalTerm) ??
+    obj.geoKeywordDetails.find(
+      (detail) => detail.term === preferredOriginalTerm,
+    ) ??
     obj.geoKeywordDetails.find(
       (detail) =>
         detail.source === 'unresolved' ||
@@ -520,7 +539,7 @@ function ConfirmDetailButton({
 
   const handleRevert = () => {
     startSaving(async () => {
-      await fetch('/api/location-edits', {
+      const response = await fetch('/api/location-edits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -539,6 +558,7 @@ function ConfirmDetailButton({
           remark: t('revertRemark'),
         }),
       });
+      if (!response.ok) return;
       setConfirmed(false);
       onMarkIncorrect(detail.term);
     });
@@ -583,7 +603,7 @@ function ConfirmDetailButton({
 
   const handleConfirm = () => {
     startSaving(async () => {
-      await fetch('/api/location-edits', {
+      const response = await fetch('/api/location-edits', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -602,6 +622,7 @@ function ConfirmDetailButton({
           remark: '',
         }),
       });
+      if (!response.ok) return;
       onConfirm?.(detail.term);
       setConfirmed(true);
     });
@@ -669,25 +690,31 @@ function LocationEditForm({
       ? String(firstDetail.lng)
       : '',
   );
-  const [resolutionLevel, setResolutionLevel] = useState<LocationResolutionLevel>(
-    firstDetail?.resolutionLevel || 'exact',
-  );
-  const [evidenceSource, setEvidenceSource] = useState<LocationEvidenceSource>('trefwoord');
+  const [resolutionLevel, setResolutionLevel] =
+    useState<LocationResolutionLevel>(firstDetail?.resolutionLevel || 'exact');
+  const [evidenceSource, setEvidenceSource] =
+    useState<LocationEvidenceSource>('trefwoord');
   const [evidenceText, setEvidenceText] = useState('');
   const [author, setAuthor] = useState(DEFAULT_AUTHOR);
   const [remark, setRemark] = useState('');
   const [lookup, setLookup] = useState<WikidataLookup | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
-  const [statusType, setStatusType] = useState<'success' | 'error' | null>(null);
+  const [statusType, setStatusType] = useState<'success' | 'error' | null>(
+    null,
+  );
   const [saveAsTermDefault, setSaveAsTermDefault] = useState(false);
   const [efReviewValue, setEfReviewValue] = useState('');
   const [efReviewNote, setEfReviewNote] = useState('');
 
   const selectedDetail =
-    obj.geoKeywordDetails.find((detail) => detail.term === selectedOriginalTerm) ||
-    firstDetail;
+    obj.geoKeywordDetails.find(
+      (detail) => detail.term === selectedOriginalTerm,
+    ) || firstDetail;
   const topStreetSuggestion = streetSuggestions[0];
-  const efBestSuggestion = getEfBestSuggestion(selectedDetail, topStreetSuggestion);
+  const efBestSuggestion = getEfBestSuggestion(
+    selectedDetail,
+    topStreetSuggestion,
+  );
   const efQualityScore = getEfQualityScore(selectedDetail, topStreetSuggestion);
 
   useEffect(() => {
@@ -829,7 +856,7 @@ function LocationEditForm({
       }
 
       if (saveAsTermDefault) {
-        await fetch('/api/term-defaults', {
+        const termDefaultResponse = await fetch('/api/term-defaults', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -843,6 +870,14 @@ function LocationEditForm({
             author,
           }),
         });
+        if (!termDefaultResponse.ok) {
+          const termPayload = await termDefaultResponse
+            .json()
+            .catch(() => null);
+          setStatusType('error');
+          setStatusMessage(termPayload?.error || t('saveError'));
+          return;
+        }
       }
 
       setStatusType('success');
@@ -862,9 +897,13 @@ function LocationEditForm({
         <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
           {t('editorTitle')}
         </div>
-        <p className="mt-2 text-xs text-(--color-warm-gray)">{t('editorHelp')}</p>
+        <p className="mt-2 text-xs text-(--color-warm-gray)">
+          {t('editorHelp')}
+        </p>
         <div className="mt-3 border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-900">
-          <div className="font-semibold uppercase tracking-wider">{t('editorModeLabel')}</div>
+          <div className="font-semibold uppercase tracking-wider">
+            {t('editorModeLabel')}
+          </div>
           <div className="mt-1">{t('editorModeHelp')}</div>
           {selectedOriginalTerm && (
             <div className="mt-2 inline-flex items-center gap-2 border border-blue-300 bg-white px-2 py-1 text-[11px] font-medium text-blue-900">
@@ -893,19 +932,31 @@ function LocationEditForm({
             />
           </div>
           <div className="min-w-0 text-xs text-emerald-900">
-            <div className="font-medium truncate">{obj.titles[0] || obj.objectnummer}</div>
-            <div className="mt-1 line-clamp-2">{obj.description || t('noDescription')}</div>
+            <div className="font-medium truncate">
+              {obj.titles[0] || obj.objectnummer}
+            </div>
+            <div className="mt-1 line-clamp-2">
+              {obj.description || t('noDescription')}
+            </div>
           </div>
         </div>
 
         <div className="text-xs">
-          <span className="font-semibold text-emerald-900">{t('efGeoKeywordLabel')}: </span>
-          <span className="text-(--color-charcoal)">{selectedOriginalTerm || '—'}</span>
+          <span className="font-semibold text-emerald-900">
+            {t('efGeoKeywordLabel')}:{' '}
+          </span>
+          <span className="text-(--color-charcoal)">
+            {selectedOriginalTerm || '—'}
+          </span>
         </div>
 
         <div className="text-xs">
-          <span className="font-semibold text-emerald-900">{t('efBestSuggestionLabel')}: </span>
-          <span className="text-(--color-charcoal)">{efBestSuggestion || '—'}</span>
+          <span className="font-semibold text-emerald-900">
+            {t('efBestSuggestionLabel')}:{' '}
+          </span>
+          <span className="text-(--color-charcoal)">
+            {efBestSuggestion || '—'}
+          </span>
         </div>
 
         <label className="block text-sm">
@@ -938,255 +989,290 @@ function LocationEditForm({
         </div>
       </div>
 
-      <details className="border border-(--color-border) bg-white p-3" open={false}>
+      <details
+        className="border border-(--color-border) bg-white p-3"
+        open={false}
+      >
         <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray)">
           {t('efAdvancedSectionLabel')}
         </summary>
         <div className="mt-3 space-y-5">
-
-      {streetSuggestions.length > 0 && (
-        <div className="space-y-3 border border-amber-200 bg-amber-50 p-3">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-amber-900">
-              {t('streetSuggestionsTitle')}
-            </div>
-            <p className="mt-1 text-xs text-amber-900">{t('streetSuggestionsHelp')}</p>
-          </div>
-          <div className="grid gap-2">
-            {streetSuggestions.map((suggestion) => (
-              <div key={`${suggestion.label}-${suggestion.source}`} className="border border-amber-300 bg-white p-3 text-xs">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="font-medium text-(--color-charcoal)">{suggestion.label}</div>
-                    <div className="mt-1 text-(--color-warm-gray)">
-                      {getSuggestionSourceLabel(t, suggestion.source)} · {suggestion.matchedVariant}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => applyStreetSuggestion(suggestion)}
-                    className="shrink-0 px-2 py-1 border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
-                  >
-                    {t('suggestionUseAction')}
-                  </button>
+          {streetSuggestions.length > 0 && (
+            <div className="space-y-3 border border-amber-200 bg-amber-50 p-3">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-amber-900">
+                  {t('streetSuggestionsTitle')}
                 </div>
-                <div className="mt-2 text-(--color-charcoal-light)">{suggestion.snippet}</div>
-                {suggestion.wikidataQid && (
-                  <div className="mt-2 text-(--color-warm-gray)">Wikidata: {suggestion.wikidataQid}</div>
-                )}
+                <p className="mt-1 text-xs text-amber-900">
+                  {t('streetSuggestionsHelp')}
+                </p>
               </div>
-            ))}
+              <div className="grid gap-2">
+                {streetSuggestions.map((suggestion) => (
+                  <div
+                    key={`${suggestion.label}-${suggestion.source}`}
+                    className="border border-amber-300 bg-white p-3 text-xs"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-medium text-(--color-charcoal)">
+                          {suggestion.label}
+                        </div>
+                        <div className="mt-1 text-(--color-warm-gray)">
+                          {getSuggestionSourceLabel(t, suggestion.source)} ·{' '}
+                          {suggestion.matchedVariant}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => applyStreetSuggestion(suggestion)}
+                        className="shrink-0 px-2 py-1 border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100"
+                      >
+                        {t('suggestionUseAction')}
+                      </button>
+                    </div>
+                    <div className="mt-2 text-(--color-charcoal-light)">
+                      {suggestion.snippet}
+                    </div>
+                    {suggestion.wikidataQid && (
+                      <div className="mt-2 text-(--color-warm-gray)">
+                        Wikidata: {suggestion.wikidataQid}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <label className="block text-sm">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+              {t('originalTermLabel')}
+            </span>
+            <select
+              value={selectedOriginalTerm}
+              onChange={(event) => {
+                const nextDetail =
+                  obj.geoKeywordDetails.find(
+                    (detail) => detail.term === event.target.value,
+                  ) || firstDetail;
+                if (nextDetail) syncFromDetail(nextDetail);
+              }}
+              className="w-full border border-(--color-border) bg-white px-3 py-2"
+            >
+              {obj.geoKeywordDetails.map((detail) => (
+                <option
+                  key={`${obj.objectnummer}-${detail.term}`}
+                  value={detail.term}
+                >
+                  {detail.term}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block text-sm">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+              {t('resolvedLabel')}
+            </span>
+            <input
+              value={resolvedLocationLabel}
+              onChange={(event) => setResolvedLocationLabel(event.target.value)}
+              className="w-full border border-(--color-border) bg-white px-3 py-2"
+            />
+          </label>
+
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 items-end">
+            <label className="block text-sm">
+              <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+                {t('wikidataLabel')}
+              </span>
+              <input
+                value={wikidataReference}
+                onChange={(event) => setWikidataReference(event.target.value)}
+                placeholder="Q3001 or https://www.wikidata.org/entity/Q3001"
+                className="w-full border border-(--color-border) bg-white px-3 py-2"
+              />
+            </label>
+            <button
+              onClick={handleLookup}
+              disabled={isLookingUp}
+              className="px-3 py-2 border border-(--color-border) text-sm hover:bg-(--color-cream-dark) disabled:opacity-60"
+            >
+              {isLookingUp ? t('lookupBusy') : t('lookupAction')}
+            </button>
           </div>
-        </div>
-      )}
 
-      <label className="block text-sm">
-        <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-          {t('originalTermLabel')}
-        </span>
-        <select
-          value={selectedOriginalTerm}
-          onChange={(event) => {
-            const nextDetail =
-              obj.geoKeywordDetails.find((detail) => detail.term === event.target.value) ||
-              firstDetail;
-            if (nextDetail) syncFromDetail(nextDetail);
-          }}
-          className="w-full border border-(--color-border) bg-white px-3 py-2"
-        >
-          {obj.geoKeywordDetails.map((detail) => (
-            <option key={`${obj.objectnummer}-${detail.term}`} value={detail.term}>
-              {detail.term}
-            </option>
-          ))}
-        </select>
-      </label>
+          <label className="block text-sm">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+              {t('gazetteerLabel')}
+            </span>
+            <input
+              value={gazetteerReference}
+              onChange={(event) => setGazetteerReference(event.target.value)}
+              placeholder="https://www.surinametimemachine.com/..."
+              className="w-full border border-(--color-border) bg-white px-3 py-2"
+            />
+          </label>
 
-      <label className="block text-sm">
-        <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-          {t('resolvedLabel')}
-        </span>
-        <input
-          value={resolvedLocationLabel}
-          onChange={(event) => setResolvedLocationLabel(event.target.value)}
-          className="w-full border border-(--color-border) bg-white px-3 py-2"
-        />
-      </label>
+          {lookup && (
+            <div className="border border-(--color-border) bg-(--color-cream-dark) p-3 text-sm">
+              <div className="font-medium text-(--color-charcoal)">
+                {lookup.label || lookup.qid}
+              </div>
+              <div className="mt-1 text-xs text-(--color-warm-gray)">
+                {lookup.qid} · {lookup.lat ?? '—'}, {lookup.lng ?? '—'}
+              </div>
+            </div>
+          )}
 
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 items-end">
-        <label className="block text-sm">
-          <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-            {t('wikidataLabel')}
-          </span>
-          <input
-            value={wikidataReference}
-            onChange={(event) => setWikidataReference(event.target.value)}
-            placeholder="Q3001 or https://www.wikidata.org/entity/Q3001"
-            className="w-full border border-(--color-border) bg-white px-3 py-2"
-          />
-        </label>
-        <button
-          onClick={handleLookup}
-          disabled={isLookingUp}
-          className="px-3 py-2 border border-(--color-border) text-sm hover:bg-(--color-cream-dark) disabled:opacity-60"
-        >
-          {isLookingUp ? t('lookupBusy') : t('lookupAction')}
-        </button>
-      </div>
-
-      <label className="block text-sm">
-        <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-          {t('gazetteerLabel')}
-        </span>
-        <input
-          value={gazetteerReference}
-          onChange={(event) => setGazetteerReference(event.target.value)}
-          placeholder="https://www.surinametimemachine.com/..."
-          className="w-full border border-(--color-border) bg-white px-3 py-2"
-        />
-      </label>
-
-      {lookup && (
-        <div className="border border-(--color-border) bg-(--color-cream-dark) p-3 text-sm">
-          <div className="font-medium text-(--color-charcoal)">{lookup.label || lookup.qid}</div>
-          <div className="mt-1 text-xs text-(--color-warm-gray)">
-            {lookup.qid} · {lookup.lat ?? '—'}, {lookup.lng ?? '—'}
+          <div className="grid grid-cols-2 gap-3">
+            <label className="block text-sm">
+              <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+                {t('latitudeLabel')}
+              </span>
+              <input
+                value={lat}
+                onChange={(event) => setLat(event.target.value)}
+                className="w-full border border-(--color-border) bg-white px-3 py-2"
+              />
+            </label>
+            <label className="block text-sm">
+              <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+                {t('longitudeLabel')}
+              </span>
+              <input
+                value={lng}
+                onChange={(event) => setLng(event.target.value)}
+                className="w-full border border-(--color-border) bg-white px-3 py-2"
+              />
+            </label>
           </div>
-        </div>
-      )}
 
-      <div className="grid grid-cols-2 gap-3">
-        <label className="block text-sm">
-          <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-            {t('latitudeLabel')}
-          </span>
-          <input
-            value={lat}
-            onChange={(event) => setLat(event.target.value)}
-            className="w-full border border-(--color-border) bg-white px-3 py-2"
-          />
-        </label>
-        <label className="block text-sm">
-          <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-            {t('longitudeLabel')}
-          </span>
-          <input
-            value={lng}
-            onChange={(event) => setLng(event.target.value)}
-            className="w-full border border-(--color-border) bg-white px-3 py-2"
-          />
-        </label>
-      </div>
+          <label className="block text-sm">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+              {t('resolutionLevelLabel')}
+            </span>
+            <select
+              value={resolutionLevel}
+              onChange={(event) =>
+                setResolutionLevel(
+                  event.target.value as LocationResolutionLevel,
+                )
+              }
+              className="w-full border border-(--color-border) bg-white px-3 py-2"
+            >
+              <option value="exact">exact</option>
+              <option value="broader">broader</option>
+              <option value="city">city</option>
+              <option value="country">country</option>
+            </select>
+          </label>
 
-      <label className="block text-sm">
-        <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-          {t('resolutionLevelLabel')}
-        </span>
-        <select
-          value={resolutionLevel}
-          onChange={(event) =>
-            setResolutionLevel(event.target.value as LocationResolutionLevel)
-          }
-          className="w-full border border-(--color-border) bg-white px-3 py-2"
-        >
-          <option value="exact">exact</option>
-          <option value="broader">broader</option>
-          <option value="city">city</option>
-          <option value="country">country</option>
-        </select>
-      </label>
+          <label className="block text-sm">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+              {t('evidenceSourceLabel')}
+            </span>
+            <select
+              value={evidenceSource}
+              onChange={(event) =>
+                setEvidenceSource(event.target.value as LocationEvidenceSource)
+              }
+              className="w-full border border-(--color-border) bg-white px-3 py-2"
+            >
+              <option value="trefwoord">trefwoord</option>
+              <option value="beschrijving">beschrijving</option>
+              <option value="both">both</option>
+            </select>
+          </label>
 
-      <label className="block text-sm">
-        <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-          {t('evidenceSourceLabel')}
-        </span>
-        <select
-          value={evidenceSource}
-          onChange={(event) =>
-            setEvidenceSource(event.target.value as LocationEvidenceSource)
-          }
-          className="w-full border border-(--color-border) bg-white px-3 py-2"
-        >
-          <option value="trefwoord">trefwoord</option>
-          <option value="beschrijving">beschrijving</option>
-          <option value="both">both</option>
-        </select>
-      </label>
+          <label className="block text-sm">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+              {t('evidenceTextLabel')}
+            </span>
+            <textarea
+              value={evidenceText}
+              onChange={(event) => setEvidenceText(event.target.value)}
+              rows={4}
+              className="w-full border border-(--color-border) bg-white px-3 py-2"
+              placeholder={t('evidenceTextPlaceholder')}
+            />
+          </label>
 
-      <label className="block text-sm">
-        <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-          {t('evidenceTextLabel')}
-        </span>
-        <textarea
-          value={evidenceText}
-          onChange={(event) => setEvidenceText(event.target.value)}
-          rows={4}
-          className="w-full border border-(--color-border) bg-white px-3 py-2"
-          placeholder={t('evidenceTextPlaceholder')}
-        />
-      </label>
+          <div className="space-y-2">
+            <div className="text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray)">
+              {t('fallbackActions')}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={applyBroaderFallback}
+                className="px-3 py-2 text-xs border border-(--color-border) hover:bg-(--color-cream-dark)"
+              >
+                {t('fallbackBroader')}
+              </button>
+              <button
+                onClick={() => applyFallback('paramaribo')}
+                className="px-3 py-2 text-xs border border-(--color-border) hover:bg-(--color-cream-dark)"
+              >
+                {t('fallbackParamaribo')}
+              </button>
+              <button
+                onClick={() => applyFallback('suriname')}
+                className="px-3 py-2 text-xs border border-(--color-border) hover:bg-(--color-cream-dark)"
+              >
+                {t('fallbackSuriname')}
+              </button>
+            </div>
+          </div>
 
-      <div className="space-y-2">
-        <div className="text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray)">
-          {t('fallbackActions')}
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <button onClick={applyBroaderFallback} className="px-3 py-2 text-xs border border-(--color-border) hover:bg-(--color-cream-dark)">
-            {t('fallbackBroader')}
-          </button>
-          <button onClick={() => applyFallback('paramaribo')} className="px-3 py-2 text-xs border border-(--color-border) hover:bg-(--color-cream-dark)">
-            {t('fallbackParamaribo')}
-          </button>
-          <button onClick={() => applyFallback('suriname')} className="px-3 py-2 text-xs border border-(--color-border) hover:bg-(--color-cream-dark)">
-            {t('fallbackSuriname')}
-          </button>
-        </div>
-      </div>
+          <label className="block text-sm">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+              {t('authorLabel')}
+            </span>
+            <input
+              value={author}
+              onChange={(event) => setAuthor(event.target.value)}
+              className="w-full border border-(--color-border) bg-white px-3 py-2"
+            />
+          </label>
 
-      <label className="block text-sm">
-        <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-          {t('authorLabel')}
-        </span>
-        <input
-          value={author}
-          onChange={(event) => setAuthor(event.target.value)}
-          className="w-full border border-(--color-border) bg-white px-3 py-2"
-        />
-      </label>
+          <label className="block text-sm">
+            <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+              {t('remarkLabel')}
+            </span>
+            <textarea
+              value={remark}
+              onChange={(event) => setRemark(event.target.value)}
+              rows={3}
+              className="w-full border border-(--color-border) bg-white px-3 py-2"
+            />
+          </label>
 
-      <label className="block text-sm">
-        <span className="block text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-          {t('remarkLabel')}
-        </span>
-        <textarea
-          value={remark}
-          onChange={(event) => setRemark(event.target.value)}
-          rows={3}
-          className="w-full border border-(--color-border) bg-white px-3 py-2"
-        />
-      </label>
+          {statusMessage && (
+            <div
+              className={`flex items-start gap-2 border px-3 py-2 text-sm ${
+                statusType === 'success'
+                  ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                  : 'border-amber-300 bg-amber-50 text-amber-900'
+              }`}
+            >
+              {statusType === 'success' ? (
+                <CheckCircle2 size={16} />
+              ) : (
+                <AlertTriangle size={16} />
+              )}
+              <span>{statusMessage}</span>
+            </div>
+          )}
 
-      {statusMessage && (
-        <div
-          className={`flex items-start gap-2 border px-3 py-2 text-sm ${
-            statusType === 'success'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-900'
-              : 'border-amber-300 bg-amber-50 text-amber-900'
-          }`}
-        >
-          {statusType === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
-          <span>{statusMessage}</span>
-        </div>
-      )}
-
-      <label className="flex items-start gap-2 text-xs text-(--color-charcoal-light) cursor-pointer select-none">
-        <input
-          type="checkbox"
-          checked={saveAsTermDefault}
-          onChange={(event) => setSaveAsTermDefault(event.target.checked)}
-          className="mt-0.5 h-3.5 w-3.5 accent-(--color-charcoal)"
-        />
-        <span>{t('saveAsTermDefaultLabel')}</span>
-      </label>
+          <label className="flex items-start gap-2 text-xs text-(--color-charcoal-light) cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={saveAsTermDefault}
+              onChange={(event) => setSaveAsTermDefault(event.target.checked)}
+              className="mt-0.5 h-3.5 w-3.5 accent-(--color-charcoal)"
+            />
+            <span>{t('saveAsTermDefaultLabel')}</span>
+          </label>
         </div>
       </details>
 
@@ -1222,7 +1308,9 @@ export default function LocationQaEditor({
 
   const [query, setQuery] = useState('');
   const deferredQuery = useDeferredValue(query);
-  const [focusedOriginalTerm, setFocusedOriginalTerm] = useState<string | null>(null);
+  const [focusedOriginalTerm, setFocusedOriginalTerm] = useState<string | null>(
+    null,
+  );
   const [selectedObjectnummer, setSelectedObjectnummer] = useState(
     objects[0]?.objectnummer ?? '',
   );
@@ -1259,76 +1347,83 @@ export default function LocationQaEditor({
       return false;
     };
 
-    return objects.filter((obj) => {
-      if (!hasSurinameLocation(obj)) return false;
+    return objects
+      .filter((obj) => {
+        if (!hasSurinameLocation(obj)) return false;
 
-      const issueDetails = getIssueDetails(obj);
-      const hasIssues = issueDetails.length > 0;
-      const hasOutsideSuriname = issueDetails.some((detail) =>
-        detail.flags.includes('outside-suriname'),
-      );
-      const hasSavedEdits = obj.geoKeywordDetails.some(
-        (detail) => detail.source === 'edit' || detail.provenance !== null,
-      );
+        const issueDetails = getIssueDetails(obj);
+        const hasIssues = issueDetails.length > 0;
+        const hasOutsideSuriname = issueDetails.some((detail) =>
+          detail.flags.includes('outside-suriname'),
+        );
+        const hasSavedEdits = obj.geoKeywordDetails.some(
+          (detail) => detail.source === 'edit' || detail.provenance !== null,
+        );
 
-      if (queueFilter === 'needs-review' && !hasIssues) return false;
-      if (queueFilter === 'exact-only' && hasIssues) return false;
-      if (queueFilter === 'outside-suriname' && !hasOutsideSuriname) return false;
-      if (queueFilter === 'unedited-only' && hasSavedEdits) return false;
-      if (queueFilter === 'edited-only' && !hasSavedEdits) return false;
+        if (queueFilter === 'needs-review' && !hasIssues) return false;
+        if (queueFilter === 'exact-only' && hasIssues) return false;
+        if (queueFilter === 'outside-suriname' && !hasOutsideSuriname)
+          return false;
+        if (queueFilter === 'unedited-only' && hasSavedEdits) return false;
+        if (queueFilter === 'edited-only' && !hasSavedEdits) return false;
 
-      if (!normalized) return true;
+        if (!normalized) return true;
 
-      const haystack = [
-        obj.objectnummer,
-        obj.titles.join(' '),
-        obj.description,
-        obj.geographicKeywords.join(' '),
-        obj.geoKeywordDetails.map((detail) => detail.term).join(' '),
-      ]
-        .join(' ')
-        .toLowerCase();
+        const haystack = [
+          obj.objectnummer,
+          obj.titles.join(' '),
+          obj.description,
+          obj.geographicKeywords.join(' '),
+          obj.geoKeywordDetails.map((detail) => detail.term).join(' '),
+        ]
+          .join(' ')
+          .toLowerCase();
 
-      return haystack.includes(normalized);
-    }).sort((a, b) => {
-      if (queueSort === 'title-asc') {
+        return haystack.includes(normalized);
+      })
+      .sort((a, b) => {
+        if (queueSort === 'title-asc') {
+          return (a.titles[0] || a.objectnummer).localeCompare(
+            b.titles[0] || b.objectnummer,
+          );
+        }
+        if (queueSort === 'title-desc') {
+          return (b.titles[0] || b.objectnummer).localeCompare(
+            a.titles[0] || a.objectnummer,
+          );
+        }
+        if (queueSort === 'objectnummer') {
+          return a.objectnummer.localeCompare(b.objectnummer);
+        }
+
+        const aIssues = getIssueDetails(a).length;
+        const bIssues = getIssueDetails(b).length;
+        if (aIssues !== bIssues) return bIssues - aIssues;
+
         return (a.titles[0] || a.objectnummer).localeCompare(
           b.titles[0] || b.objectnummer,
         );
-      }
-      if (queueSort === 'title-desc') {
-        return (b.titles[0] || b.objectnummer).localeCompare(
-          a.titles[0] || a.objectnummer,
-        );
-      }
-      if (queueSort === 'objectnummer') {
-        return a.objectnummer.localeCompare(b.objectnummer);
-      }
-
-      const aIssues = getIssueDetails(a).length;
-      const bIssues = getIssueDetails(b).length;
-      if (aIssues !== bIssues) return bIssues - aIssues;
-
-      return (a.titles[0] || a.objectnummer).localeCompare(
-        b.titles[0] || b.objectnummer,
-      );
-    });
-  }, [deferredQuery, objects, queueFilter, queueSort, showOnlySuriname, surinameTermSet]);
+      });
+  }, [
+    deferredQuery,
+    objects,
+    queueFilter,
+    queueSort,
+    showOnlySuriname,
+    surinameTermSet,
+  ]);
 
   const selectedObject =
     filteredObjects.find((obj) => obj.objectnummer === selectedObjectnummer) ||
     filteredObjects[0] ||
-    (showOnlySuriname
-      ? null
-      : objects.find((obj) => obj.objectnummer === selectedObjectnummer) ||
-        objects[0] ||
-        null);
+    null;
 
   const selectedIndex = filteredObjects.findIndex(
     (obj) => obj.objectnummer === selectedObject?.objectnummer,
   );
   const hasPrevious = selectedIndex > 0;
-  const hasNext = selectedIndex >= 0 && selectedIndex < filteredObjects.length - 1;
+  const hasNext =
+    selectedIndex >= 0 && selectedIndex < filteredObjects.length - 1;
   const activeDetail = selectedObject
     ? getPreferredDetail(selectedObject, focusedOriginalTerm)
     : null;
@@ -1388,15 +1483,21 @@ export default function LocationQaEditor({
   };
 
   if (!selectedObject) {
-    return <div className="py-12 text-center text-(--color-warm-gray)">{t('noQueueResults')}</div>;
+    return (
+      <div className="py-12 text-center text-(--color-warm-gray)">
+        {t('noQueueResults')}
+      </div>
+    );
   }
 
   return (
-    <div className={
-      qaViewMode === 'spreadsheet'
-        ? 'grid grid-cols-1 xl:grid-cols-[22rem_minmax(0,1fr)] gap-6'
-        : 'grid grid-cols-1 xl:grid-cols-[22rem_minmax(0,1fr)_24rem] gap-6'
-    }>
+    <div
+      className={
+        qaViewMode === 'spreadsheet'
+          ? 'grid grid-cols-1 xl:grid-cols-[22rem_minmax(0,1fr)] gap-6'
+          : 'grid grid-cols-1 xl:grid-cols-[22rem_minmax(0,1fr)_24rem] gap-6'
+      }
+    >
       <section className="border border-(--color-border) bg-(--color-card)">
         <div className="p-4 border-b border-(--color-border)">
           <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
@@ -1432,15 +1533,25 @@ export default function LocationQaEditor({
               </span>
               <select
                 value={queueFilter}
-                onChange={(event) => setQueueFilter(event.target.value as QueueFilter)}
+                onChange={(event) =>
+                  setQueueFilter(event.target.value as QueueFilter)
+                }
                 className="w-full border border-(--color-border) bg-white px-3 py-2 text-sm"
               >
                 <option value="all">{t('queueFilterAll')}</option>
-                <option value="needs-review">{t('queueFilterNeedsReview')}</option>
+                <option value="needs-review">
+                  {t('queueFilterNeedsReview')}
+                </option>
                 <option value="exact-only">{t('queueFilterExactOnly')}</option>
-                <option value="outside-suriname">{t('queueFilterOutsideSuriname')}</option>
-                <option value="unedited-only">{t('queueFilterUneditedOnly')}</option>
-                <option value="edited-only">{t('queueFilterEditedOnly')}</option>
+                <option value="outside-suriname">
+                  {t('queueFilterOutsideSuriname')}
+                </option>
+                <option value="unedited-only">
+                  {t('queueFilterUneditedOnly')}
+                </option>
+                <option value="edited-only">
+                  {t('queueFilterEditedOnly')}
+                </option>
               </select>
             </label>
             <label className="block text-xs">
@@ -1449,18 +1560,27 @@ export default function LocationQaEditor({
               </span>
               <select
                 value={queueSort}
-                onChange={(event) => setQueueSort(event.target.value as QueueSort)}
+                onChange={(event) =>
+                  setQueueSort(event.target.value as QueueSort)
+                }
                 className="w-full border border-(--color-border) bg-white px-3 py-2 text-sm"
               >
-                <option value="review-priority">{t('queueSortReviewPriority')}</option>
+                <option value="review-priority">
+                  {t('queueSortReviewPriority')}
+                </option>
                 <option value="title-asc">{t('queueSortTitleAsc')}</option>
                 <option value="title-desc">{t('queueSortTitleDesc')}</option>
-                <option value="objectnummer">{t('queueSortObjectNumber')}</option>
+                <option value="objectnummer">
+                  {t('queueSortObjectNumber')}
+                </option>
               </select>
             </label>
           </div>
           <div className="relative mt-3">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-warm-gray-light)" />
+            <Search
+              size={14}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-warm-gray-light)"
+            />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -1515,7 +1635,9 @@ export default function LocationQaEditor({
             <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
               {t('qaSpreadsheetTitle')} ({spreadsheetRows.length})
             </div>
-            <p className="mt-1 text-xs text-(--color-warm-gray)">{t('qaSpreadsheetHelp')}</p>
+            <p className="mt-1 text-xs text-(--color-warm-gray)">
+              {t('qaSpreadsheetHelp')}
+            </p>
           </div>
           <div className="overflow-auto max-h-[78vh]">
             <table className="min-w-275 w-full text-sm">
@@ -1549,194 +1671,213 @@ export default function LocationQaEditor({
           </div>
         </section>
       ) : (
-      <section className="space-y-6">
-        <div className="border border-(--color-border) bg-(--color-card)">
-          <div className="grid grid-cols-1 md:grid-cols-[16rem_minmax(0,1fr)] gap-6 p-5">
-            <div>
-              <div className="relative aspect-4/3 overflow-hidden bg-(--color-cream-dark) border border-(--color-border)">
-                <ObjectImage
-                  src={selectedObject.thumbnailUrl || selectedObject.imageUrl}
-                  alt={selectedObject.titles[0] || selectedObject.objectnummer}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 768px) 100vw, 18rem"
-                  isPublicDomain={selectedObject.isPublicDomain}
-                />
-              </div>
-              <Link
-                href={`/${locale}/object/${encodeURIComponent(selectedObject.objectnummer)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-3 inline-flex items-center gap-1 text-xs text-(--color-rijks-red) hover:underline"
-              >
-                {t('openObject')}
-                <ExternalLink size={11} />
-              </Link>
-            </div>
-
-            <div className="min-w-0">
-              <div className="font-serif text-xl md:text-2xl leading-tight wrap-break-word hyphens-auto">
-                {selectedObject.titles[0] || selectedObject.objectnummer}
-              </div>
-              <div className="mt-2 text-xs font-mono text-(--color-warm-gray-light)">
-                {selectedObject.objectnummer} · {selectedObject.recordnummer}
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => goToQueueIndex(selectedIndex - 1)}
-                  disabled={!hasPrevious}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-(--color-border) bg-white hover:bg-(--color-cream-dark) disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft size={12} />
-                  {t('previousAction')}
-                </button>
-                <button
-                  onClick={() => goToQueueIndex(selectedIndex + 1)}
-                  disabled={!hasNext}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-(--color-border) bg-white hover:bg-(--color-cream-dark) disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {t('nextAction')}
-                  <ChevronRight size={12} />
-                </button>
-                <span className="text-xs text-(--color-warm-gray)">
-                  {t('queuePosition', {
-                    current: Math.max(1, selectedIndex + 1),
-                    total: Math.max(1, filteredObjects.length),
-                  })}
-                </span>
-              </div>
-
-              <div className="mt-4">
-                <div className="text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
-                  {t('descriptionLabel')}
-                </div>
-                <div className="p-4 border border-(--color-border) bg-(--color-cream-dark) text-sm leading-relaxed whitespace-pre-wrap max-h-80 overflow-y-auto">
-                  {selectedObject.description || t('noDescription')}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="border border-(--color-border) bg-(--color-card) p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
-                {t('locationContext')}
-              </div>
-              <p className="mt-2 text-xs text-(--color-warm-gray)">{t('contextHelp')}</p>
-            </div>
-            {activeOriginalTerm && (
-              <div className="border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
-                <div className="font-semibold uppercase tracking-wider">{t('activeTermLabel')}</div>
-                <div className="mt-1 font-medium">{activeOriginalTerm}</div>
-              </div>
-            )}
-          </div>
-          <div className="mt-4 grid gap-3">
-            {selectedObject.geoKeywordDetails.map((detail) => (
-              <div
-                key={`${selectedObject.objectnummer}-${detail.term}-${detail.source}`}
-                className={`border p-3 bg-white ${
-                  detail.term === activeOriginalTerm
-                    ? 'border-blue-300 ring-1 ring-blue-200'
-                    : 'border-(--color-border)'
-                }`}
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-(--color-charcoal)">{detail.term}</span>
-                  {detail.term === activeOriginalTerm && (
-                    <span className="text-xs px-2 py-0.5 border border-blue-300 bg-blue-50 text-blue-800">
-                      {t('activeTermBadge')}
-                    </span>
-                  )}
-                  <span className={`text-xs px-2 py-0.5 border ${
-                    detail.source === 'edit'
-                      ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
-                      : detail.source === 'term-default'
-                        ? 'border-blue-200 bg-blue-50 text-blue-800'
-                        : 'border-(--color-border) text-(--color-warm-gray)'
-                  }`}>
-                    {detail.source}
-                  </span>
-                  {detail.resolutionLevel && (
-                    <span className="text-xs px-2 py-0.5 border border-(--color-border)">
-                      {detail.resolutionLevel}
-                    </span>
-                  )}
-                  {detail.flags.includes('outside-suriname') && (
-                    <span className="text-xs px-2 py-0.5 border border-amber-300 bg-amber-50 text-amber-800">
-                      {t('flagOutsideSuriname')}
-                    </span>
-                  )}
-                </div>
-                <div className="mt-2 text-xs text-(--color-warm-gray)">{formatDetailSummary(detail)}</div>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-                  {detail.wikidataUri && (
-                    <a
-                      href={detail.wikidataUri}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-(--color-rijks-red) hover:underline"
-                    >
-                      {t('wikidataLink')}
-                      <ExternalLink size={11} />
-                    </a>
-                  )}
-                  {detail.stmGazetteerUrl && (
-                    <a
-                      href={detail.stmGazetteerUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-(--color-rijks-red) hover:underline"
-                    >
-                      {t('gazetteerLink')}
-                      <ExternalLink size={11} />
-                    </a>
-                  )}
-                  <ConfirmDetailButton
-                    obj={selectedObject}
-                    detail={detail}
-                    t={t}
-                    onConfirm={goToNextReviewTarget}
-                    onMarkIncorrect={(term) => {
-                      setSelectedObjectnummer(selectedObject.objectnummer);
-                      setFocusedOriginalTerm(term);
-                    }}
+        <section className="space-y-6">
+          <div className="border border-(--color-border) bg-(--color-card)">
+            <div className="grid grid-cols-1 md:grid-cols-[16rem_minmax(0,1fr)] gap-6 p-5">
+              <div>
+                <div className="relative aspect-4/3 overflow-hidden bg-(--color-cream-dark) border border-(--color-border)">
+                  <ObjectImage
+                    src={selectedObject.thumbnailUrl || selectedObject.imageUrl}
+                    alt={
+                      selectedObject.titles[0] || selectedObject.objectnummer
+                    }
+                    fill
+                    className="object-contain"
+                    sizes="(max-width: 768px) 100vw, 18rem"
+                    isPublicDomain={selectedObject.isPublicDomain}
                   />
                 </div>
-                {(detail.lat !== null || detail.lng !== null) && (
-                  <div className="mt-2 text-xs text-(--color-charcoal-light)">
-                    <MapPin size={12} className="inline mr-1" />
-                    {detail.lat ?? '—'}, {detail.lng ?? '—'}
-                  </div>
-                )}
-                {detail.provenance && (
-                  <div className="mt-2 text-xs text-(--color-warm-gray)">
-                    {detail.provenance.author} · {detail.provenance.timestamp}
-                    {detail.provenance.remark ? ` · ${detail.provenance.remark}` : ''}
-                  </div>
-                )}
+                <Link
+                  href={`/${locale}/object/${encodeURIComponent(selectedObject.objectnummer)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-3 inline-flex items-center gap-1 text-xs text-(--color-rijks-red) hover:underline"
+                >
+                  {t('openObject')}
+                  <ExternalLink size={11} />
+                </Link>
               </div>
-            ))}
-          </div>
-        </div>
 
-        <div className="border border-(--color-border) bg-(--color-card) p-5">
-          <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
-            {t('allFieldsTitle')}
-          </div>
-          <div className="mt-4 grid gap-3 max-h-136 overflow-y-auto">
-            {allFields(selectedObject).map(([label, value]) => (
-              <div key={label} className="grid grid-cols-[12rem_minmax(0,1fr)] gap-3 border-b border-(--color-border) pb-2 text-sm">
-                <div className="text-(--color-warm-gray)">{label}</div>
-                <div className="wrap-break-word whitespace-pre-wrap text-(--color-charcoal-light)">{value}</div>
+              <div className="min-w-0">
+                <div className="font-serif text-xl md:text-2xl leading-tight wrap-break-word hyphens-auto">
+                  {selectedObject.titles[0] || selectedObject.objectnummer}
+                </div>
+                <div className="mt-2 text-xs font-mono text-(--color-warm-gray-light)">
+                  {selectedObject.objectnummer} · {selectedObject.recordnummer}
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <button
+                    onClick={() => goToQueueIndex(selectedIndex - 1)}
+                    disabled={!hasPrevious}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-(--color-border) bg-white hover:bg-(--color-cream-dark) disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronLeft size={12} />
+                    {t('previousAction')}
+                  </button>
+                  <button
+                    onClick={() => goToQueueIndex(selectedIndex + 1)}
+                    disabled={!hasNext}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-(--color-border) bg-white hover:bg-(--color-cream-dark) disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {t('nextAction')}
+                    <ChevronRight size={12} />
+                  </button>
+                  <span className="text-xs text-(--color-warm-gray)">
+                    {t('queuePosition', {
+                      current: Math.max(1, selectedIndex + 1),
+                      total: Math.max(1, filteredObjects.length),
+                    })}
+                  </span>
+                </div>
+
+                <div className="mt-4">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+                    {t('descriptionLabel')}
+                  </div>
+                  <div className="p-4 border border-(--color-border) bg-(--color-cream-dark) text-sm leading-relaxed whitespace-pre-wrap max-h-80 overflow-y-auto">
+                    {selectedObject.description || t('noDescription')}
+                  </div>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </section>
+
+          <div className="border border-(--color-border) bg-(--color-card) p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
+                  {t('locationContext')}
+                </div>
+                <p className="mt-2 text-xs text-(--color-warm-gray)">
+                  {t('contextHelp')}
+                </p>
+              </div>
+              {activeOriginalTerm && (
+                <div className="border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+                  <div className="font-semibold uppercase tracking-wider">
+                    {t('activeTermLabel')}
+                  </div>
+                  <div className="mt-1 font-medium">{activeOriginalTerm}</div>
+                </div>
+              )}
+            </div>
+            <div className="mt-4 grid gap-3">
+              {selectedObject.geoKeywordDetails.map((detail) => (
+                <div
+                  key={`${selectedObject.objectnummer}-${detail.term}-${detail.source}`}
+                  className={`border p-3 bg-white ${
+                    detail.term === activeOriginalTerm
+                      ? 'border-blue-300 ring-1 ring-blue-200'
+                      : 'border-(--color-border)'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-(--color-charcoal)">
+                      {detail.term}
+                    </span>
+                    {detail.term === activeOriginalTerm && (
+                      <span className="text-xs px-2 py-0.5 border border-blue-300 bg-blue-50 text-blue-800">
+                        {t('activeTermBadge')}
+                      </span>
+                    )}
+                    <span
+                      className={`text-xs px-2 py-0.5 border ${
+                        detail.source === 'edit'
+                          ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                          : detail.source === 'term-default'
+                            ? 'border-blue-200 bg-blue-50 text-blue-800'
+                            : 'border-(--color-border) text-(--color-warm-gray)'
+                      }`}
+                    >
+                      {detail.source}
+                    </span>
+                    {detail.resolutionLevel && (
+                      <span className="text-xs px-2 py-0.5 border border-(--color-border)">
+                        {detail.resolutionLevel}
+                      </span>
+                    )}
+                    {detail.flags.includes('outside-suriname') && (
+                      <span className="text-xs px-2 py-0.5 border border-amber-300 bg-amber-50 text-amber-800">
+                        {t('flagOutsideSuriname')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2 text-xs text-(--color-warm-gray)">
+                    {formatDetailSummary(detail)}
+                  </div>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                    {detail.wikidataUri && (
+                      <a
+                        href={detail.wikidataUri}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-(--color-rijks-red) hover:underline"
+                      >
+                        {t('wikidataLink')}
+                        <ExternalLink size={11} />
+                      </a>
+                    )}
+                    {detail.stmGazetteerUrl && (
+                      <a
+                        href={detail.stmGazetteerUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-(--color-rijks-red) hover:underline"
+                      >
+                        {t('gazetteerLink')}
+                        <ExternalLink size={11} />
+                      </a>
+                    )}
+                    <ConfirmDetailButton
+                      obj={selectedObject}
+                      detail={detail}
+                      t={t}
+                      onConfirm={goToNextReviewTarget}
+                      onMarkIncorrect={(term) => {
+                        setSelectedObjectnummer(selectedObject.objectnummer);
+                        setFocusedOriginalTerm(term);
+                      }}
+                    />
+                  </div>
+                  {(detail.lat !== null || detail.lng !== null) && (
+                    <div className="mt-2 text-xs text-(--color-charcoal-light)">
+                      <MapPin size={12} className="inline mr-1" />
+                      {detail.lat ?? '—'}, {detail.lng ?? '—'}
+                    </div>
+                  )}
+                  {detail.provenance && (
+                    <div className="mt-2 text-xs text-(--color-warm-gray)">
+                      {detail.provenance.author} · {detail.provenance.timestamp}
+                      {detail.provenance.remark
+                        ? ` · ${detail.provenance.remark}`
+                        : ''}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="border border-(--color-border) bg-(--color-card) p-5">
+            <div className="text-sm font-semibold uppercase tracking-wider text-(--color-warm-gray)">
+              {t('allFieldsTitle')}
+            </div>
+            <div className="mt-4 grid gap-3 max-h-136 overflow-y-auto">
+              {allFields(selectedObject).map(([label, value]) => (
+                <div
+                  key={label}
+                  className="grid grid-cols-[12rem_minmax(0,1fr)] gap-3 border-b border-(--color-border) pb-2 text-sm"
+                >
+                  <div className="text-(--color-warm-gray)">{label}</div>
+                  <div className="wrap-break-word whitespace-pre-wrap text-(--color-charcoal-light)">
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
 
       {qaViewMode === 'record' && (

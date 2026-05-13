@@ -1,12 +1,8 @@
-import {
-  getTranslations,
-  setRequestLocale,
-} from 'next-intl/server';
-
 import MapClientWrapper from '@/components/MapClientWrapper';
 import ScrollReveal from '@/components/ScrollReveal';
 import { getObjectsByLocation } from '@/lib/collection';
 import type { CollectionObject } from '@/types/collection';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 const MAP_BUCKET_COORD_PRECISION = 5;
 const MAP_BUCKET_NEAR_COORD_THRESHOLD = 0.00005;
@@ -46,8 +42,7 @@ function normalizeMapLabelKey(input: string | null | undefined): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
-    ;
+    .trim();
 }
 
 function getDetailSpecificityScore(
@@ -110,9 +105,12 @@ export default async function MapPage({
 
   // Build map buckets per object-specific resolved detail.
   // This avoids pinning all objects with the same keyword to objects[0].
+  // `id` is a synthetic clustering id; `keyword` is the original gallery
+  // search term so the "View in Gallery" link still filters correctly.
   const locationBuckets = new Map<
     string,
     {
+      id: string;
       keyword: string;
       geo: {
         name: string;
@@ -125,7 +123,7 @@ export default async function MapPage({
     }
   >();
   const bucketsByNameRegion = new Map<string, string[]>();
-  const placedObjects = new Set<string>();
+  const placedObjects = new Map<string, string>();
 
   for (const [keyword, objects] of Object.entries(objectsByLocation)) {
     for (const obj of objects) {
@@ -133,7 +131,6 @@ export default async function MapPage({
 
       const detail = pickPrimaryMapDetail(obj);
       if (!detail || detail.lat == null || detail.lng == null) continue;
-      placedObjects.add(obj.objectnummer);
 
       const name = detail.matchedLabel?.trim() || detail.term;
       const region = detail.region ?? ('other' as const);
@@ -141,7 +138,7 @@ export default async function MapPage({
       const bucketLng = normalizeBucketCoordinate(detail.lng);
       const nameRegionKey = `${name}::${region}`;
 
-      let bucketKey = `${name}::${bucketLat}::${bucketLng}::${region}`;
+      let bucketId = `${name}::${bucketLat}::${bucketLng}::${region}`;
       const candidateKeys = bucketsByNameRegion.get(nameRegionKey) || [];
       for (const existingKey of candidateKeys) {
         const existing = locationBuckets.get(existingKey);
@@ -151,14 +148,15 @@ export default async function MapPage({
           areNearCoordinates(existing.geo.lat, bucketLat) &&
           areNearCoordinates(existing.geo.lng, bucketLng)
         ) {
-          bucketKey = existingKey;
+          bucketId = existingKey;
           break;
         }
       }
 
-      if (!locationBuckets.has(bucketKey)) {
-        locationBuckets.set(bucketKey, {
-          keyword: bucketKey,
+      if (!locationBuckets.has(bucketId)) {
+        locationBuckets.set(bucketId, {
+          id: bucketId,
+          keyword,
           geo: {
             name,
             lat: bucketLat,
@@ -170,13 +168,14 @@ export default async function MapPage({
         });
 
         const keys = bucketsByNameRegion.get(nameRegionKey) || [];
-        keys.push(bucketKey);
+        keys.push(bucketId);
         bucketsByNameRegion.set(nameRegionKey, keys);
       }
 
-      const bucket = locationBuckets.get(bucketKey)!;
+      const bucket = locationBuckets.get(bucketId)!;
       bucket.objects.push(obj);
       bucket.geo.objectCount = bucket.objects.length;
+      placedObjects.set(obj.objectnummer, bucketId);
     }
   }
 
@@ -189,7 +188,9 @@ export default async function MapPage({
 
     const buckets = bucketKeys
       .map((key) => locationBuckets.get(key))
-      .filter((bucket): bucket is NonNullable<typeof bucket> => Boolean(bucket));
+      .filter((bucket): bucket is NonNullable<typeof bucket> =>
+        Boolean(bucket),
+      );
     if (buckets.length < 2) continue;
 
     const dominant = [...buckets].sort(
@@ -198,7 +199,7 @@ export default async function MapPage({
     if (!dominant || dominant.geo.objectCount <= 0) continue;
 
     for (const candidate of buckets) {
-      if (candidate.keyword === dominant.keyword) continue;
+      if (candidate.id === dominant.id) continue;
 
       const share = candidate.geo.objectCount / dominant.geo.objectCount;
       const distance = coordinateDistance(
@@ -214,7 +215,7 @@ export default async function MapPage({
 
       dominant.objects.push(...candidate.objects);
       dominant.geo.objectCount = dominant.objects.length;
-      locationBuckets.delete(candidate.keyword);
+      locationBuckets.delete(candidate.id);
     }
   }
 

@@ -1,11 +1,13 @@
 'use client';
 
+import type { CollectionObject, GeoLocation } from '@/types/collection';
 import dynamic from 'next/dynamic';
 
 interface LocationGroup {
+  id: string;
   keyword: string;
-  geo: { name: string; lat: number; lng: number; region: string; objectCount: number };
-  objects: any[];
+  geo: GeoLocation;
+  objects: CollectionObject[];
 }
 
 interface MapClientWrapperProps {
@@ -14,10 +16,8 @@ interface MapClientWrapperProps {
 
 const MapClient = dynamic(() => import('./MapClient'), {
   ssr: false,
-  loading: () => (
-    <div className="w-full h-135 bg-(--color-cream-dark)"></div>
-  ),
-}) as any;
+  loading: () => <div className="w-full h-135 bg-(--color-cream-dark)" />,
+});
 
 export default function MapClientWrapper({ locations }: MapClientWrapperProps) {
   return <MapClient locations={locations} />;

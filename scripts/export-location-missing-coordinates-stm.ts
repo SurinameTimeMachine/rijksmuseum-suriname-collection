@@ -7,7 +7,11 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const REPORTS_DIR = path.join(DATA_DIR, 'reports');
 const OBJECT_CSV_PATH = path.join(DATA_DIR, 'Suriname_objecten_export.csv');
 const STM_GAZETTEER_PATH = path.join(DATA_DIR, 'places-gazetteer.jsonld');
-const REVIEW_XLSX_PATH = path.join(DATA_DIR, 'reports', 'location-missing-coordinates-manual-labeled.xlsx');
+const REVIEW_XLSX_PATH = path.join(
+  DATA_DIR,
+  'reports',
+  'location-missing-coordinates-manual-labeled.xlsx',
+);
 
 type GazetteerName = {
   text?: string;
@@ -52,7 +56,7 @@ function loadReviewXlsx() {
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
   const rows = xlsx.utils.sheet_to_json(sheet, { defval: '' });
-  return rows as any[];
+  return rows as Record<string, string>[];
 }
 
 function loadGazetteer() {
@@ -91,8 +95,11 @@ function loadGazetteer() {
 async function main() {
   // Lees collectie CSV en bouw objectByNum
   const collectionCsv = fs.readFileSync(OBJECT_CSV_PATH, 'utf-8');
-  const collectionRows = Papa.parse(collectionCsv, { header: true, skipEmptyLines: true }).data as any[];
-  const objectByNum: Record<string, any> = {};
+  const collectionRows = Papa.parse(collectionCsv, {
+    header: true,
+    skipEmptyLines: true,
+  }).data as Record<string, string>[];
+  const objectByNum: Record<string, Record<string, string>> = {};
   for (const row of collectionRows) {
     objectByNum[row['objectnummer']] = row;
   }
@@ -106,15 +113,20 @@ async function main() {
 
   // Laad gazetteer
   const { byQid, byStmId } = loadGazetteer();
-  const wikidataCoords: Record<string, any> = {};
 
   // Verzamel per afbeelding (PID_werk.URI) alle locaties, maximaal 2 per record
   const wideMap = new Map();
   let matchedRows = 0;
 
   for (const row of reviewRows) {
-    const objNums = (row['sample_objectnummers'] || '').split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean);
-    const idAdded = (row['ID_added'] || '').split(/[,;|]/).map((s: string) => s.trim()).filter(Boolean);
+    const objNums = (row['sample_objectnummers'] || '')
+      .split(/[,;|]/)
+      .map((s: string) => s.trim())
+      .filter(Boolean);
+    const idAdded = (row['ID_added'] || '')
+      .split(/[,;|]/)
+      .map((s: string) => s.trim())
+      .filter(Boolean);
 
     for (const objNum of objNums) {
       const obj = objectByNum[objNum];
@@ -136,7 +148,7 @@ async function main() {
           titel: obj['titel'] || '',
           beschrijving: obj['beschrijving'] || '',
           geo_trefwoord: obj['geografisch_trefwoord'] || '',
-          locaties: []
+          locaties: [],
         });
       }
 
@@ -146,7 +158,9 @@ async function main() {
       for (const locId of idAdded) {
         if (entry.locaties.length >= 2) break;
 
-        let naam = '', lat = '', lng = '';
+        let naam = '',
+          lat = '',
+          lng = '';
 
         if (locId.startsWith('Q')) {
           const stm = byQid.get(locId);
@@ -154,10 +168,6 @@ async function main() {
             naam = stm.label;
             lat = String(stm.lat);
             lng = String(stm.lng);
-          } else if (wikidataCoords[locId] && wikidataCoords[locId][0]) {
-            naam = row['resolved_label'] || '';
-            lat = wikidataCoords[locId][0].lat;
-            lng = wikidataCoords[locId][0].lng;
           }
         } else if (locId.startsWith('stm-')) {
           const stm = byStmId.get(locId.toLowerCase());
@@ -174,7 +184,7 @@ async function main() {
           locatie_id: locId,
           locatie_naam: naam,
           locatie_lat: lat,
-          locatie_lng: lng
+          locatie_lng: lng,
         });
       }
     }
@@ -187,10 +197,10 @@ async function main() {
   for (const entry of wideMap.values()) {
     for (let i = 0; i < 2; i++) {
       const loc = entry.locaties[i] || {};
-      entry[`locatie${i+1}_id`] = loc.locatie_id || '';
-      entry[`locatie${i+1}_naam`] = loc.locatie_naam || '';
-      entry[`locatie${i+1}_lat`] = loc.locatie_lat || '';
-      entry[`locatie${i+1}_lng`] = loc.locatie_lng || '';
+      entry[`locatie${i + 1}_id`] = loc.locatie_id || '';
+      entry[`locatie${i + 1}_naam`] = loc.locatie_naam || '';
+      entry[`locatie${i + 1}_lat`] = loc.locatie_lat || '';
+      entry[`locatie${i + 1}_lng`] = loc.locatie_lng || '';
     }
     delete entry.locaties;
     results.push(entry);
@@ -198,11 +208,15 @@ async function main() {
 
   // Schrijf CSV
   const outPath = path.join(REPORTS_DIR, 'location-review-export.csv');
-  fs.writeFileSync(outPath, Papa.unparse(results, { delimiter: ',', newline: '\n' }), 'utf-8');
+  fs.writeFileSync(
+    outPath,
+    Papa.unparse(results, { delimiter: ',', newline: '\n' }),
+    'utf-8',
+  );
   console.log(`Wrote ${results.length} records to ${outPath}`);
 }
 
-main().catch(e => {
+main().catch((e) => {
   console.error('Fout tijdens uitvoeren script:', e);
   process.exit(1);
 });

@@ -1,7 +1,3 @@
-import fs from 'fs';
-import Papa from 'papaparse';
-import path from 'path';
-
 import type {
   CollectionObject,
   GeoFlag,
@@ -10,6 +6,9 @@ import type {
   LocationResolutionLevel,
   TermDefault,
 } from '@/types/collection';
+import fs from 'fs';
+import Papa from 'papaparse';
+import path from 'path';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const LOCATION_EDITS_PATH = path.join(DATA_DIR, 'location-edits.jsonl');
@@ -60,18 +59,17 @@ function normalizeLabelKey(input: string | null | undefined): string {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
     .replace(/\s+/g, ' ')
-    .trim()
-    ;
+    .trim();
 }
 
-const SURINAME_BOUNDS = {
+export const SURINAME_BOUNDS = {
   minLat: 1.7,
   maxLat: 6.3,
   minLng: -58.2,
   maxLng: -53.8,
 };
 
-const NETHERLANDS_BOUNDS = {
+export const NETHERLANDS_BOUNDS = {
   minLat: 50.7,
   maxLat: 53.6,
   minLng: 3.4,
@@ -80,7 +78,10 @@ const NETHERLANDS_BOUNDS = {
 
 // Hardcoded Wikidata coordinates for major places
 // Q730 = Suriname, Q1307 = Paramaribo, etc.
-const WIKIDATA_COORDINATES: Record<string, { lat: number; lng: number } | null> = {
+const WIKIDATA_COORDINATES: Record<
+  string,
+  { lat: number; lng: number } | null
+> = {
   Q730: { lat: 4.310475921401273, lng: -55.38661673044588 }, // Suriname
   Q1307: { lat: 5.82392031098937, lng: -55.151778467090274 }, // Paramaribo
 };
@@ -98,10 +99,7 @@ export function isWithinSurinameBounds(lat: number, lng: number): boolean {
   );
 }
 
-export function getGeoFlags(
-  lat: number | null,
-  lng: number | null,
-): GeoFlag[] {
+export function getGeoFlags(lat: number | null, lng: number | null): GeoFlag[] {
   if (lat === null || lng === null) return [];
   return isWithinSurinameBounds(lat, lng) ? [] : ['outside-suriname'];
 }
@@ -180,17 +178,23 @@ function getStmGazetteerIndex(): StmGazetteerIndex {
   }
 
   try {
-    const dataset = JSON.parse(fs.readFileSync(STM_GAZETTEER_PATH, 'utf-8')) as StmGazetteerDataset;
+    const dataset = JSON.parse(
+      fs.readFileSync(STM_GAZETTEER_PATH, 'utf-8'),
+    ) as StmGazetteerDataset;
     for (const place of dataset['@graph'] || []) {
       const fromId = normalizeStmId(place.id);
       const fromUrl = normalizeStmId(place['@id']);
       const stmId = fromId || fromUrl;
       if (!stmId) continue;
 
-      const qidRef = normalizeWikidataReference((place.wikidataQid || '').trim());
+      const qidRef = normalizeWikidataReference(
+        (place.wikidataQid || '').trim(),
+      );
       const resolved: StmGazetteerResolvedPlace = {
         stmId,
-        gazetteerUrl: (place['@id'] || `https://data.suriname-timemachine.org/place/${stmId}`).trim(),
+        gazetteerUrl: (
+          place['@id'] || `https://data.suriname-timemachine.org/place/${stmId}`
+        ).trim(),
         wikidataUrl: qidRef.url,
         lat: place.location?.lat ?? null,
         lng: place.location?.lng ?? null,
@@ -230,21 +234,23 @@ function getStmGazetteerIndex(): StmGazetteerIndex {
   return stmGazetteerIndexCache;
 }
 
-export function applyStmFirstLocation<T extends {
-  wikidataUrl: string | null;
-  gazetteerUrl: string | null;
-  lat: number | null;
-  lng: number | null;
-  resolvedLocationLabel?: string | null;
-  matchedLabel?: string | null;
-}>(input: T): T {
+export function applyStmFirstLocation<
+  T extends {
+    wikidataUrl: string | null;
+    gazetteerUrl: string | null;
+    lat: number | null;
+    lng: number | null;
+    resolvedLocationLabel?: string | null;
+    matchedLabel?: string | null;
+  },
+>(input: T): T {
   const index = getStmGazetteerIndex();
   const qid = normalizeWikidataReference(input.wikidataUrl || '').qid;
   const stmId = normalizeStmId(input.gazetteerUrl);
   const labelKey = normalizeLabelKey(
     input.resolvedLocationLabel || input.matchedLabel || '',
   );
-  const labelResolved = labelKey ? index.byLabel.get(labelKey) ?? null : null;
+  const labelResolved = labelKey ? (index.byLabel.get(labelKey) ?? null) : null;
 
   const resolved =
     (stmId ? index.byId.get(stmId) : undefined) ||
@@ -253,9 +259,7 @@ export function applyStmFirstLocation<T extends {
     null;
 
   const hasStmCoords =
-    resolved !== null &&
-    resolved.lat !== null &&
-    resolved.lng !== null;
+    resolved !== null && resolved.lat !== null && resolved.lng !== null;
 
   return {
     ...input,
@@ -336,7 +340,7 @@ export function applyLocationEditsToObject(
   latestEdits: Map<string, LocationEditRecord>,
 ): CollectionObject {
   const updatedDetails = obj.geoKeywordDetails
-    .map((detail) => {
+    .map((detail): GeoKeywordDetail | null => {
       const edit = latestEdits.get(getEditKey(obj.recordnummer, detail.term));
       const normalizedBase = applyStmFirstLocation({
         wikidataUrl: detail.wikidataUri,
@@ -347,26 +351,20 @@ export function applyLocationEditsToObject(
       });
       const baseFlags = getGeoFlags(normalizedBase.lat, normalizedBase.lng);
 
-      if (!edit) {
+      // No edit OR an explicit revert: keep original detail metadata,
+      // but refresh location fields from the STM-first normalized base.
+      if (!edit || edit.evidenceSource === 'revert') {
         return {
           ...detail,
           wikidataUri: normalizedBase.wikidataUrl ?? detail.wikidataUri,
-          stmGazetteerUrl: normalizedBase.gazetteerUrl ?? detail.stmGazetteerUrl ?? null,
+          stmGazetteerUrl:
+            normalizedBase.gazetteerUrl ?? detail.stmGazetteerUrl ?? null,
           lat: normalizedBase.lat,
           lng: normalizedBase.lng,
-          region: getRegionFromCoordinates(normalizedBase.lat, normalizedBase.lng),
-          flags: Array.from(new Set([...(detail.flags || []), ...baseFlags])),
-        };
-      }
-
-      if (edit.evidenceSource === 'revert') {
-        return {
-          ...detail,
-          wikidataUri: normalizedBase.wikidataUrl ?? detail.wikidataUri,
-          stmGazetteerUrl: normalizedBase.gazetteerUrl ?? detail.stmGazetteerUrl ?? null,
-          lat: normalizedBase.lat,
-          lng: normalizedBase.lng,
-          region: getRegionFromCoordinates(normalizedBase.lat, normalizedBase.lng),
+          region: getRegionFromCoordinates(
+            normalizedBase.lat,
+            normalizedBase.lng,
+          ),
           flags: Array.from(new Set([...(detail.flags || []), ...baseFlags])),
         };
       }
@@ -381,10 +379,14 @@ export function applyLocationEditsToObject(
         ...detail,
         matchedLabel: edit.resolvedLocationLabel,
         wikidataUri: normalizedEdit.wikidataUrl ?? detail.wikidataUri,
-        stmGazetteerUrl: normalizedEdit.gazetteerUrl ?? detail.stmGazetteerUrl ?? null,
+        stmGazetteerUrl:
+          normalizedEdit.gazetteerUrl ?? detail.stmGazetteerUrl ?? null,
         lat: normalizedEdit.lat,
         lng: normalizedEdit.lng,
-        region: getRegionFromCoordinates(normalizedEdit.lat, normalizedEdit.lng),
+        region: getRegionFromCoordinates(
+          normalizedEdit.lat,
+          normalizedEdit.lng,
+        ),
         source: 'edit' as const,
         resolutionLevel: edit.resolutionLevel,
         flags: getGeoFlags(normalizedEdit.lat, normalizedEdit.lng),
@@ -393,9 +395,9 @@ export function applyLocationEditsToObject(
           timestamp: edit.timestamp,
           remark: edit.remark,
         },
-      } satisfies GeoKeywordDetail;
+      };
     })
-    .filter((d) => d !== null) as GeoKeywordDetail[];
+    .filter((d): d is GeoKeywordDetail => d !== null);
 
   return {
     ...obj,
@@ -458,17 +460,29 @@ export function loadTermDefaults(): Map<string, TermDefault> {
   }
 }
 
-export function saveTermDefault(entry: TermDefault): void {
-  const existing = loadTermDefaults();
-  const key = entry.term.trim().toLowerCase();
-  existing.set(key, entry);
+// Serialize concurrent saveTermDefault calls within a single Node process
+// so a read-modify-write cycle cannot drop sibling updates.
+let termDefaultsWriteQueue: Promise<void> = Promise.resolve();
 
-  const plain: Record<string, TermDefault> = {};
-  for (const [k, v] of existing.entries()) {
-    plain[k] = v;
-  }
+export function saveTermDefault(entry: TermDefault): Promise<void> {
+  termDefaultsWriteQueue = termDefaultsWriteQueue
+    .catch(() => {})
+    .then(() => {
+      const existing = loadTermDefaults();
+      const key = entry.term.trim().toLowerCase();
+      existing.set(key, entry);
 
-  fs.writeFileSync(TERM_DEFAULTS_PATH, JSON.stringify(plain, null, 2) + '\n', 'utf-8');
+      const plain: Record<string, TermDefault> = {};
+      for (const [k, v] of existing.entries()) {
+        plain[k] = v;
+      }
+
+      const tmpPath = `${TERM_DEFAULTS_PATH}.tmp`;
+      fs.writeFileSync(tmpPath, JSON.stringify(plain, null, 2) + '\n', 'utf-8');
+      fs.renameSync(tmpPath, TERM_DEFAULTS_PATH);
+    });
+
+  return termDefaultsWriteQueue;
 }
 
 export function applyTermDefaultsToObject(
@@ -489,10 +503,14 @@ export function applyTermDefaultsToObject(
       ...detail,
       matchedLabel: def.resolvedLocationLabel,
       wikidataUri: normalizedDefault.wikidataUrl ?? detail.wikidataUri,
-      stmGazetteerUrl: normalizedDefault.gazetteerUrl ?? detail.stmGazetteerUrl ?? null,
+      stmGazetteerUrl:
+        normalizedDefault.gazetteerUrl ?? detail.stmGazetteerUrl ?? null,
       lat: normalizedDefault.lat,
       lng: normalizedDefault.lng,
-      region: getRegionFromCoordinates(normalizedDefault.lat, normalizedDefault.lng),
+      region: getRegionFromCoordinates(
+        normalizedDefault.lat,
+        normalizedDefault.lng,
+      ),
       resolutionLevel: def.resolutionLevel,
       source: 'term-default' as const,
       flags: getGeoFlags(normalizedDefault.lat, normalizedDefault.lng),

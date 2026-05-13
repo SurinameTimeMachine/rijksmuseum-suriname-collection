@@ -1,15 +1,7 @@
 'use client';
 
 import 'leaflet/dist/leaflet.css';
-
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-  useSyncExternalStore,
-} from 'react';
-
+import type { CollectionObject, GeoLocation } from '@/types/collection';
 import {
   ChevronDown,
   ChevronUp,
@@ -23,11 +15,15 @@ import {
   Search,
   X,
 } from 'lucide-react';
-import {
-  useLocale,
-  useTranslations,
-} from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import {
   CircleMarker,
   MapContainer,
@@ -35,12 +31,6 @@ import {
   Tooltip,
   useMap,
 } from 'react-leaflet';
-
-import type {
-  CollectionObject,
-  GeoLocation,
-} from '@/types/collection';
-
 import ObjectImage from './ObjectImage';
 
 /* ---- SSR-safe mount check ---- */
@@ -55,10 +45,13 @@ function useIsMounted() {
 
 /* ---- Types ---- */
 interface LocationGroup {
+  id: string;
   keyword: string;
   geo: GeoLocation;
   objects: CollectionObject[];
 }
+
+type LeafletModule = typeof import('leaflet');
 
 interface MapClientProps {
   locations: LocationGroup[];
@@ -361,10 +354,10 @@ export default function MapClient({ locations }: MapClientProps) {
             ) : (
               searchedLocations.map((loc) => {
                 const objCount = getFilteredObjects(loc).length;
-                const isSelected = selectedLocation?.keyword === loc.keyword;
+                const isSelected = selectedLocation?.id === loc.id;
                 return (
                   <button
-                    key={loc.keyword}
+                    key={loc.id}
                     onClick={() => setSelectedLocation(isSelected ? null : loc)}
                     className={`w-full text-left px-3 py-2.5 border-b border-(--color-border) last:border-b-0 transition-colors ${
                       isSelected
@@ -531,14 +524,26 @@ function SelectedLocationPanel({
 /* ==================================================================
    HEATMAP LAYER
    ================================================================== */
-function HeatLayerWrapper({ points, L }: { points: [number, number, number][], L: any }) {
+function HeatLayerWrapper({
+  points,
+  L,
+}: {
+  points: [number, number, number][];
+  L: LeafletModule;
+}) {
   const map = useMap();
 
   useEffect(() => {
     if (!map || !points.length || !L) return;
 
-    // @ts-ignore - leaflet.heat is not typed
-    const heatLayer = L.heatLayer(points, {
+    const heatLayer = (
+      L as unknown as {
+        heatLayer: (
+          latlngs: [number, number, number][],
+          options?: Record<string, unknown>,
+        ) => { addTo: (m: typeof map) => unknown };
+      }
+    ).heatLayer(points, {
       radius: 25,
       blur: 15,
       maxZoom: 13,
@@ -548,9 +553,11 @@ function HeatLayerWrapper({ points, L }: { points: [number, number, number][], L
     heatLayer.addTo(map);
 
     return () => {
-      map.removeLayer(heatLayer);
+      map.removeLayer(
+        heatLayer as unknown as Parameters<typeof map.removeLayer>[0],
+      );
     };
-  }, [map, points]);
+  }, [map, points, L]);
 
   return null;
 }
@@ -576,7 +583,7 @@ function MapInner({
   locale: string;
   t: ReturnType<typeof useTranslations>;
 }) {
-  const [L, setL] = useState<any>(null);
+  const [L, setL] = useState<LeafletModule | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -584,11 +591,37 @@ function MapInner({
       // @ts-expect-error -- Leaflet.heat is not typed
       import('leaflet.heat'),
     ]).then(([leaflet]) => {
-      setL(() => leaflet.default || leaflet);
+      const mod = (leaflet as { default?: LeafletModule }).default ?? leaflet;
+      setL(() => mod as LeafletModule);
     });
-    // @ts-expect-error -- CSS import has no type declarations
-    import('leaflet/dist/leaflet.css');
   }, []);
+
+  const locationMetrics = useMemo(
+    () =>
+      locations.map((loc) => ({
+        loc,
+        filteredCount: getFilteredObjects(loc).length,
+      })),
+    [locations, getFilteredObjects],
+  );
+
+  const maxCount = useMemo(
+    () => Math.max(...locationMetrics.map((m) => m.filteredCount), 1),
+    [locationMetrics],
+  );
+
+  const heatmapPoints = useMemo(
+    () =>
+      locationMetrics.map(
+        ({ loc, filteredCount }) =>
+          [loc.geo.lat, loc.geo.lng, filteredCount / maxCount] as [
+            number,
+            number,
+            number,
+          ],
+      ),
+    [locationMetrics, maxCount],
+  );
 
   if (!L) {
     return (
@@ -600,23 +633,6 @@ function MapInner({
       </div>
     );
   }
-
-  const locationMetrics = locations.map((loc) => ({
-    loc,
-    filteredCount: getFilteredObjects(loc).length,
-  }));
-
-  const maxCount = Math.max(...locationMetrics.map((m) => m.filteredCount), 1);
-
-  // Prepare heatmap points
-  const heatmapPoints = locationMetrics.map(
-    ({ loc, filteredCount }) =>
-      [loc.geo.lat, loc.geo.lng, filteredCount / maxCount] as [
-        number,
-        number,
-        number,
-      ],
-  );
 
   // Map center and zoom based on region
   let center: [number, number];
@@ -649,45 +665,44 @@ function MapInner({
         )}
         {viewMode === 'markers' &&
           locationMetrics.map(({ loc, filteredCount }) => {
-          const isSelected = selectedLocation?.keyword === loc.keyword;
-          const radius = Math.max(
-            6,
-            Math.min(30, (filteredCount / maxCount) * 30),
-          );
-          const isSuriname = loc.geo.region === 'suriname';
+            const isSelected = selectedLocation?.id === loc.id;
+            const radius = Math.max(
+              6,
+              Math.min(30, (filteredCount / maxCount) * 30),
+            );
+            const isSuriname = loc.geo.region === 'suriname';
 
-          return (
-            <CircleMarker
-              key={loc.keyword}
-              center={[loc.geo.lat, loc.geo.lng]}
-              radius={isSelected ? radius + 3 : radius}
-              pathOptions={{
-                fillColor: isSuriname ? '#c0503e' : '#c99a2e',
-                fillOpacity: isSelected ? 0.9 : 0.6,
-                color: isSelected
-                  ? '#1b3a35'
-                  : isSuriname
-                    ? '#9a3e31'
-                    : '#a07d20',
-                weight: isSelected ? 3 : 1,
-              }}
-              eventHandlers={{
-                click: () => {
-                  onSelectLocation(isSelected ? null : loc);
-                },
-              }}
-            >
-              <Tooltip direction="top" offset={[0, -radius]}>
-                <span className="font-semibold">{loc.geo.name}</span>
-                <br />
-                <span className="text-xs text-gray-500">
-                  {filteredCount}{' '}
-                  {filteredCount === 1 ? 'object' : 'objects'}
-                </span>
-              </Tooltip>
-            </CircleMarker>
-          );
-        })}
+            return (
+              <CircleMarker
+                key={loc.id}
+                center={[loc.geo.lat, loc.geo.lng]}
+                radius={isSelected ? radius + 3 : radius}
+                pathOptions={{
+                  fillColor: isSuriname ? '#c0503e' : '#c99a2e',
+                  fillOpacity: isSelected ? 0.9 : 0.6,
+                  color: isSelected
+                    ? '#1b3a35'
+                    : isSuriname
+                      ? '#9a3e31'
+                      : '#a07d20',
+                  weight: isSelected ? 3 : 1,
+                }}
+                eventHandlers={{
+                  click: () => {
+                    onSelectLocation(isSelected ? null : loc);
+                  },
+                }}
+              >
+                <Tooltip direction="top" offset={[0, -radius]}>
+                  <span className="font-semibold">{loc.geo.name}</span>
+                  <br />
+                  <span className="text-xs text-gray-500">
+                    {filteredCount} {filteredCount === 1 ? 'object' : 'objects'}
+                  </span>
+                </Tooltip>
+              </CircleMarker>
+            );
+          })}
       </MapContainer>
 
       {/* Legend overlay */}
@@ -703,7 +718,7 @@ function MapInner({
         <span className="text-(--color-warm-gray-light)">
           {viewMode === 'markers' ? t('markerSize') : t('heatDensity')}
         </span>
-        </div>
+      </div>
     </div>
   );
 }

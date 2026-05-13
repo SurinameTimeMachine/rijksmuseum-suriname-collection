@@ -1,14 +1,15 @@
-import { NextResponse } from 'next/server';
-
+import {
+  checkCurationAuth,
+  isEvidenceSource,
+  isResolutionLevel,
+} from '@/lib/curation-api';
 import {
   appendLocationEdit,
   getGeoFlags,
   normalizeWikidataReference,
 } from '@/lib/location-curation';
-import type {
-  LocationEditRecord,
-  LocationResolutionLevel,
-} from '@/types/collection';
+import type { LocationEditRecord } from '@/types/collection';
+import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -36,7 +37,10 @@ function asNullableUrl(value: unknown): string | null {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  const authError = checkCurationAuth(request);
+  if (authError) return authError;
+
+  const body = await request.json().catch(() => null);
 
   if (!body || typeof body !== 'object') {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
@@ -49,10 +53,40 @@ export async function POST(request: Request) {
       : '';
   const originalTerm =
     typeof body.originalTerm === 'string' ? body.originalTerm.trim() : '';
+  const objectnummer =
+    typeof body.objectnummer === 'string' ? body.objectnummer.trim() : '';
 
-  if (!author || !resolvedLocationLabel || !originalTerm) {
+  if (!author || !resolvedLocationLabel || !originalTerm || !objectnummer) {
     return NextResponse.json(
-      { error: 'author, originalTerm and resolvedLocationLabel are required' },
+      {
+        error:
+          'author, objectnummer, originalTerm and resolvedLocationLabel are required',
+      },
+      { status: 400 },
+    );
+  }
+
+  const recordnummer = Number(body.recordnummer);
+  if (!Number.isFinite(recordnummer)) {
+    return NextResponse.json(
+      { error: 'recordnummer must be a finite number' },
+      { status: 400 },
+    );
+  }
+
+  if (!isResolutionLevel(body.resolutionLevel)) {
+    return NextResponse.json(
+      { error: 'resolutionLevel must be one of exact|broader|city|country' },
+      { status: 400 },
+    );
+  }
+
+  if (!isEvidenceSource(body.evidenceSource)) {
+    return NextResponse.json(
+      {
+        error:
+          'evidenceSource must be one of trefwoord|beschrijving|both|bevestigd|revert|rejected',
+      },
       { status: 400 },
     );
   }
@@ -62,9 +96,8 @@ export async function POST(request: Request) {
   );
 
   const record: LocationEditRecord = {
-    recordnummer: Number(body.recordnummer),
-    objectnummer:
-      typeof body.objectnummer === 'string' ? body.objectnummer.trim() : '',
+    recordnummer,
+    objectnummer,
     originalTerm,
     resolvedLocationLabel,
     wikidataQid: wikidataReference.qid,
@@ -72,7 +105,7 @@ export async function POST(request: Request) {
     gazetteerUrl: asNullableUrl(body.gazetteerReference),
     lat: asNullableNumber(body.lat),
     lng: asNullableNumber(body.lng),
-    resolutionLevel: body.resolutionLevel as LocationResolutionLevel,
+    resolutionLevel: body.resolutionLevel,
     evidenceSource: body.evidenceSource,
     evidenceText:
       typeof body.evidenceText === 'string' && body.evidenceText.trim()

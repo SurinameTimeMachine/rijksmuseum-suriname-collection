@@ -29,9 +29,18 @@ const DATA_DIR = path.join(process.cwd(), 'data');
 const REPORTS_DIR = path.join(DATA_DIR, 'reports');
 const COLLECTION_PATH = path.join(DATA_DIR, 'collection.json');
 
-const SUMMARY_PATH = path.join(REPORTS_DIR, 'live-location-coverage-summary.json');
-const GENERIC_CASES_PATH = path.join(REPORTS_DIR, 'live-location-generic-suriname-paramaribo.csv');
-const PROBLEM_CASES_PATH = path.join(REPORTS_DIR, 'live-location-problem-cases.csv');
+const SUMMARY_PATH = path.join(
+  REPORTS_DIR,
+  'live-location-coverage-summary.json',
+);
+const GENERIC_CASES_PATH = path.join(
+  REPORTS_DIR,
+  'live-location-generic-suriname-paramaribo.csv',
+);
+const PROBLEM_CASES_PATH = path.join(
+  REPORTS_DIR,
+  'live-location-problem-cases.csv',
+);
 
 const GENERIC_TERMS = new Set([
   'suriname',
@@ -48,7 +57,11 @@ function toCsvCell(value: unknown): string {
   return text;
 }
 
-function writeCsv(filePath: string, headers: string[], rows: Array<Array<unknown>>) {
+function writeCsv(
+  filePath: string,
+  headers: string[],
+  rows: Array<Array<unknown>>,
+) {
   const lines = [headers.map(toCsvCell).join(',')];
   for (const row of rows) {
     lines.push(row.map(toCsvCell).join(','));
@@ -57,7 +70,9 @@ function writeCsv(filePath: string, headers: string[], rows: Array<Array<unknown
 }
 
 function normalize(value: string | null | undefined): string {
-  return String(value || '').trim().toLowerCase();
+  return String(value || '')
+    .trim()
+    .toLowerCase();
 }
 
 function mapReady(details: GeoKeywordDetail[]): GeoKeywordDetail[] {
@@ -65,20 +80,33 @@ function mapReady(details: GeoKeywordDetail[]): GeoKeywordDetail[] {
 }
 
 function isGenericMapReady(details: GeoKeywordDetail[]): boolean {
-  return details.length > 0 && details.every((detail) => GENERIC_TERMS.has(normalize(detail.term)));
+  return (
+    details.length > 0 &&
+    details.every((detail) => GENERIC_TERMS.has(normalize(detail.term)))
+  );
 }
 
 function classifyProblem(details: GeoKeywordDetail[]): ProblemBucket {
   if (details.length === 0) return 'no-geo-details';
-  if (details.every((detail) => detail.source === 'unresolved')) return 'unresolved-only';
-  if (details.every((detail) => detail.source === 'thesaurus' && detail.lat == null && detail.lng == null)) {
+  if (details.every((detail) => detail.source === 'unresolved'))
+    return 'unresolved-only';
+  if (
+    details.every(
+      (detail) =>
+        detail.source === 'thesaurus' &&
+        detail.lat == null &&
+        detail.lng == null,
+    )
+  ) {
     return 'thesaurus-no-coords';
   }
   return 'mixed-no-coords';
 }
 
 function main() {
-  const collection = JSON.parse(fs.readFileSync(COLLECTION_PATH, 'utf-8')) as CollectionObject[];
+  const collection = JSON.parse(
+    fs.readFileSync(COLLECTION_PATH, 'utf-8'),
+  ) as CollectionObject[];
   if (!fs.existsSync(REPORTS_DIR)) {
     fs.mkdirSync(REPORTS_DIR, { recursive: true });
   }
@@ -112,16 +140,19 @@ function main() {
     if (mapReadyDetails.length > 0) {
       objectsMapReady += 1;
 
-      const hasInside = mapReadyDetails.some((detail) => detail.region === 'suriname');
+      const hasInside = mapReadyDetails.some(
+        (detail) => detail.region === 'suriname',
+      );
       const hasOutside = mapReadyDetails.some(
-        (detail) => detail.region === 'netherlands' || detail.region === 'other',
+        (detail) =>
+          detail.region === 'netherlands' || detail.region === 'other',
       );
 
       if (hasOutside && !hasInside) {
         objectsMapReadyOnlyOutsideSuriname += 1;
       } else if (hasOutside && hasInside) {
         objectsMapReadyMixedInsideOutside += 1;
-      } else {
+      } else if (hasInside) {
         objectsMapReadyOnlyInsideSuriname += 1;
       }
 
@@ -170,7 +201,8 @@ function main() {
     },
     problemBuckets: problemBucketCounts,
     notes: {
-      mapReadyDefinition: 'Object heeft minimaal 1 geoKeywordDetail met lat en lng.',
+      mapReadyDefinition:
+        'Object heeft minimaal 1 geoKeywordDetail met lat en lng.',
       genericDefinition:
         'Alle map-ready termen van object zijn uitsluitend Suriname of Paramaribo (incl. varianten met haakjes).',
       outsideSurinamePolicy:
@@ -183,7 +215,11 @@ function main() {
     },
   };
 
-  fs.writeFileSync(SUMMARY_PATH, `${JSON.stringify(summary, null, 2)}\n`, 'utf-8');
+  fs.writeFileSync(
+    SUMMARY_PATH,
+    `${JSON.stringify(summary, null, 2)}\n`,
+    'utf-8',
+  );
 
   writeCsv(
     GENERIC_CASES_PATH,
@@ -206,8 +242,12 @@ function main() {
   );
 
   console.log(`Wrote summary: ${SUMMARY_PATH}`);
-  console.log(`Wrote generic cases: ${GENERIC_CASES_PATH} (${genericRows.length})`);
-  console.log(`Wrote problem cases: ${PROBLEM_CASES_PATH} (${problemRows.length})`);
+  console.log(
+    `Wrote generic cases: ${GENERIC_CASES_PATH} (${genericRows.length})`,
+  );
+  console.log(
+    `Wrote problem cases: ${PROBLEM_CASES_PATH} (${problemRows.length})`,
+  );
 }
 
 main();

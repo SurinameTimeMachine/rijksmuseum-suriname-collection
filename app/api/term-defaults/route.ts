@@ -1,14 +1,11 @@
-import { NextResponse } from 'next/server';
-
+import { checkCurationAuth, isResolutionLevel } from '@/lib/curation-api';
 import {
   loadTermDefaults,
   normalizeWikidataReference,
   saveTermDefault,
 } from '@/lib/location-curation';
-import type {
-  LocationResolutionLevel,
-  TermDefault,
-} from '@/types/collection';
+import type { TermDefault } from '@/types/collection';
+import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
@@ -39,7 +36,10 @@ function asNullableUrl(value: unknown): string | null {
 }
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  const authError = checkCurationAuth(request);
+  if (authError) return authError;
+
+  const body = await request.json().catch(() => null);
 
   if (!body || typeof body !== 'object') {
     return NextResponse.json({ error: 'Invalid payload' }, { status: 400 });
@@ -59,6 +59,13 @@ export async function POST(request: Request) {
     );
   }
 
+  if (!isResolutionLevel(body.resolutionLevel)) {
+    return NextResponse.json(
+      { error: 'resolutionLevel must be one of exact|broader|city|country' },
+      { status: 400 },
+    );
+  }
+
   const wikidataReference = normalizeWikidataReference(
     typeof body.wikidataReference === 'string' ? body.wikidataReference : '',
   );
@@ -71,7 +78,7 @@ export async function POST(request: Request) {
     gazetteerUrl: asNullableUrl(body.gazetteerReference),
     lat: asNullableNumber(body.lat),
     lng: asNullableNumber(body.lng),
-    resolutionLevel: body.resolutionLevel as LocationResolutionLevel,
+    resolutionLevel: body.resolutionLevel,
     author,
     timestamp:
       typeof body.timestamp === 'string' && body.timestamp.trim()
@@ -79,7 +86,7 @@ export async function POST(request: Request) {
         : new Date().toISOString(),
   };
 
-  saveTermDefault(entry);
+  await saveTermDefault(entry);
 
   return NextResponse.json({ ok: true, entry });
 }

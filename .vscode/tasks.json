@@ -19,8 +19,8 @@
     {
       "label": "Dev: Stop Next.js",
       "type": "shell",
-      "command": "fuser",
-      "args": ["-k", "3000/tcp"],
+      "command": "npx",
+      "args": ["kill-port", "3000"],
       "presentation": {
         "reveal": "always",
         "panel": "shared",
