@@ -1,3 +1,7 @@
+import ObjectCard from '@/components/ObjectCard';
+import ObjectImage from '@/components/ObjectImage';
+import { getObjectByNumber, getRelatedObjects } from '@/lib/collection';
+import { getLicenseShortName } from '@/lib/utils';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -11,23 +15,12 @@ import {
   Tag,
   Users,
 } from 'lucide-react';
-import {
-  getTranslations,
-  setRequestLocale,
-} from 'next-intl/server';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import ObjectCard from '@/components/ObjectCard';
-import ObjectImage from '@/components/ObjectImage';
-import {
-  getObjectByNumber,
-  getRelatedObjects,
-} from '@/lib/collection';
-import { getLicenseShortName } from '@/lib/utils';
-
-// Return empty array so pages are rendered on-demand instead of at build time.
-// This avoids exceeding Vercel's 75 MB deploy size limit (~7 300+ objects × 2 locales).
+// Return empty array so pages are rendered on-demand instead of at build time,
+// avoiding excessive build output for ~7 300+ objects × 2 locales.
 export function generateStaticParams() {
   return [];
 }
@@ -228,7 +221,8 @@ export default async function ObjectPage({
                         )}
                         {detail.provenance && (
                           <div className="text-(--color-warm-gray) mt-1">
-                            {detail.provenance.author} · {detail.provenance.timestamp}
+                            {detail.provenance.author} ·{' '}
+                            {detail.provenance.timestamp}
                             {detail.provenance.remark
                               ? ` · ${detail.provenance.remark}`
                               : ''}
