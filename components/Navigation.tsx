@@ -4,7 +4,6 @@ import { cn } from '@/lib/utils';
 import {
   BarChart3,
   ChevronDown,
-  Compass,
   Globe,
   Grid3X3,
   Menu,
@@ -16,7 +15,6 @@ import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const navItems = [
-  { href: '', labelKey: 'explore' as const, icon: Compass },
   { href: '/gallery', labelKey: 'gallery' as const, icon: Grid3X3 },
   { href: '/statistics', labelKey: 'statistics' as const, icon: BarChart3 },
 ];
@@ -60,7 +58,7 @@ export default function Navigation() {
     if (isExploreRef.current) scheduleHide();
   }, [clearHideTimer, scheduleHide]);
 
-  // Auto-hide on explore page after 3 s; always show on other pages
+  // Auto-hide on explore page; always show on other pages
   useEffect(() => {
     if (!isExplore) {
       clearHideTimer();
@@ -99,7 +97,89 @@ export default function Navigation() {
 
   return (
     <>
-      {/* Reveal tab — fixed, visible only when nav is hidden on explore page */}
+      {/*
+        Spacer: reserves 64 px in the flex column on non-explore pages so
+        content starts below the fixed header. On the explore page it collapses
+        to 0 so the map fills the full viewport and the header overlays it.
+      */}
+      <div
+        className="shrink-0 transition-[height] duration-300 ease-in-out"
+        style={{ height: isExplore ? 0 : NAV_H }}
+        aria-hidden="true"
+      />
+
+      {/* Fixed header — always overlays content, slides out on explore page */}
+      <header
+        className="fixed top-0 left-0 right-0 z-[50] h-16 bg-(--color-cream)/95 backdrop-blur-md border-b border-(--color-border) transition-transform duration-300 ease-in-out"
+        style={{ transform: navHidden ? 'translateY(-100%)' : 'translateY(0)' }}
+        onTransitionEnd={onTransitionEnd}
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link
+              href={`/${locale}`}
+              className="flex items-center gap-3 group shrink-0"
+            >
+              <div className="w-9 h-9 bg-(--color-charcoal) flex items-center justify-center">
+                <span className="text-white font-serif font-bold text-sm">
+                  SC
+                </span>
+              </div>
+              <div className="hidden sm:block">
+                <span className="font-serif font-bold text-lg text-(--color-charcoal) group-hover:text-(--color-rijks-red) transition-colors">
+                  Suriname Collection
+                </span>
+              </div>
+            </Link>
+
+            {/* Desktop nav */}
+            <nav className="hidden md:flex items-center gap-1">
+              {navItems.map((item) => {
+                const href = `/${locale}${item.href}`;
+                const isActive = pathname.startsWith(href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={href}
+                    className={cn(
+                      'flex items-center gap-2 px-3.5 py-2 text-sm font-medium transition-colors',
+                      isActive
+                        ? 'bg-(--color-charcoal) text-white'
+                        : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark) hover:text-(--color-charcoal)',
+                    )}
+                  >
+                    <item.icon size={16} />
+                    {t(item.labelKey)}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Language toggle + mobile menu button */}
+            <div className="flex items-center gap-2">
+              <Link
+                href={switchLocalePath}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
+                title={t('language')}
+              >
+                <Globe size={16} />
+                <span className="uppercase font-semibold">{otherLocale}</span>
+              </Link>
+
+              <button
+                onClick={mobileOpen ? closeMobileMenu : openMobileMenu}
+                className="md:hidden p-2 text-(--color-charcoal-light) hover:bg-(--color-cream-dark)"
+                aria-label="Toggle menu"
+              >
+                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Reveal tab — appears at top centre when nav is hidden on explore page */}
       {isExplore && navHidden && (
         <button
           onClick={revealNav}
@@ -111,98 +191,13 @@ export default function Navigation() {
         </button>
       )}
 
-      {/* Nav wrapper — height animates 64 → 0 */}
-      <div
-        style={{
-          height: navHidden ? 0 : NAV_H,
-          overflow: 'hidden',
-          transition: 'height 300ms ease-in-out',
-          flexShrink: 0,
-        }}
-        onTransitionEnd={onTransitionEnd}
-      >
-        <header
-          className="h-16 z-50 bg-(--color-cream)/95 backdrop-blur-md border-b border-(--color-border)"
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              {/* Logo */}
-              <Link
-                href={`/${locale}`}
-                className="flex items-center gap-3 group shrink-0"
-              >
-                <div className="w-9 h-9 bg-(--color-charcoal) flex items-center justify-center">
-                  <span className="text-white font-serif font-bold text-sm">
-                    SC
-                  </span>
-                </div>
-                <div className="hidden sm:block">
-                  <span className="font-serif font-bold text-lg text-(--color-charcoal) group-hover:text-(--color-rijks-red) transition-colors">
-                    Suriname Collection
-                  </span>
-                </div>
-              </Link>
-
-              {/* Desktop nav */}
-              <nav className="hidden md:flex items-center gap-1">
-                {navItems.map((item) => {
-                  const href = `/${locale}${item.href}`;
-                  const isActive =
-                    item.href === ''
-                      ? pathname === `/${locale}` || pathname === `/${locale}/`
-                      : pathname.startsWith(href);
-                  return (
-                    <Link
-                      key={item.href}
-                      href={href}
-                      className={cn(
-                        'flex items-center gap-2 px-3.5 py-2 text-sm font-medium transition-colors',
-                        isActive
-                          ? 'bg-(--color-charcoal) text-white'
-                          : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark) hover:text-(--color-charcoal)',
-                      )}
-                    >
-                      <item.icon size={16} />
-                      {t(item.labelKey)}
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              {/* Language toggle + mobile menu button */}
-              <div className="flex items-center gap-2">
-                <Link
-                  href={switchLocalePath}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
-                  title={t('language')}
-                >
-                  <Globe size={16} />
-                  <span className="uppercase">{otherLocale}</span>
-                </Link>
-
-                <button
-                  onClick={mobileOpen ? closeMobileMenu : openMobileMenu}
-                  className="md:hidden p-2 text-(--color-charcoal-light) hover:bg-(--color-cream-dark)"
-                  aria-label="Toggle menu"
-                >
-                  {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-                </button>
-              </div>
-            </div>
-          </div>
-        </header>
-      </div>
-
-      {/* Mobile dropdown — fixed overlay so it's not clipped by the wrapper */}
+      {/* Mobile dropdown — fixed, drops below the header */}
       {mobileOpen && (
         <div className="fixed top-16 left-0 right-0 z-[55] bg-(--color-cream)/98 backdrop-blur-md border-b border-(--color-border) shadow-lg md:hidden">
           <nav className="max-w-7xl mx-auto px-4 py-3 space-y-1">
             {navItems.map((item) => {
               const href = `/${locale}${item.href}`;
-              const isActive =
-                item.href === ''
-                  ? pathname === `/${locale}` || pathname === `/${locale}/`
-                  : pathname.startsWith(href);
+              const isActive = pathname.startsWith(href);
               return (
                 <Link
                   key={item.href}
@@ -220,6 +215,18 @@ export default function Navigation() {
                 </Link>
               );
             })}
+            {/* Language toggle in mobile menu too */}
+            <Link
+              href={switchLocalePath}
+              onClick={closeMobileMenu}
+              className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors rounded"
+            >
+              <Globe size={18} />
+              <span>
+                {t('language')} —{' '}
+                <span className="uppercase font-semibold">{otherLocale}</span>
+              </span>
+            </Link>
           </nav>
         </div>
       )}

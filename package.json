@@ -6,6 +6,7 @@
     "build": "next build",
     "dev": "next dev",
     "enrich": "npx tsx scripts/enrich-data.ts",
+    "export:collection": "npx tsx scripts/export-collection-csv.ts",
     "export:rijksmuseum-delta": "npx tsx scripts/export-rijksmuseum-location-delta.ts",
     "lint": "eslint",
     "report:locations": "npx tsx scripts/export-location-report.ts",
