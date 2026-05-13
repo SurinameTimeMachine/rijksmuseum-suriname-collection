@@ -93,7 +93,7 @@ export default function ExploreView({
   };
 
   return (
-    <div className="relative w-full h-[calc(100dvh-4rem)]">
+    <div className="relative w-full h-full overflow-hidden">
       <HoneycombMap
         hexes={hexes}
         backgroundHexes={backgroundHexes}
@@ -102,8 +102,8 @@ export default function ExploreView({
         onZoomChange={setZoom}
       />
 
-      {/* Object count badge */}
-      <div className="absolute top-4 left-4 z-1000 bg-(--color-card)/95 backdrop-blur-md border border-(--color-border) px-3 py-2 shadow-md flex items-center gap-2 text-sm">
+      {/* Object count badge — top-right, clear of Leaflet's default topleft zoom buttons */}
+      <div className="absolute top-4 right-4 z-1000 bg-(--color-card)/95 backdrop-blur-md border border-(--color-border) px-3 py-2 shadow-md flex items-center gap-2 text-sm">
         <Layers size={14} className="text-(--color-charcoal-light)" />
         <span className="text-(--color-charcoal)">
           <strong className="font-semibold">
@@ -112,13 +112,6 @@ export default function ExploreView({
           <span className="text-(--color-warm-gray)">{t('objectsShown')}</span>
         </span>
       </div>
-
-      {/* Hint */}
-      {!selectedHexId && (
-        <div className="absolute top-4 right-4 z-1000 bg-(--color-charcoal)/85 text-white text-xs px-3 py-2 shadow-md max-w-xs hidden md:block">
-          {t('clickHexHint')}
-        </div>
-      )}
 
       {/* Time slider */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-1000 w-[min(640px,calc(100%-2rem))]">

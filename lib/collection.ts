@@ -430,6 +430,7 @@ const EXCLUDED_LOCATION_LABELS: ReadonlySet<string> = new Set(
     // Generic country-level terms — objects only tagged with "Suriname" as a
     // whole are not useful in the map (no specific location information).
     'Suriname',
+    'Surinam', // English form of 'Suriname (Zuid-Amerika)' that slips through
     'Suriname (Zuid-Amerika)',
   ].map(normalizeMapLabelKey),
 );
