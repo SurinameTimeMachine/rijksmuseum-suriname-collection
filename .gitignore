@@ -42,3 +42,6 @@ yarn-error.log*
 # enrichment cache
 data/.cache/
 next-env.d.ts
+
+# generated reports
+/data/reports/
