@@ -183,7 +183,7 @@ export default async function MapPage({
   // Skip explicitly ambiguous labels such as Suriname (country/river ambiguity).
   for (const [nameRegionKey, bucketKeys] of bucketsByNameRegion.entries()) {
     const [name] = nameRegionKey.split('::');
-    if (AMBIGUOUS_LABELS.has(name.trim().toLowerCase())) continue;
+    if (AMBIGUOUS_LABELS.has(normalizeMapLabelKey(name))) continue;
     if (bucketKeys.length < 2) continue;
 
     const buckets = bucketKeys
@@ -196,7 +196,7 @@ export default async function MapPage({
     const dominant = [...buckets].sort(
       (a, b) => b.geo.objectCount - a.geo.objectCount,
     )[0];
-    if (!dominant || dominant.geo.objectCount <= 0) continue;
+    if (dominant.geo.objectCount <= 0) continue;
 
     for (const candidate of buckets) {
       if (candidate.id === dominant.id) continue;

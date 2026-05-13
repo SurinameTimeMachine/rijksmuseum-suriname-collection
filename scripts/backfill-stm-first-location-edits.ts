@@ -80,6 +80,10 @@ function main() {
   const latestByKey = buildLatestLocationEditMap(existing);
   const latestWithCoordsByKey = new Map<string, LocationEditRecord>();
 
+  // location-edits.jsonl is append-only and chronological, and `existing`
+  // preserves that order. We iterate forward and rely on Map.set() overwriting
+  // earlier entries for the same key (getEditKey), so latestWithCoordsByKey
+  // ends up holding the most recent record-with-coordinates per key.
   for (const record of existing) {
     if (record.lat === null || record.lng === null) continue;
     latestWithCoordsByKey.set(getEditKey(record), record);
@@ -110,7 +114,6 @@ function main() {
       ...normalized,
       author: options.author,
       timestamp: new Date().toISOString(),
-      remark: normalized.remark,
     };
 
     appendLocationEdit(nextRecord);

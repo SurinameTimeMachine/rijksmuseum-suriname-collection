@@ -549,6 +549,7 @@ function getStmGazetteerSuggestions(
     for (const variant of variants) {
       const normalizedVariant = normalizeMatcherText(variant);
       if (!normalizedVariant || normalizedVariant.length < 7) continue;
+      if (normalizedVariant.length > 200) continue;
 
       const pattern = new RegExp(`(^|\\b)${escapeRegExp(normalizedVariant)}(\\b|$)`, 'i');
 
@@ -843,6 +844,7 @@ function getStreetSuggestions(
     for (const variant of variants) {
       const normalizedVariant = normalizeMatcherText(variant);
       if (!normalizedVariant || normalizedVariant.length < 8) continue;
+      if (normalizedVariant.length > 200) continue;
 
       const pattern = new RegExp(
         `(^|\\b)${escapeRegExp(normalizedVariant)}(\\b|$)`,

@@ -36,6 +36,22 @@ type GazetteerEntry = {
   label: string;
 };
 
+type ReviewRow = {
+  sample_objectnummers?: string;
+  ID_added?: string;
+  resolved_label?: string;
+  [column: string]: string | undefined;
+};
+
+type CollectionRow = {
+  objectnummer: string;
+  'PID_werk.URI'?: string;
+  titel?: string;
+  beschrijving?: string;
+  geografisch_trefwoord?: string;
+  [column: string]: string | undefined;
+};
+
 function normalizeStmId(rawId?: string): string | null {
   if (!rawId) return null;
   if (rawId.startsWith('stm-')) return rawId;
@@ -51,12 +67,12 @@ function getPlaceLabel(place: GazetteerPlace): string {
   return names.find((n) => n.isPreferred)?.text || names[0]?.text || '';
 }
 
-function loadReviewXlsx() {
+function loadReviewXlsx(): ReviewRow[] {
   const workbook = xlsx.readFile(REVIEW_XLSX_PATH);
   const sheetName = workbook.SheetNames[0];
   const sheet = workbook.Sheets[sheetName];
   const rows = xlsx.utils.sheet_to_json(sheet, { defval: '' });
-  return rows as Record<string, string>[];
+  return rows as ReviewRow[];
 }
 
 function loadGazetteer() {
@@ -98,10 +114,10 @@ async function main() {
   const collectionRows = Papa.parse(collectionCsv, {
     header: true,
     skipEmptyLines: true,
-  }).data as Record<string, string>[];
-  const objectByNum: Record<string, Record<string, string>> = {};
+  }).data as CollectionRow[];
+  const objectByNum: Record<string, CollectionRow> = {};
   for (const row of collectionRows) {
-    objectByNum[row['objectnummer']] = row;
+    objectByNum[row.objectnummer] = row;
   }
 
   // Reviewbestand inlezen
@@ -119,11 +135,11 @@ async function main() {
   let matchedRows = 0;
 
   for (const row of reviewRows) {
-    const objNums = (row['sample_objectnummers'] || '')
+    const objNums = (row.sample_objectnummers || '')
       .split(/[,;|]/)
       .map((s: string) => s.trim())
       .filter(Boolean);
-    const idAdded = (row['ID_added'] || '')
+    const idAdded = (row.ID_added || '')
       .split(/[,;|]/)
       .map((s: string) => s.trim())
       .filter(Boolean);
@@ -145,9 +161,9 @@ async function main() {
           pid_werk_uri: pid,
           objectnummer: objNum,
           afbeelding_link: pid,
-          titel: obj['titel'] || '',
-          beschrijving: obj['beschrijving'] || '',
-          geo_trefwoord: obj['geografisch_trefwoord'] || '',
+          titel: obj.titel || '',
+          beschrijving: obj.beschrijving || '',
+          geo_trefwoord: obj.geografisch_trefwoord || '',
           locaties: [],
         });
       }
@@ -177,7 +193,7 @@ async function main() {
             lng = String(stm.lng);
           }
         } else if (locId.startsWith('http') && locId.includes('geonames.org')) {
-          naam = row['resolved_label'] || '';
+          naam = row.resolved_label || '';
         }
 
         entry.locaties.push({
