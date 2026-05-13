@@ -45,11 +45,14 @@
 /* Base styles */
 html {
   scroll-behavior: smooth;
+  overflow: hidden;
 }
 
 body {
   background-color: var(--color-cream);
   color: var(--color-charcoal);
+  height: 100dvh;
+  overflow: hidden;
 }
 
 /* Subtle parchment texture overlay */

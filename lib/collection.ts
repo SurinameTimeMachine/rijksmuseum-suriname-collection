@@ -9,7 +9,13 @@ import { getLicenseShortName } from '@/lib/utils';
 import type {
   CollectionObject,
   CollectionStats,
+  CurationStats,
   FilterOptions,
+  GeoKeywordDetail,
+  HoneycombBackgroundCell,
+  HoneycombBin,
+  HoneycombData,
+  MapTimelineObject,
   SortOption,
 } from '@/types/collection';
 import { cache } from 'react';
@@ -399,3 +405,263 @@ export async function getRelatedObjects(
 
   return scored.map((s) => s.object);
 }
+
+/* ============================================================
+ * Honeycomb / map-timeline helpers
+ * ============================================================ */
+
+const GENERIC_MAP_LABELS = new Set([
+  'suriname',
+  'suriname (zuid-amerika)',
+  'paramaribo',
+  'paramaribo (stad)',
+  'nickerie',
+]);
+
+/**
+ * Specific location labels we exclude from the landing map because their
+ * coordinates fall at the extreme edge of Suriname or are otherwise unreliable,
+ * or they represent the country as a whole rather than a specific place.
+ * Values are stored pre-normalized via normalizeMapLabelKey.
+ */
+const EXCLUDED_LOCATION_LABELS: ReadonlySet<string> = new Set(
+  [
+    'Sipaliwini Savanna',
+    // Generic country-level terms — objects only tagged with "Suriname" as a
+    // whole are not useful in the map (no specific location information).
+    'Suriname',
+    'Surinam', // English form of 'Suriname (Zuid-Amerika)' that slips through
+    'Suriname (Zuid-Amerika)',
+  ].map(normalizeMapLabelKey),
+);
+
+function normalizeMapLabelKey(input: string | null | undefined): string {
+  return (input || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getDetailSpecificityScore(detail: GeoKeywordDetail): number {
+  const name = detail.matchedLabel?.trim() || detail.term;
+  const normalizedName = normalizeMapLabelKey(name);
+  const normalizedTerm = normalizeMapLabelKey(detail.term);
+  const isGeneric =
+    GENERIC_MAP_LABELS.has(normalizedName) ||
+    GENERIC_MAP_LABELS.has(normalizedTerm);
+
+  const resolutionScore =
+    detail.resolutionLevel === 'exact'
+      ? 40
+      : detail.resolutionLevel === 'city'
+        ? 20
+        : detail.resolutionLevel === 'broader'
+          ? 15
+          : detail.resolutionLevel === 'country'
+            ? 10
+            : 5;
+  const sourceScore = detail.source === 'edit' ? 15 : 0;
+  const stmScore = detail.stmGazetteerUrl ? 20 : 0;
+  const nonGenericScore = isGeneric ? 0 : 100;
+
+  return nonGenericScore + resolutionScore + sourceScore + stmScore;
+}
+
+/**
+ * Pick the most specific Suriname-region geo detail with valid coordinates.
+ * Returns null when the object has no usable Suriname point.
+ */
+export function pickPrimarySurinameDetail(
+  obj: CollectionObject,
+): GeoKeywordDetail | null {
+  const mappable = obj.geoKeywordDetails.filter(
+    (d) =>
+      d.lat !== null &&
+      d.lng !== null &&
+      d.region === 'suriname' &&
+      // Exclude country-level fallback so the honeycomb is not swamped
+      // by a single point representing "Suriname" as a whole.
+      d.resolutionLevel !== 'country' &&
+      // Exclude specific labels with unreliable / edge-case coordinates.
+      !EXCLUDED_LOCATION_LABELS.has(
+        normalizeMapLabelKey(d.matchedLabel || d.term),
+      ),
+  );
+  if (mappable.length === 0) return null;
+  return [...mappable].sort(
+    (a, b) => getDetailSpecificityScore(b) - getDetailSpecificityScore(a),
+  )[0];
+}
+
+/**
+ * Pick the most specific geo detail with valid coordinates in any region.
+ * Retained for the existing /map clustering logic.
+ */
+export function pickPrimaryMapDetail(
+  obj: CollectionObject,
+): GeoKeywordDetail | null {
+  const mappable = obj.geoKeywordDetails.filter(
+    (d) => d.lat !== null && d.lng !== null,
+  );
+  if (mappable.length === 0) return null;
+  return [...mappable].sort(
+    (a, b) => getDetailSpecificityScore(b) - getDetailSpecificityScore(a),
+  )[0];
+}
+
+/**
+ * Objects prepared for the honeycomb landing map: showable (public-domain
+ * image with a usable IIIF URL), with a year, and resolving to a specific
+ * (non-country-level) point inside Suriname.
+ */
+export async function getMapTimelineObjects(): Promise<MapTimelineObject[]> {
+  const collection = await getCollection();
+  const out: MapTimelineObject[] = [];
+
+  for (const obj of collection) {
+    if (!obj.hasImage) continue;
+    if (!obj.isPublicDomain) continue;
+    if (!obj.imageUrl) continue;
+    if (obj.year === null) continue;
+
+    const detail = pickPrimarySurinameDetail(obj);
+    if (!detail || detail.lat === null || detail.lng === null) continue;
+
+    out.push({
+      objectnummer: obj.objectnummer,
+      title: obj.titles[0] || obj.objectnummer,
+      year: obj.year,
+      creators: obj.creators,
+      objectTypes: obj.objectTypes,
+      thumbnailUrl: obj.thumbnailUrl,
+      imageUrl: obj.imageUrl,
+      isPublicDomain: obj.isPublicDomain,
+      lat: detail.lat,
+      lng: detail.lng,
+      locationLabel: detail.matchedLabel?.trim() || detail.term,
+      resolutionLevel: detail.resolutionLevel ?? 'exact',
+    });
+  }
+
+  return out;
+}
+
+/**
+ * Counts that document each step of the curation pipeline:
+ * raw → resolved location → Suriname → Wikidata → Commons → public domain
+ * → showable on the landing map.
+ */
+export async function getCurationStats(): Promise<CurationStats> {
+  const collection = await getCollection();
+  const editsApplied = buildLatestLocationEditMap(loadLocationEdits()).size;
+  const termDefaultsApplied = loadTermDefaults().size;
+
+  let withGeographicKeyword = 0;
+  let withResolvedLocation = 0;
+  let withSurinameLocation = 0;
+  let withSurinameSpecificLocation = 0;
+  let withWikidata = 0;
+  let withCommons = 0;
+  let withImage = 0;
+  let publicDomain = 0;
+  let showable = 0;
+
+  for (const obj of collection) {
+    if (obj.geographicKeywords.length > 0) withGeographicKeyword += 1;
+
+    const resolved = obj.geoKeywordDetails.filter(
+      (d) => d.lat !== null && d.lng !== null,
+    );
+    if (resolved.length > 0) withResolvedLocation += 1;
+
+    const suriname = resolved.filter((d) => d.region === 'suriname');
+    if (suriname.length > 0) withSurinameLocation += 1;
+
+    if (suriname.some((d) => d.resolutionLevel !== 'country')) {
+      withSurinameSpecificLocation += 1;
+    }
+
+    if (obj.wikidataUrl) withWikidata += 1;
+    if (obj.wikimediaUrl) withCommons += 1;
+    if (obj.hasImage) withImage += 1;
+    if (obj.isPublicDomain && obj.hasImage) publicDomain += 1;
+
+    if (
+      obj.hasImage &&
+      obj.isPublicDomain &&
+      obj.imageUrl &&
+      obj.year !== null &&
+      pickPrimarySurinameDetail(obj) !== null
+    ) {
+      showable += 1;
+    }
+  }
+
+  return {
+    totalObjects: collection.length,
+    withGeographicKeyword,
+    withResolvedLocation,
+    withSurinameLocation,
+    withSurinameSpecificLocation,
+    withWikidata,
+    withCommons,
+    withImage,
+    publicDomain,
+    showable,
+    locationEditsApplied: editsApplied,
+    termDefaultsApplied,
+  };
+}
+
+/**
+ * Precompute hex bins at every resolution the landing map switches between.
+ * Done on the server so the heavy `h3-js` (emscripten) bundle never ships
+ * to the browser. Each bin lists the indices of the objects that fall into
+ * it; the client filters those indices by the active year range.
+ */
+export const getHoneycombData = cache(async (): Promise<HoneycombData> => {
+  const { cellToBoundary, gridDisk, latLngToCell } = await import('h3-js');
+  const objects = await getMapTimelineObjects();
+
+  const resolutions = [4, 5, 6, 7, 8];
+  const binsByResolution: Record<number, HoneycombBin[]> = {};
+  const backgroundByResolution: Record<number, HoneycombBackgroundCell[]> = {};
+
+  for (const resolution of resolutions) {
+    // Build data bins
+    const map = new Map<string, number[]>();
+    for (let i = 0; i < objects.length; i++) {
+      const obj = objects[i];
+      const id = latLngToCell(obj.lat, obj.lng, resolution);
+      const arr = map.get(id);
+      if (arr) arr.push(i);
+      else map.set(id, [i]);
+    }
+    binsByResolution[resolution] = Array.from(map.entries()).map(
+      ([id, indices]) => ({
+        id,
+        boundary: cellToBoundary(id) as [number, number][],
+        indices,
+      }),
+    );
+
+    // Build background hex grid: immediate neighbors of data hexes that
+    // are not themselves data hexes. Gives the honeycomb structural look.
+    const filledIds = new Set(map.keys());
+    const bgIds = new Set<string>();
+    for (const id of filledIds) {
+      for (const neighbor of gridDisk(id, 1)) {
+        if (!filledIds.has(neighbor)) bgIds.add(neighbor);
+      }
+    }
+    backgroundByResolution[resolution] = Array.from(bgIds).map((id) => ({
+      id,
+      boundary: cellToBoundary(id) as [number, number][],
+    }));
+  }
+
+  return { objects, binsByResolution, backgroundByResolution };
+});

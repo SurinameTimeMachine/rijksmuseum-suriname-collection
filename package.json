@@ -6,6 +6,7 @@
     "build": "next build",
     "dev": "next dev",
     "enrich": "npx tsx scripts/enrich-data.ts",
+    "export:collection": "npx tsx scripts/export-collection-csv.ts",
     "export:rijksmuseum-delta": "npx tsx scripts/export-rijksmuseum-location-delta.ts",
     "lint": "eslint",
     "report:locations": "npx tsx scripts/export-location-report.ts",
@@ -14,6 +15,7 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "h3-js": "^4.4.0",
     "leaflet": "^1.9.4",
     "leaflet.heat": "^0.2.0",
     "lucide-react": "^0.574.0",
