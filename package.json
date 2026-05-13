@@ -12,7 +12,6 @@
     "sync:stm-gazetteer": "npx tsx scripts/sync-stm-gazetteer.ts",
     "build:street-aliases": "npx tsx scripts/build-paramaribo-street-aliases.ts",
     "report:street-aliases": "npx tsx scripts/report-paramaribo-street-alias-coverage.ts",
-    "report:live-coverage": "npx tsx scripts/report-live-location-coverage.ts",
     "backfill:stm-first": "npx tsx scripts/backfill-stm-first-location-edits.ts",
     "export:rijksmuseum-delta": "npx tsx scripts/export-rijksmuseum-location-delta.ts"
   },
