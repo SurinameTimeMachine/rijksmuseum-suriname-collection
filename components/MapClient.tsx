@@ -46,7 +46,7 @@ function useIsMounted() {
 /* ---- Types ---- */
 interface LocationGroup {
   id: string;
-  keyword: string;
+  keywords: string[];
   geo: GeoLocation;
   objects: CollectionObject[];
 }
