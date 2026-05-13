@@ -157,7 +157,7 @@ export default async function MapPage({
       if (!locationBuckets.has(bucketId)) {
         locationBuckets.set(bucketId, {
           id: bucketId,
-          keyword,
+          keywords: [keyword],
           geo: {
             name,
             lat: bucketLat,
@@ -174,6 +174,9 @@ export default async function MapPage({
       }
 
       const bucket = locationBuckets.get(bucketId)!;
+      if (!bucket.keywords.includes(keyword)) {
+        bucket.keywords.push(keyword);
+      }
       bucket.objects.push(obj);
       bucket.geo.objectCount = bucket.objects.length;
       placedObjects.set(obj.objectnummer, bucketId);
@@ -215,6 +218,11 @@ export default async function MapPage({
       if (distance > MAP_DOMINANT_MERGE_MAX_DISTANCE) continue;
 
       dominant.objects.push(...candidate.objects);
+      for (const keyword of candidate.keywords) {
+        if (!dominant.keywords.includes(keyword)) {
+          dominant.keywords.push(keyword);
+        }
+      }
       dominant.geo.objectCount = dominant.objects.length;
       locationBuckets.delete(candidate.id);
     }

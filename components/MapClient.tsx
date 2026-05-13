@@ -456,7 +456,7 @@ function SelectedLocationPanel({
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href={`/${locale}/gallery?location=${encodeURIComponent(location.keyword)}`}
+            href={`/${locale}/gallery?${location.keywords.map((k) => `location=${encodeURIComponent(k)}`).join('&')}`}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-(--color-charcoal) text-white hover:bg-(--color-charcoal-light) transition-colors"
           >
             {t('viewInGallery')}
