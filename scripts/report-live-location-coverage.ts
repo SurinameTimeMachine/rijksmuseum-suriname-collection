@@ -119,6 +119,7 @@ function main() {
   let objectsMapReadyOnlyOutsideSuriname = 0;
   let objectsMapReadyMixedInsideOutside = 0;
   let objectsMapReadyOnlyInsideSuriname = 0;
+  let objectsMapReadyUnknownRegion = 0;
 
   const problemBucketCounts: Record<ProblemBucket, number> = {
     'no-geo-details': 0,
@@ -147,6 +148,9 @@ function main() {
         (detail) =>
           detail.region === 'netherlands' || detail.region === 'other',
       );
+      const hasUnknown = mapReadyDetails.some(
+        (detail) => detail.region == null,
+      );
 
       if (hasOutside && !hasInside) {
         objectsMapReadyOnlyOutsideSuriname += 1;
@@ -154,6 +158,8 @@ function main() {
         objectsMapReadyMixedInsideOutside += 1;
       } else if (hasInside) {
         objectsMapReadyOnlyInsideSuriname += 1;
+      } else if (hasUnknown) {
+        objectsMapReadyUnknownRegion += 1;
       }
 
       if (isGenericMapReady(mapReadyDetails)) {
@@ -198,6 +204,7 @@ function main() {
       objectsMapReadyOnlyInsideSuriname,
       objectsMapReadyOnlyOutsideSuriname,
       objectsMapReadyMixedInsideOutside,
+      objectsMapReadyUnknownRegion,
     },
     problemBuckets: problemBucketCounts,
     notes: {
