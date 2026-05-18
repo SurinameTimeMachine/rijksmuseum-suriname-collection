@@ -417,13 +417,15 @@ export function applyLocationEditsToObject(
           edit.gazetteerUrl ??
           (hasExplicitEditCoords ? null : (detail.stmGazetteerUrl ?? null)),
       });
+      const finalGazetteerUrl =
+        normalizedEdit.gazetteerUrl ??
+        (hasExplicitEditCoords ? null : (detail.stmGazetteerUrl ?? null));
 
       return {
         ...detail,
         matchedLabel: normalizedEdit.resolvedLocationLabel ?? edit.resolvedLocationLabel,
         wikidataUri: normalizedEdit.wikidataUrl ?? detail.wikidataUri,
-        stmGazetteerUrl:
-          normalizedEdit.gazetteerUrl ?? detail.stmGazetteerUrl ?? null,
+        stmGazetteerUrl: finalGazetteerUrl,
         lat: normalizedEdit.lat,
         lng: normalizedEdit.lng,
         region: getRegionFromCoordinates(
