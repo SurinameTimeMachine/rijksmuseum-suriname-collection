@@ -1,6 +1,5 @@
 'use client';
 
-// @ts-expect-error - Leaflet CSS is a side-effect import without TypeScript types.
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
