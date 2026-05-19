@@ -131,6 +131,24 @@ h4 {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
+/* Selected honeycomb cell — soft pulsing glow */
+@keyframes hex-pulse {
+  0%,
+  100% {
+    stroke-width: 2.5;
+    filter: drop-shadow(0 0 2px rgba(192, 80, 62, 0.6));
+  }
+  50% {
+    stroke-width: 4;
+    filter: drop-shadow(0 0 10px rgba(192, 80, 62, 0.95));
+  }
+}
+.hex-selected {
+  animation: hex-pulse 1.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
 /* ---- Dog-ear / folded corner ---- */
 .corner-fold {
   --fold-size: 14px;

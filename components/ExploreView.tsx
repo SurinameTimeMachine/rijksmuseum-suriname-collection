@@ -129,99 +129,104 @@ export default function ExploreView({
     );
   }, [locationCounts, locationQuery]);
 
+  const sidebarOpen = Boolean(selectedHexId);
+
   return (
-    <div className="relative w-full h-full overflow-hidden">
-      <HoneycombMap
-        hexes={hexes}
-        backgroundHexes={backgroundHexes}
-        selectedHexId={selectedHexId}
-        onSelectHex={setSelectedHexId}
-        onZoomChange={setZoom}
-        focusTarget={focusTarget}
-      />
+    <div className="relative w-full h-full flex overflow-hidden">
+      <div className="relative flex-1 min-w-0 h-full">
+        <HoneycombMap
+          hexes={hexes}
+          backgroundHexes={backgroundHexes}
+          selectedHexId={selectedHexId}
+          onSelectHex={setSelectedHexId}
+          onZoomChange={setZoom}
+          focusTarget={focusTarget}
+          resizeSignal={sidebarOpen}
+        />
 
-      {/* Objects in view + location search */}
-      <div className="absolute top-4 right-4 z-1000 w-[min(18rem,calc(100%-2rem))] bg-(--color-card)/95 backdrop-blur-md border border-(--color-border) shadow-md">
-        <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center gap-2 text-xs">
-          <Layers size={12} className="text-(--color-charcoal-light)" />
-          <span className="text-(--color-charcoal)">
-            <strong className="font-semibold">
-              {totalInView.toLocaleString()}
-            </strong>{' '}
-            <span className="text-(--color-warm-gray)">
-              {t('objectsShown')}
+        {/* Objects in view + location search */}
+        <div className="absolute top-4 right-4 z-1000 w-[min(18rem,calc(100%-2rem))] bg-(--color-card)/95 backdrop-blur-md border border-(--color-border) shadow-md">
+          <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center gap-2 text-xs">
+            <Layers size={12} className="text-(--color-charcoal-light)" />
+            <span className="text-(--color-charcoal)">
+              <strong className="font-semibold">
+                {totalInView.toLocaleString()}
+              </strong>{' '}
+              <span className="text-(--color-warm-gray)">
+                {t('objectsShown')}
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
 
-        <div className="p-2 border-b border-(--color-border)">
-          <label htmlFor="location-search" className="sr-only">
-            {t('searchLocations')}
-          </label>
-          <div className="relative">
-            <Search
-              size={12}
-              className="absolute left-2 top-1/2 -translate-y-1/2 text-(--color-warm-gray-light)"
-            />
-            <input
-              id="location-search"
-              type="text"
-              value={locationQuery}
-              onChange={(e) => setLocationQuery(e.target.value)}
-              placeholder={t('searchLocations')}
-              className="w-full pl-7 pr-2 py-1 text-xs border border-(--color-border) bg-white text-(--color-charcoal) placeholder:text-(--color-warm-gray-light) focus:outline-none focus:border-(--color-charcoal-light)"
-            />
+          <div className="p-2 border-b border-(--color-border)">
+            <label htmlFor="location-search" className="sr-only">
+              {t('searchLocations')}
+            </label>
+            <div className="relative">
+              <Search
+                size={12}
+                className="absolute left-2 top-1/2 -translate-y-1/2 text-(--color-warm-gray-light)"
+              />
+              <input
+                id="location-search"
+                type="text"
+                value={locationQuery}
+                onChange={(e) => setLocationQuery(e.target.value)}
+                placeholder={t('searchLocations')}
+                className="w-full pl-7 pr-2 py-1 text-xs border border-(--color-border) bg-white text-(--color-charcoal) placeholder:text-(--color-warm-gray-light) focus:outline-none focus:border-(--color-charcoal-light)"
+              />
+            </div>
+          </div>
+
+          <div className="max-h-44 overflow-y-auto p-1">
+            {filteredLocations.length === 0 ? (
+              <p className="px-2 py-1 text-[11px] text-(--color-warm-gray)">
+                {t('noMatchingPlaces')}
+              </p>
+            ) : (
+              filteredLocations.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() =>
+                    setFocusTarget({
+                      lat: item.lat,
+                      lng: item.lng,
+                      zoom: 11,
+                      key: `${item.label}-${Date.now()}`,
+                    })
+                  }
+                  className="w-full text-left px-2 py-1 text-[11px] flex items-center justify-between hover:bg-(--color-cream-dark) transition-colors"
+                >
+                  <span className="truncate text-(--color-charcoal)">
+                    {item.label}
+                  </span>
+                  <span className="ml-3 shrink-0 tabular-nums text-(--color-warm-gray)">
+                    {item.count}
+                  </span>
+                </button>
+              ))
+            )}
           </div>
         </div>
 
-        <div className="max-h-44 overflow-y-auto p-1">
-          {filteredLocations.length === 0 ? (
-            <p className="px-2 py-1 text-[11px] text-(--color-warm-gray)">
-              {t('noMatchingPlaces')}
-            </p>
-          ) : (
-            filteredLocations.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                onClick={() =>
-                  setFocusTarget({
-                    lat: item.lat,
-                    lng: item.lng,
-                    zoom: 11,
-                    key: `${item.label}-${Date.now()}`,
-                  })
-                }
-                className="w-full text-left px-2 py-1 text-[11px] flex items-center justify-between hover:bg-(--color-cream-dark) transition-colors"
-              >
-                <span className="truncate text-(--color-charcoal)">
-                  {item.label}
-                </span>
-                <span className="ml-3 shrink-0 tabular-nums text-(--color-warm-gray)">
-                  {item.count}
-                </span>
-              </button>
-            ))
-          )}
+        {/* Time slider */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-1000 w-[min(640px,calc(100%-2rem))]">
+          <TimeSliderControl
+            minYear={minYear}
+            maxYear={maxYear}
+            fromYear={fromYear}
+            toYear={toYear}
+            onChange={handleRangeChange}
+            isPlaying={isPlaying}
+            onPlayingChange={setIsPlaying}
+          />
         </div>
       </div>
 
-      {/* Time slider */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-1000 w-[min(640px,calc(100%-2rem))]">
-        <TimeSliderControl
-          minYear={minYear}
-          maxYear={maxYear}
-          fromYear={fromYear}
-          toYear={toYear}
-          onChange={handleRangeChange}
-          isPlaying={isPlaying}
-          onPlayingChange={setIsPlaying}
-        />
-      </div>
-
-      {/* Sidebar */}
+      {/* Sidebar — pushes the map instead of overlaying */}
       <HexSidebar
-        open={Boolean(selectedHexId)}
+        open={sidebarOpen}
         objects={selectedObjects}
         onClose={() => setSelectedHexId(null)}
       />

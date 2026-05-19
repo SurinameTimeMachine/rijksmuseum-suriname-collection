@@ -25,6 +25,8 @@ interface HoneycombMapProps {
   onSelectHex: (hexId: string | null) => void;
   onZoomChange: (zoom: number) => void;
   focusTarget?: { lat: number; lng: number; zoom?: number; key: string } | null;
+  /** Anything that, when changed, should trigger Leaflet to re-measure (e.g. side panel open/close). */
+  resizeSignal?: unknown;
 }
 
 function ZoomTracker({ onZoom }: { onZoom: (zoom: number) => void }) {
@@ -57,6 +59,16 @@ function FocusController({
   return null;
 }
 
+function ResizeInvalidator({ signal }: { signal: unknown }) {
+  const map = useMap();
+  useEffect(() => {
+    // Wait one tick for the CSS transition to start so Leaflet sees the new size.
+    const id = window.setTimeout(() => map.invalidateSize(), 320);
+    return () => window.clearTimeout(id);
+  }, [map, signal]);
+  return null;
+}
+
 export default function HoneycombMap({
   hexes,
   backgroundHexes,
@@ -64,6 +76,7 @@ export default function HoneycombMap({
   onSelectHex,
   onZoomChange,
   focusTarget,
+  resizeSignal,
 }: HoneycombMapProps) {
   const maxCount = Math.max(1, ...hexes.map((h) => h.count));
 
@@ -75,7 +88,6 @@ export default function HoneycombMap({
       maxZoom={13}
       className="w-full h-full"
       worldCopyJump={false}
-      preferCanvas
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -83,6 +95,7 @@ export default function HoneycombMap({
       />
       <ZoomTracker onZoom={onZoomChange} />
       <FocusController target={focusTarget ?? null} />
+      <ResizeInvalidator signal={resizeSignal} />
 
       {/* Background grid: empty neighbor hexes for structural honeycomb feel */}
       {backgroundHexes.map((hex) => (
@@ -114,6 +127,7 @@ export default function HoneycombMap({
               weight: isSelected ? 2.5 : 1.2,
               fillColor: '#c0503e',
               fillOpacity: isSelected ? 0.9 : fillOpacity,
+              className: isSelected ? 'hex-selected' : undefined,
             }}
             eventHandlers={{
               click: () => onSelectHex(isSelected ? null : hex.id),
