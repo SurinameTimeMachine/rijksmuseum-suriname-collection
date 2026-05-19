@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
-import { useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const HoneycombMap = dynamic(() => import('@/components/HoneycombMap'), {
   ssr: false,
@@ -38,26 +39,79 @@ function resolutionForZoom(zoom: number): number {
   return 8;
 }
 
+function parseNumber(
+  value: string | null,
+  fallback: number,
+  min: number,
+  max: number,
+) {
+  if (!value) return fallback;
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.min(max, Math.max(min, num));
+}
+
+function parseBool(value: string | null, fallback = false) {
+  if (value === null) return fallback;
+  return value === '1' || value === 'true';
+}
+
 export default function ExploreView({
   data,
   minYear,
   maxYear,
 }: ExploreViewProps) {
   const t = useTranslations('explore');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { objects, binsByResolution } = data;
 
-  const [fromYear, setFromYear] = useState(minYear);
-  const [toYear, setToYear] = useState(maxYear);
+  const initialFrom = parseNumber(
+    searchParams.get('from'),
+    minYear,
+    minYear,
+    maxYear,
+  );
+  const initialTo = parseNumber(
+    searchParams.get('to'),
+    maxYear,
+    minYear,
+    maxYear,
+  );
+  const initialZoom = parseNumber(searchParams.get('z'), 7, 5, 13);
+  const initialLat = parseNumber(searchParams.get('lat'), 4.5, -90, 90);
+  const initialLng = parseNumber(searchParams.get('lng'), -55.5, -180, 180);
+
+  const [fromYear, setFromYear] = useState(initialFrom);
+  const [toYear, setToYear] = useState(initialTo);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [selectedHexId, setSelectedHexId] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(7);
-  const [locationQuery, setLocationQuery] = useState('');
-  const [imagesOnly, setImagesOnly] = useState(false);
-  const [showPoints, setShowPoints] = useState(false);
-  const [showBroadAreas, setShowBroadAreas] = useState(false);
-  const [menuCollapsed, setMenuCollapsed] = useState(false);
-  const [searchCollapsed, setSearchCollapsed] = useState(false);
-  const [placesCollapsed, setPlacesCollapsed] = useState(false);
+  const [selectedHexId, setSelectedHexId] = useState<string | null>(
+    searchParams.get('hex') || null,
+  );
+  const [zoom, setZoom] = useState(initialZoom);
+  const [center, setCenter] = useState({ lat: initialLat, lng: initialLng });
+  const [locationQuery, setLocationQuery] = useState(
+    searchParams.get('q') || '',
+  );
+  const [imagesOnly, setImagesOnly] = useState(
+    parseBool(searchParams.get('img')),
+  );
+  const [showPoints, setShowPoints] = useState(
+    parseBool(searchParams.get('pts')),
+  );
+  const [showBroadAreas, setShowBroadAreas] = useState(
+    parseBool(searchParams.get('broad')),
+  );
+  const [menuCollapsed, setMenuCollapsed] = useState(
+    parseBool(searchParams.get('mc')),
+  );
+  const [searchCollapsed, setSearchCollapsed] = useState(
+    parseBool(searchParams.get('sc')),
+  );
+  const [placesCollapsed, setPlacesCollapsed] = useState(
+    parseBool(searchParams.get('pc')),
+  );
   const [focusTarget, setFocusTarget] = useState<{
     lat: number;
     lng: number;
@@ -141,6 +195,52 @@ export default function ExploreView({
     setToYear(to);
   };
 
+  const handleViewChange = useCallback((view: { lat: number; lng: number }) => {
+    setCenter({ lat: view.lat, lng: view.lng });
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams();
+
+    params.set('from', String(fromYear));
+    params.set('to', String(toYear));
+    params.set('z', String(Math.round(zoom)));
+    params.set('lat', center.lat.toFixed(4));
+    params.set('lng', center.lng.toFixed(4));
+
+    if (selectedHexId) params.set('hex', selectedHexId);
+    if (locationQuery.trim()) params.set('q', locationQuery.trim());
+    if (imagesOnly) params.set('img', '1');
+    if (showPoints) params.set('pts', '1');
+    if (showBroadAreas) params.set('broad', '1');
+    if (menuCollapsed) params.set('mc', '1');
+    if (searchCollapsed) params.set('sc', '1');
+    if (placesCollapsed) params.set('pc', '1');
+
+    const next = params.toString();
+    const current = searchParams.toString();
+    if (next !== current) {
+      router.replace(`${pathname}?${next}`, { scroll: false });
+    }
+  }, [
+    fromYear,
+    toYear,
+    zoom,
+    center.lat,
+    center.lng,
+    selectedHexId,
+    locationQuery,
+    imagesOnly,
+    showPoints,
+    showBroadAreas,
+    menuCollapsed,
+    searchCollapsed,
+    placesCollapsed,
+    searchParams,
+    router,
+    pathname,
+  ]);
+
   const filteredLocations = useMemo(() => {
     const query = locationQuery.trim().toLowerCase();
     if (!query) return locationCounts;
@@ -160,6 +260,8 @@ export default function ExploreView({
           selectedHexId={selectedHexId}
           onSelectHex={setSelectedHexId}
           onZoomChange={setZoom}
+          onViewChange={handleViewChange}
+          initialView={{ lat: center.lat, lng: center.lng, zoom }}
           focusTarget={focusTarget}
           resizeSignal={sidebarOpen}
           points={showPoints ? locationCounts : null}

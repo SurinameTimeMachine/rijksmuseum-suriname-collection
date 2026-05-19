@@ -26,6 +26,12 @@ export interface MapPoint {
   count: number;
 }
 
+interface MapViewState {
+  lat: number;
+  lng: number;
+  zoom: number;
+}
+
 interface HoneycombMapProps {
   hexes: HexCell[];
   backgroundHexes: HoneycombBackgroundCell[];
@@ -37,6 +43,10 @@ interface HoneycombMapProps {
   resizeSignal?: unknown;
   /** Per-location point overlay; when null/undefined the layer is hidden. */
   points?: MapPoint[] | null;
+  /** Initial viewport when restoring state from URL. */
+  initialView?: { lat: number; lng: number; zoom?: number };
+  /** Emits center+zoom after move/zoom interactions. */
+  onViewChange?: (view: MapViewState) => void;
 }
 
 function ZoomTracker({ onZoom }: { onZoom: (zoom: number) => void }) {
@@ -47,6 +57,43 @@ function ZoomTracker({ onZoom }: { onZoom: (zoom: number) => void }) {
   useMapEvents({
     zoomend: (e) => onZoom(e.target.getZoom()),
   });
+  return null;
+}
+
+function ViewTracker({
+  onViewChange,
+}: {
+  onViewChange?: (view: MapViewState) => void;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!onViewChange) return;
+    const center = map.getCenter();
+    onViewChange({ lat: center.lat, lng: center.lng, zoom: map.getZoom() });
+  }, [map, onViewChange]);
+
+  useMapEvents({
+    moveend: (e) => {
+      if (!onViewChange) return;
+      const center = e.target.getCenter();
+      onViewChange({
+        lat: center.lat,
+        lng: center.lng,
+        zoom: e.target.getZoom(),
+      });
+    },
+    zoomend: (e) => {
+      if (!onViewChange) return;
+      const center = e.target.getCenter();
+      onViewChange({
+        lat: center.lat,
+        lng: center.lng,
+        zoom: e.target.getZoom(),
+      });
+    },
+  });
+
   return null;
 }
 
@@ -88,14 +135,16 @@ export default function HoneycombMap({
   focusTarget,
   resizeSignal,
   points,
+  initialView,
+  onViewChange,
 }: HoneycombMapProps) {
   const maxCount = Math.max(1, ...hexes.map((h) => h.count));
   const maxPointCount = Math.max(1, ...(points?.map((p) => p.count) ?? [1]));
 
   return (
     <MapContainer
-      center={[4.5, -55.5]}
-      zoom={7}
+      center={[initialView?.lat ?? 4.5, initialView?.lng ?? -55.5]}
+      zoom={initialView?.zoom ?? 7}
       minZoom={5}
       maxZoom={13}
       className="w-full h-full"
@@ -106,6 +155,7 @@ export default function HoneycombMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <ZoomTracker onZoom={onZoomChange} />
+      <ViewTracker onViewChange={onViewChange} />
       <FocusController target={focusTarget ?? null} />
       <ResizeInvalidator signal={resizeSignal} />
 

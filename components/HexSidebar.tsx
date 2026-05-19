@@ -5,7 +5,8 @@ import type { MapTimelineObject } from '@/types/collection';
 import { X } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
-import { useEffect } from 'react';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useEffect, useMemo } from 'react';
 
 interface HexSidebarProps {
   open: boolean;
@@ -29,6 +30,8 @@ export default function HexSidebar({
 }: HexSidebarProps) {
   const t = useTranslations('hexSidebar');
   const locale = useLocale();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!open) return;
@@ -40,6 +43,10 @@ export default function HexSidebar({
   }, [open, onClose]);
 
   const label = dominantLabel(objects);
+  const currentHref = useMemo(() => {
+    const qs = searchParams.toString();
+    return qs ? `${pathname}?${qs}` : pathname;
+  }, [pathname, searchParams]);
 
   return (
     <aside
@@ -79,7 +86,7 @@ export default function HexSidebar({
             objects.map((obj) => (
               <Link
                 key={obj.objectnummer}
-                href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}`}
+                href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}?${new URLSearchParams({ from: currentHref }).toString()}`}
                 className="flex gap-3 p-2 border border-(--color-border) hover:shadow-md hover:border-(--color-warm-gray-light) transition-all bg-white"
               >
                 <div className="relative w-20 h-20 shrink-0 bg-(--color-cream-dark) overflow-hidden">

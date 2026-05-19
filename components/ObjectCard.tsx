@@ -1,5 +1,5 @@
-import type { CollectionObject } from '@/types/collection';
 import { getLicenseShortName } from '@/lib/utils';
+import type { CollectionObject } from '@/types/collection';
 import { AlertTriangle } from 'lucide-react';
 import { getLocale } from 'next-intl/server';
 import Link from 'next/link';
@@ -7,19 +7,27 @@ import ObjectImage from './ObjectImage';
 
 interface ObjectCardProps {
   object: CollectionObject;
+  returnHref?: string;
 }
 
-export default async function ObjectCard({ object }: ObjectCardProps) {
+export default async function ObjectCard({
+  object,
+  returnHref,
+}: ObjectCardProps) {
   const locale = await getLocale();
   const title = object.titles[0] || 'Untitled';
   const creator =
     object.creators.filter((c) => c !== 'anoniem').join(', ') || 'Anonymous';
   const dateDisplay = object.year || 'n.d.';
   const licenseInfo = getLicenseShortName(object.license, object.licenseLabel);
+  const objectHref = `/${locale}/object/${encodeURIComponent(object.objectnummer)}`;
+  const href = returnHref
+    ? `${objectHref}?${new URLSearchParams({ from: returnHref }).toString()}`
+    : objectHref;
 
   return (
     <Link
-      href={`/${locale}/object/${encodeURIComponent(object.objectnummer)}`}
+      href={href}
       className="group block bg-(--color-card) overflow-hidden border border-(--color-border) shadow-sm hover:border-(--color-warm-gray-light) hover:shadow-lg transition-all duration-300 corner-fold"
     >
       {/* Image */}

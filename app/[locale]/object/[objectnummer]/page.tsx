@@ -43,10 +43,13 @@ export async function generateMetadata({
 
 export default async function ObjectPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; objectnummer: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, objectnummer } = await params;
+  const sp = await searchParams;
   setRequestLocale(locale);
 
   const obj = await getObjectByNumber(decodeURIComponent(objectnummer));
@@ -69,6 +72,15 @@ export default async function ObjectPage({
   const mapLocation = mappableDetail
     ? { lat: mappableDetail.lat as number, lng: mappableDetail.lng as number }
     : null;
+  const from = typeof sp.from === 'string' ? sp.from : null;
+  const localePrefix = `/${locale}`;
+  const isSafeLocalePath =
+    !!from &&
+    from.startsWith(localePrefix) &&
+    (from.length === localePrefix.length ||
+      from[localePrefix.length] === '/' ||
+      from[localePrefix.length] === '?');
+  const backHref = isSafeLocalePath ? from : `/${locale}/gallery`;
 
   // Rijksmuseum website link
   const rijksUrl = `https://www.rijksmuseum.nl/nl/collectie/${obj.objectnummer}`;
@@ -77,7 +89,7 @@ export default async function ObjectPage({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Back link */}
       <Link
-        href={`/${locale}/gallery`}
+        href={backHref}
         className="inline-flex items-center gap-1.5 text-sm text-(--color-warm-gray) hover:text-(--color-charcoal) transition-colors mb-6"
       >
         <ArrowLeft size={16} />
