@@ -26,6 +26,8 @@ const HoneycombMap = dynamic(() => import('@/components/HoneycombMap'), {
   ),
 });
 
+const MAX_MAP_ZOOM = 18;
+
 interface ExploreViewProps {
   data: HoneycombData;
   minYear: number;
@@ -99,7 +101,7 @@ export default function ExploreView({
     minYear,
     maxYear,
   );
-  const initialZoom = parseNumber(searchParams.get('z'), 7, 5, 13);
+  const initialZoom = parseNumber(searchParams.get('z'), 7, 5, MAX_MAP_ZOOM);
   const initialLat = parseNumber(searchParams.get('lat'), 4.5, -90, 90);
   const initialLng = parseNumber(searchParams.get('lng'), -55.5, -180, 180);
 

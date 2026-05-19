@@ -14,6 +14,8 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 
+const MAX_MAP_ZOOM = 18;
+
 export interface HexCell {
   id: string;
   boundary: [number, number][];
@@ -248,7 +250,7 @@ export default function HoneycombMap({
       center={[initialView?.lat ?? 4.5, initialView?.lng ?? -55.5]}
       zoom={initialView?.zoom ?? 7}
       minZoom={5}
-      maxZoom={13}
+      maxZoom={MAX_MAP_ZOOM}
       className="w-full h-full"
       worldCopyJump={false}
     >
