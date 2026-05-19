@@ -4,7 +4,15 @@ import HexSidebar from '@/components/HexSidebar';
 import type { HexCell } from '@/components/HoneycombMap';
 import TimeSliderControl from '@/components/TimeSliderControl';
 import type { HoneycombData, MapTimelineObject } from '@/types/collection';
-import { Globe2, ImageIcon, Layers, MapPin, Search } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronUp,
+  Globe2,
+  ImageIcon,
+  Layers,
+  MapPin,
+  Search,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import { useMemo, useState } from 'react';
@@ -47,6 +55,9 @@ export default function ExploreView({
   const [imagesOnly, setImagesOnly] = useState(false);
   const [showPoints, setShowPoints] = useState(false);
   const [showBroadAreas, setShowBroadAreas] = useState(false);
+  const [menuCollapsed, setMenuCollapsed] = useState(false);
+  const [searchCollapsed, setSearchCollapsed] = useState(false);
+  const [placesCollapsed, setPlacesCollapsed] = useState(false);
   const [focusTarget, setFocusTarget] = useState<{
     lat: number;
     lng: number;
@@ -156,143 +167,220 @@ export default function ExploreView({
 
         {/* Objects in view + location search */}
         <div className="absolute top-4 right-4 z-1000 w-[min(18rem,calc(100%-2rem))] bg-(--color-card)/95 backdrop-blur-md border border-(--color-border) shadow-md">
-          <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center gap-2 text-xs">
-            <Layers size={12} className="text-(--color-charcoal-light)" />
-            <span className="text-(--color-charcoal)">
-              <strong className="font-semibold">
-                {totalInView.toLocaleString()}
-              </strong>{' '}
-              <span className="text-(--color-warm-gray)">
-                {t('objectsShown')}
+          <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
+            <span className="flex items-center gap-2 text-(--color-charcoal)">
+              <Layers size={12} className="text-(--color-charcoal-light)" />
+              <span>
+                <strong className="font-semibold">
+                  {totalInView.toLocaleString()}
+                </strong>{' '}
+                <span className="text-(--color-warm-gray)">
+                  {t('objectsShown')}
+                </span>
               </span>
             </span>
-          </div>
-
-          <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
-            <span className="flex items-center gap-1.5 text-(--color-charcoal)">
-              <ImageIcon size={12} className="text-(--color-charcoal-light)" />
-              {t('imagesOnly')}
-            </span>
             <button
               type="button"
-              role="switch"
-              aria-checked={imagesOnly}
-              aria-label={t('imagesOnly')}
-              onClick={() => setImagesOnly((v) => !v)}
-              className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
-                imagesOnly
-                  ? 'bg-(--color-charcoal)'
-                  : 'bg-(--color-warm-gray-light)/60'
-              }`}
+              aria-expanded={!menuCollapsed}
+              aria-label={
+                menuCollapsed ? t('expandMenuPanel') : t('collapseMenuPanel')
+              }
+              onClick={() => setMenuCollapsed((v) => !v)}
+              className="inline-flex items-center justify-center h-6 w-6 border border-(--color-border) bg-white text-(--color-charcoal) hover:bg-(--color-cream-dark) transition-colors"
             >
-              <span
-                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                  imagesOnly ? 'translate-x-3.5' : 'translate-x-0.5'
-                }`}
-              />
+              {menuCollapsed ? (
+                <ChevronDown size={14} />
+              ) : (
+                <ChevronUp size={14} />
+              )}
             </button>
           </div>
 
-          <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
-            <span className="flex items-center gap-1.5 text-(--color-charcoal)">
-              <Globe2 size={12} className="text-(--color-charcoal-light)" />
-              {t('showBroadAreas')}
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={showBroadAreas}
-              aria-label={t('showBroadAreas')}
-              onClick={() => setShowBroadAreas((v) => !v)}
-              className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
-                showBroadAreas
-                  ? 'bg-(--color-charcoal)'
-                  : 'bg-(--color-warm-gray-light)/60'
-              }`}
-            >
-              <span
-                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                  showBroadAreas ? 'translate-x-3.5' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
-            <span className="flex items-center gap-1.5 text-(--color-charcoal)">
-              <MapPin size={12} className="text-(--color-charcoal-light)" />
-              {t('showPoints')}
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={showPoints}
-              aria-label={t('showPoints')}
-              onClick={() => setShowPoints((v) => !v)}
-              className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
-                showPoints
-                  ? 'bg-(--color-charcoal)'
-                  : 'bg-(--color-warm-gray-light)/60'
-              }`}
-            >
-              <span
-                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                  showPoints ? 'translate-x-3.5' : 'translate-x-0.5'
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="p-2 border-b border-(--color-border)">
-            <label htmlFor="location-search" className="sr-only">
-              {t('searchLocations')}
-            </label>
-            <div className="relative">
-              <Search
-                size={12}
-                className="absolute left-2 top-1/2 -translate-y-1/2 text-(--color-warm-gray-light)"
-              />
-              <input
-                id="location-search"
-                type="text"
-                value={locationQuery}
-                onChange={(e) => setLocationQuery(e.target.value)}
-                placeholder={t('searchLocations')}
-                className="w-full pl-7 pr-2 py-1 text-xs border border-(--color-border) bg-white text-(--color-charcoal) placeholder:text-(--color-warm-gray-light) focus:outline-none focus:border-(--color-charcoal-light)"
-              />
-            </div>
-          </div>
-
-          <div className="max-h-44 overflow-y-auto p-1">
-            {filteredLocations.length === 0 ? (
-              <p className="px-2 py-1 text-[11px] text-(--color-warm-gray)">
-                {t('noMatchingPlaces')}
-              </p>
-            ) : (
-              filteredLocations.map((item) => (
+          {!menuCollapsed && (
+            <>
+              <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
+                <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+                  <ImageIcon
+                    size={12}
+                    className="text-(--color-charcoal-light)"
+                  />
+                  {t('imagesOnly')}
+                </span>
                 <button
-                  key={item.label}
                   type="button"
-                  onClick={() =>
-                    setFocusTarget({
-                      lat: item.lat,
-                      lng: item.lng,
-                      zoom: 11,
-                      key: `${item.label}-${Date.now()}`,
-                    })
-                  }
-                  className="w-full text-left px-2 py-1 text-[11px] flex items-center justify-between hover:bg-(--color-cream-dark) transition-colors"
+                  role="switch"
+                  aria-checked={imagesOnly}
+                  aria-label={t('imagesOnly')}
+                  onClick={() => setImagesOnly((v) => !v)}
+                  className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                    imagesOnly
+                      ? 'bg-(--color-charcoal)'
+                      : 'bg-(--color-warm-gray-light)/60'
+                  }`}
                 >
-                  <span className="truncate text-(--color-charcoal)">
-                    {item.label}
-                  </span>
-                  <span className="ml-3 shrink-0 tabular-nums text-(--color-warm-gray)">
-                    {item.count}
-                  </span>
+                  <span
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                      imagesOnly ? 'translate-x-3.5' : 'translate-x-0.5'
+                    }`}
+                  />
                 </button>
-              ))
-            )}
-          </div>
+              </div>
+
+              <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
+                <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+                  <Globe2 size={12} className="text-(--color-charcoal-light)" />
+                  {t('showBroadAreas')}
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={showBroadAreas}
+                  aria-label={t('showBroadAreas')}
+                  onClick={() => setShowBroadAreas((v) => !v)}
+                  className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                    showBroadAreas
+                      ? 'bg-(--color-charcoal)'
+                      : 'bg-(--color-warm-gray-light)/60'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                      showBroadAreas ? 'translate-x-3.5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
+                <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+                  <MapPin size={12} className="text-(--color-charcoal-light)" />
+                  {t('showPoints')}
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={showPoints}
+                  aria-label={t('showPoints')}
+                  onClick={() => setShowPoints((v) => !v)}
+                  className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                    showPoints
+                      ? 'bg-(--color-charcoal)'
+                      : 'bg-(--color-warm-gray-light)/60'
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                      showPoints ? 'translate-x-3.5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="border-b border-(--color-border)">
+                <button
+                  type="button"
+                  aria-expanded={!searchCollapsed}
+                  onClick={() => setSearchCollapsed((v) => !v)}
+                  className="w-full px-2.5 py-1.5 flex items-center justify-between gap-2 text-xs text-(--color-charcoal) hover:bg-(--color-cream-dark) transition-colors"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Search
+                      size={12}
+                      className="text-(--color-charcoal-light)"
+                    />
+                    {t('searchLocations')}
+                  </span>
+                  {searchCollapsed ? (
+                    <ChevronDown
+                      size={14}
+                      className="text-(--color-charcoal-light)"
+                    />
+                  ) : (
+                    <ChevronUp
+                      size={14}
+                      className="text-(--color-charcoal-light)"
+                    />
+                  )}
+                </button>
+                {!searchCollapsed && (
+                  <div className="px-2 pb-2">
+                    <label htmlFor="location-search" className="sr-only">
+                      {t('searchLocations')}
+                    </label>
+                    <div className="relative">
+                      <Search
+                        size={12}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 text-(--color-warm-gray-light)"
+                      />
+                      <input
+                        id="location-search"
+                        type="text"
+                        value={locationQuery}
+                        onChange={(e) => setLocationQuery(e.target.value)}
+                        placeholder={t('searchLocations')}
+                        className="w-full pl-7 pr-2 py-1 text-xs border border-(--color-border) bg-white text-(--color-charcoal) placeholder:text-(--color-warm-gray-light) focus:outline-none focus:border-(--color-charcoal-light)"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  aria-expanded={!placesCollapsed}
+                  onClick={() => setPlacesCollapsed((v) => !v)}
+                  className="w-full px-2.5 py-1.5 flex items-center justify-between gap-2 text-xs text-(--color-charcoal) border-b border-(--color-border) hover:bg-(--color-cream-dark) transition-colors"
+                >
+                  <span>{t('placesInView')}</span>
+                  {placesCollapsed ? (
+                    <ChevronDown
+                      size={14}
+                      className="text-(--color-charcoal-light)"
+                    />
+                  ) : (
+                    <ChevronUp
+                      size={14}
+                      className="text-(--color-charcoal-light)"
+                    />
+                  )}
+                </button>
+
+                {!placesCollapsed && (
+                  <div className="max-h-44 overflow-y-auto p-1">
+                    {filteredLocations.length === 0 ? (
+                      <p className="px-2 py-1 text-[11px] text-(--color-warm-gray)">
+                        {t('noMatchingPlaces')}
+                      </p>
+                    ) : (
+                      filteredLocations.map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={() =>
+                            setFocusTarget({
+                              lat: item.lat,
+                              lng: item.lng,
+                              zoom: 11,
+                              key: `${item.label}-${Date.now()}`,
+                            })
+                          }
+                          className="w-full text-left px-2 py-1 text-[11px] flex items-center justify-between hover:bg-(--color-cream-dark) transition-colors"
+                        >
+                          <span className="truncate text-(--color-charcoal)">
+                            {item.label}
+                          </span>
+                          <span className="ml-3 shrink-0 tabular-nums text-(--color-warm-gray)">
+                            {item.count}
+                          </span>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Time slider */}

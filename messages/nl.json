@@ -25,10 +25,13 @@
     "from": "Vanaf jaar",
     "to": "Tot jaar",
     "searchLocations": "Zoek locaties…",
+    "placesInView": "Locaties in beeld",
     "noMatchingPlaces": "Geen overeenkomende locaties in de huidige weergave.",
     "imagesOnly": "Alleen met afbeelding",
     "showPoints": "Punten tonen",
-    "showBroadAreas": "Inclusief grootschalige labels (Surinam/Paramaribo/Surinamerivier)"
+    "showBroadAreas": "Inclusief grootschalige labels (Surinam/Paramaribo/Surinamerivier)",
+    "collapseMenuPanel": "Kaartbediening inklappen",
+    "expandMenuPanel": "Kaartbediening uitklappen"
   },
   "hexSidebar": {
     "approximateLocation": "Benaderend gebied",

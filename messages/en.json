@@ -25,10 +25,13 @@
     "from": "From year",
     "to": "To year",
     "searchLocations": "Search locations…",
+    "placesInView": "Places in view",
     "noMatchingPlaces": "No matching places in the current view.",
     "imagesOnly": "Only with image",
     "showPoints": "Show points",
-    "showBroadAreas": "Include broad-area labels (Surinam/Paramaribo/Surinamerivier)"
+    "showBroadAreas": "Include broad-area labels (Surinam/Paramaribo/Surinamerivier)",
+    "collapseMenuPanel": "Collapse map controls",
+    "expandMenuPanel": "Expand map controls"
   },
   "hexSidebar": {
     "approximateLocation": "Approximate area",
