@@ -15,7 +15,6 @@ interface TimeSliderControlProps {
 }
 
 const ANIMATION_DURATION_MS = 15000;
-const ANIMATION_WINDOW_YEARS = 50;
 
 export default function TimeSliderControl({
   minYear,
@@ -32,6 +31,12 @@ export default function TimeSliderControl({
   const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
 
+  // Refs so the animation closure always reads the latest slider values
+  const fromYearRef = useRef(fromYear);
+  const toYearRef = useRef(toYear);
+  fromYearRef.current = fromYear;
+  toYearRef.current = toYear;
+
   useEffect(() => {
     if (!isPlaying) {
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
@@ -40,19 +45,22 @@ export default function TimeSliderControl({
       return;
     }
 
-    const totalSpan = maxYear - minYear;
+    // Snapshot the window at the moment play is pressed
+    const startFrom = fromYearRef.current;
+    const windowYears = Math.max(1, toYearRef.current - fromYearRef.current);
+    const totalSpan = maxYear - startFrom;
+
     if (totalSpan <= 0) {
       onPlayingChange(false);
       return;
     }
-    const windowYears = Math.min(ANIMATION_WINDOW_YEARS, totalSpan);
 
     const tick = (timestamp: number) => {
       if (startTimeRef.current === null) startTimeRef.current = timestamp;
       const elapsed = timestamp - startTimeRef.current;
       const progress = Math.min(1, elapsed / ANIMATION_DURATION_MS);
       const upper = Math.round(
-        minYear + windowYears + progress * (totalSpan - windowYears),
+        startFrom + windowYears + progress * (totalSpan - windowYears),
       );
       const lower = Math.round(upper - windowYears);
       onChange(lower, upper);
