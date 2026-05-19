@@ -116,7 +116,7 @@ function HistoricalMapOverlay({
   const layersRef = useRef<Record<string, any>>({});
 
   useEffect(() => {
-    if (!map || !map._container) return;
+    if (!map || !(map as any)._container) return;
 
     let mounted = true;
 
@@ -241,7 +241,6 @@ export default function HoneycombMap({
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        name="Modern (OSM)"
       />
       <HistoricalMapOverlay
         activeMap={activeHistoricalMap}

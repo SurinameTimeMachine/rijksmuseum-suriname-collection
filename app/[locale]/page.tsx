@@ -1,6 +1,7 @@
 import ExploreView from '@/components/ExploreView';
 import { getHoneycombData, getStatistics } from '@/lib/collection';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Suspense } from 'react';
 
 export async function generateMetadata({
   params,
@@ -31,5 +32,9 @@ export default async function HomePage({
   const minYear = years.length ? Math.min(...years) : stats.dateRange.earliest;
   const maxYear = years.length ? Math.max(...years) : stats.dateRange.latest;
 
-  return <ExploreView data={data} minYear={minYear} maxYear={maxYear} />;
+  return (
+    <Suspense>
+      <ExploreView data={data} minYear={minYear} maxYear={maxYear} />
+    </Suspense>
+  );
 }
