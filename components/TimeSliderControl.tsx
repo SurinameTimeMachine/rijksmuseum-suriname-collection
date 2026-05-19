@@ -34,8 +34,11 @@ export default function TimeSliderControl({
   // Refs so the animation closure always reads the latest slider values
   const fromYearRef = useRef(fromYear);
   const toYearRef = useRef(toYear);
-  fromYearRef.current = fromYear;
-  toYearRef.current = toYear;
+
+  useEffect(() => {
+    fromYearRef.current = fromYear;
+    toYearRef.current = toYear;
+  }, [fromYear, toYear]);
 
   useEffect(() => {
     if (!isPlaying) {
@@ -95,8 +98,9 @@ export default function TimeSliderControl({
     onChange(minYear, maxYear);
   };
 
-  const fromPct = ((fromYear - minYear) / (maxYear - minYear)) * 100;
-  const toPct = ((toYear - minYear) / (maxYear - minYear)) * 100;
+  const yearSpan = maxYear - minYear;
+  const fromPct = yearSpan > 0 ? ((fromYear - minYear) / yearSpan) * 100 : 0;
+  const toPct = yearSpan > 0 ? ((toYear - minYear) / yearSpan) * 100 : 100;
 
   return (
     <div className="bg-(--color-card)/95 backdrop-blur-md border border-(--color-border) px-3 py-2 shadow-lg">

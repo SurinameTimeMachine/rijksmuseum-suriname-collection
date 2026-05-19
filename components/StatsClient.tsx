@@ -67,6 +67,7 @@ export default function StatsClient({
     .sort(([, a], [, b]) => b - a)
     .slice(0, 15)
     .map(([name, count]) => ({ name, count }));
+  const topCreatorsData = stats.topCreators.slice(0, 15);
 
   const funnel = [
     { label: t('funnel.total'), count: curation.totalObjects },
@@ -382,10 +383,10 @@ export default function StatsClient({
           <ChartSection title={t('topCreators')}>
             <ResponsiveContainer
               width="100%"
-              height={Math.max(280, stats.topCreators.length * 26)}
+              height={Math.max(280, topCreatorsData.length * 26)}
             >
               <BarChart
-                data={stats.topCreators.slice(0, 15)}
+                data={topCreatorsData}
                 layout="vertical"
                 margin={{ left: 150 }}
               >

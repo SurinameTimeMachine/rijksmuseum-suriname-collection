@@ -770,8 +770,8 @@ function dedupeMapObjects(objects: MapTimelineObject[]): MapTimelineObject[] {
  */
 export async function getCurationStats(): Promise<CurationStats> {
   const collection = await getCollection();
-  const editsApplied = buildLatestLocationEditMap(loadLocationEdits()).size;
-  const termDefaultsApplied = loadTermDefaults().size;
+  let locationEditsApplied = 0;
+  let termDefaultsApplied = 0;
 
   let withGeographicKeyword = 0;
   let withResolvedLocation = 0;
@@ -784,6 +784,11 @@ export async function getCurationStats(): Promise<CurationStats> {
   let showable = 0;
 
   for (const obj of collection) {
+    for (const detail of obj.geoKeywordDetails) {
+      if (detail.source === 'edit') locationEditsApplied += 1;
+      if (detail.source === 'term-default') termDefaultsApplied += 1;
+    }
+
     if (obj.geographicKeywords.length > 0) withGeographicKeyword += 1;
 
     const resolved = obj.geoKeywordDetails.filter(
@@ -825,7 +830,7 @@ export async function getCurationStats(): Promise<CurationStats> {
     withImage,
     publicDomain,
     showable,
-    locationEditsApplied: editsApplied,
+    locationEditsApplied,
     termDefaultsApplied,
   };
 }

@@ -6,9 +6,9 @@ import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  type TransitionEvent,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -30,15 +30,9 @@ export default function Navigation() {
   // without needing setState inside an effect body.
   const [timerFired, setTimerFired] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isExploreRef = useRef(false);
 
   const isExplore = pathname === `/${locale}` || pathname === `/${locale}/`;
   const navHidden = isExplore && timerFired;
-
-  // Keep ref in sync via useLayoutEffect to avoid writing a ref during render.
-  useLayoutEffect(() => {
-    isExploreRef.current = isExplore;
-  }, [isExplore]);
 
   const otherLocale = locale === 'en' ? 'nl' : 'en';
   const switchLocalePath = pathname.replace(`/${locale}`, `/${otherLocale}`);
@@ -61,8 +55,8 @@ export default function Navigation() {
   const revealNav = useCallback(() => {
     clearHideTimer();
     setTimerFired(false);
-    if (isExploreRef.current) scheduleHide();
-  }, [clearHideTimer, scheduleHide]);
+    if (isExplore) scheduleHide();
+  }, [clearHideTimer, scheduleHide, isExplore]);
 
   // Auto-hide on explore page; always show on other pages.
   // Reset timerFired in the cleanup (runs when leaving explore) so re-entering
@@ -90,7 +84,8 @@ export default function Navigation() {
   }, [isExplore, navHidden, revealNav]);
 
   // Fire a synthetic resize so Leaflet calls invalidateSize() after transition
-  const onTransitionEnd = () => {
+  const onTransitionEnd = (e: TransitionEvent<HTMLElement>) => {
+    if (e.target !== e.currentTarget || e.propertyName !== 'transform') return;
     window.dispatchEvent(new Event('resize'));
   };
 

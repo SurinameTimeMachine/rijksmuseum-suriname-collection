@@ -51,74 +51,78 @@ export default function HexSidebar({
   return (
     <aside
       className={`relative shrink-0 h-full bg-(--color-card) border-l border-(--color-border) shadow-2xl overflow-hidden transition-[width] duration-300 ease-out ${
-        open ? 'w-full sm:w-96' : 'w-0'
+        open ? 'w-full sm:w-96' : 'w-0 pointer-events-none'
       }`}
       aria-hidden={!open}
+      inert={!open}
     >
-      <div className="w-full sm:w-96 h-full flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-(--color-border)">
-          <div className="min-w-0">
-            <p className="text-xs uppercase tracking-wider text-(--color-warm-gray-light)">
-              {t('approximateLocation')}
-            </p>
-            <h3 className="font-serif text-lg font-bold text-(--color-charcoal) truncate">
-              {label || t('untitledArea')}
-            </h3>
-            <p className="text-xs text-(--color-warm-gray) mt-0.5">
-              {t('objectsHere', { count: objects.length })}
-            </p>
+      {open ? (
+        <div className="w-full sm:w-96 h-full flex flex-col">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-(--color-border)">
+            <div className="min-w-0">
+              <p className="text-xs uppercase tracking-wider text-(--color-warm-gray-light)">
+                {t('approximateLocation')}
+              </p>
+              <h3 className="font-serif text-lg font-bold text-(--color-charcoal) truncate">
+                {label || t('untitledArea')}
+              </h3>
+              <p className="text-xs text-(--color-warm-gray) mt-0.5">
+                {t('objectsHere', { count: objects.length })}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              aria-label={t('close')}
+              className="p-1.5 text-(--color-warm-gray) hover:text-(--color-charcoal) hover:bg-(--color-cream-dark) transition-colors shrink-0"
+            >
+              <X size={18} />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            aria-label={t('close')}
-            className="p-1.5 text-(--color-warm-gray) hover:text-(--color-charcoal) hover:bg-(--color-cream-dark) transition-colors shrink-0"
-          >
-            <X size={18} />
-          </button>
-        </div>
 
-        <div className="overflow-y-auto flex-1 p-4 space-y-3">
-          {objects.length === 0 ? (
-            <p className="text-sm text-(--color-warm-gray) text-center py-8">
-              {t('emptyHex')}
-            </p>
-          ) : (
-            objects.map((obj) => (
-              <Link
-                key={obj.objectnummer}
-                href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}?${new URLSearchParams({ from: currentHref }).toString()}`}
-                className="flex gap-3 p-2 border border-(--color-border) hover:shadow-md hover:border-(--color-warm-gray-light) transition-all bg-white"
-              >
-                <div className="relative w-20 h-20 shrink-0 bg-(--color-cream-dark) overflow-hidden">
-                  <ObjectImage
-                    src={obj.thumbnailUrl}
-                    alt={obj.title}
-                    fill
-                    sizes="80px"
-                    isPublicDomain={obj.isPublicDomain}
-                  />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-(--color-charcoal) line-clamp-2 leading-tight">
-                    {obj.title}
-                  </p>
-                  <p className="text-xs text-(--color-warm-gray) mt-1">
-                    {obj.year}
-                  </p>
-                  {obj.creators.length > 0 && obj.creators[0] !== 'anoniem' && (
-                    <p className="text-xs text-(--color-warm-gray-light) truncate">
-                      {obj.creators[0]}
+          <div className="overflow-y-auto flex-1 p-4 space-y-3">
+            {objects.length === 0 ? (
+              <p className="text-sm text-(--color-warm-gray) text-center py-8">
+                {t('emptyHex')}
+              </p>
+            ) : (
+              objects.map((obj) => (
+                <Link
+                  key={obj.objectnummer}
+                  href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}?${new URLSearchParams({ from: currentHref }).toString()}`}
+                  className="flex gap-3 p-2 border border-(--color-border) hover:shadow-md hover:border-(--color-warm-gray-light) transition-all bg-white"
+                >
+                  <div className="relative w-20 h-20 shrink-0 bg-(--color-cream-dark) overflow-hidden">
+                    <ObjectImage
+                      src={obj.thumbnailUrl}
+                      alt={obj.title}
+                      fill
+                      sizes="80px"
+                      isPublicDomain={obj.isPublicDomain}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-(--color-charcoal) line-clamp-2 leading-tight">
+                      {obj.title}
                     </p>
-                  )}
-                  <p className="text-xs text-(--color-warm-gray-light) truncate italic">
-                    {obj.locationLabel}
-                  </p>
-                </div>
-              </Link>
-            ))
-          )}
+                    <p className="text-xs text-(--color-warm-gray) mt-1">
+                      {obj.year}
+                    </p>
+                    {obj.creators.length > 0 &&
+                      obj.creators[0] !== 'anoniem' && (
+                        <p className="text-xs text-(--color-warm-gray-light) truncate">
+                          {obj.creators[0]}
+                        </p>
+                      )}
+                    <p className="text-xs text-(--color-warm-gray-light) truncate italic">
+                      {obj.locationLabel}
+                    </p>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
         </div>
-      </div>
+      ) : null}
     </aside>
   );
 }

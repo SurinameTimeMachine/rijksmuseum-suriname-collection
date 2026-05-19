@@ -142,8 +142,9 @@ function main() {
   const rows = enriched.map(toRow);
 
   // Write CSV
-  if (!fs.existsSync(REPORTS_DIR)) {
-    fs.mkdirSync(REPORTS_DIR, { recursive: true });
+  const outputDir = path.dirname(outputPath);
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
   }
 
   const csv = Papa.unparse(rows, { delimiter: ';', newline: '\n' });

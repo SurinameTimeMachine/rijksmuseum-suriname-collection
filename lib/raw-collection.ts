@@ -41,13 +41,17 @@ function splitMulti(value: string | undefined): string[] {
 }
 
 function parseYear(start: string, end: string): number | null {
-  const candidate = (start || end || '').trim();
-  if (!candidate) return null;
-  const match = candidate.match(/^(\d{4})/);
-  if (!match) return null;
-  const year = parseInt(match[1], 10);
-  if (!Number.isFinite(year) || year < 1000 || year > 2200) return null;
-  return year;
+  const parseCandidate = (raw: string | undefined): number | null => {
+    const candidate = (raw || '').trim();
+    if (!candidate) return null;
+    const match = candidate.match(/^(\d{4})/);
+    if (!match) return null;
+    const year = parseInt(match[1], 10);
+    if (!Number.isFinite(year) || year < 1000 || year > 2200) return null;
+    return year;
+  };
+
+  return parseCandidate(start) ?? parseCandidate(end);
 }
 
 function toSorted(
@@ -73,6 +77,12 @@ export const getRawCollectionStats = cache(
       delimiter: ';',
       skipEmptyLines: true,
     });
+
+    if (parsed.errors.length > 0) {
+      throw new Error(
+        `Failed to parse raw CSV (${parsed.errors.length} errors): ${parsed.errors[0].message}`,
+      );
+    }
 
     const rows = parsed.data.filter((row) => row.objectnummer);
 

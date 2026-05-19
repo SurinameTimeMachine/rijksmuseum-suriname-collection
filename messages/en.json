@@ -40,6 +40,11 @@
     "emptyHex": "No objects in this area for the selected time range.",
     "close": "Close"
   },
+  "footer": {
+    "title": "Suriname Collection",
+    "rijksmuseumOpenData": "Rijksmuseum Open Data",
+    "tijdmachine": "Tijdmachine"
+  },
   "gallery": {
     "title": "Gallery",
     "searchPlaceholder": "Search titles, descriptions, creators…",

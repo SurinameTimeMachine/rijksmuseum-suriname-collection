@@ -1,6 +1,6 @@
 'use client';
 
-// @ts-ignore - leaflet CSS types not available
+// @ts-expect-error - Leaflet CSS is a side-effect import without TypeScript types.
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -94,7 +94,6 @@ export function AllmapsMap({
   useEffect(() => {
     let cancelled = false;
     async function init() {
-      // eslint-disable-next-line @typescript-eslint/naming-convention -- L is the conventional Leaflet namespace alias
       const [L, allmaps] = await Promise.all([
         import('leaflet'),
         import('@allmaps/leaflet'),
@@ -120,7 +119,6 @@ export function AllmapsMap({
         },
       );
 
-      // eslint-disable-next-line @typescript-eslint/naming-convention -- WarpedMapLayer is a constructor (PascalCase is intentional)
       const WarpedMapLayer = (
         allmaps as unknown as {
           WarpedMapLayer: new () => import('leaflet').Layer & {
@@ -218,7 +216,7 @@ export function AllmapsMap({
       stateRef.current = null;
       setReady(false);
     };
-  }, [resolvedAnnotation, initialBounds, activeBasemap]);
+  }, [resolvedAnnotation, initialBounds, activeBasemap, onBasemapChange]);
 
   // Compute filtered points once per change.
   const filtered = useMemo(() => {
@@ -235,7 +233,6 @@ export function AllmapsMap({
   useEffect(() => {
     const state = stateRef.current;
     if (!ready || !state) return;
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- L is the conventional Leaflet namespace alias
     const { L, map, markers, hexGroup } = state;
 
     function render() {

@@ -40,6 +40,11 @@
     "emptyHex": "Geen objecten in dit gebied voor de gekozen periode.",
     "close": "Sluiten"
   },
+  "footer": {
+    "title": "Suriname Collectie",
+    "rijksmuseumOpenData": "Rijksmuseum Open Data",
+    "tijdmachine": "Tijdmachine"
+  },
   "gallery": {
     "title": "Galerij",
     "searchPlaceholder": "Zoek in titels, beschrijvingen, vervaardigers…",

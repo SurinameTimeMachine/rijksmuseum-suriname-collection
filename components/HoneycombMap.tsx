@@ -2,6 +2,7 @@
 
 import 'leaflet/dist/leaflet.css';
 import type { HoneycombBackgroundCell } from '@/types/collection';
+import type { Layer } from 'leaflet';
 import { useEffect, useRef } from 'react';
 import {
   CircleMarker,
@@ -113,10 +114,14 @@ function HistoricalMapOverlay({
   opacity: number;
 }) {
   const map = useMap();
-  const layersRef = useRef<Record<string, any>>({});
+  type WarpedLayer = Layer & {
+    addGeoreferenceAnnotationByUrl: (url: string) => Promise<unknown>;
+    setOpacity: (value: number) => void;
+  };
+  const layersRef = useRef<Record<string, WarpedLayer>>({});
 
   useEffect(() => {
-    if (!map || !(map as any)._container) return;
+    if (!map) return;
 
     let mounted = true;
 
@@ -125,14 +130,17 @@ function HistoricalMapOverlay({
         const allmaps = await import('@allmaps/leaflet');
         if (!mounted) return;
 
-        const WarpedMapLayer = (allmaps as any).WarpedMapLayer;
+        const WarpedMapLayer = (
+          allmaps as unknown as {
+            WarpedMapLayer: new () => WarpedLayer;
+          }
+        ).WarpedMapLayer;
 
         // Suriname layer
         const surinameLayer = new WarpedMapLayer();
         await surinameLayer.addGeoreferenceAnnotationByUrl(
           'https://annotations.allmaps.org/manifests/5178b46e14dc211e',
         );
-        surinameLayer.setOpacity(opacity);
         layersRef.current['suriname'] = surinameLayer;
 
         // Paramaribo layer
@@ -140,7 +148,6 @@ function HistoricalMapOverlay({
         await paramariboLayer.addGeoreferenceAnnotationByUrl(
           'https://annotations.allmaps.org/maps/a8b80690c8e2e4cb',
         );
-        paramariboLayer.setOpacity(opacity);
         layersRef.current['paramaribo'] = paramariboLayer;
 
         if (mounted) {

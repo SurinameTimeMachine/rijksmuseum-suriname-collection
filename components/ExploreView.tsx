@@ -96,7 +96,7 @@ export default function ExploreView({
     searchParams.get('q') || '',
   );
   const [imagesOnly, setImagesOnly] = useState(
-    parseBool(searchParams.get('img')),
+    searchParams.has('img') ? parseBool(searchParams.get('img')) : true,
   );
   const [showPoints, setShowPoints] = useState(
     parseBool(searchParams.get('pts')),
@@ -206,6 +206,11 @@ export default function ExploreView({
     setCenter({ lat: view.lat, lng: view.lng });
   }, []);
 
+  const activeSelectedHexId =
+    selectedHexId && hexes.some((hex) => hex.id === selectedHexId)
+      ? selectedHexId
+      : null;
+
   useEffect(() => {
     const params = new URLSearchParams();
 
@@ -215,7 +220,7 @@ export default function ExploreView({
     params.set('lat', center.lat.toFixed(4));
     params.set('lng', center.lng.toFixed(4));
 
-    if (selectedHexId) params.set('hex', selectedHexId);
+    if (activeSelectedHexId) params.set('hex', activeSelectedHexId);
     if (locationQuery.trim()) params.set('q', locationQuery.trim());
     if (imagesOnly) params.set('img', '1');
     if (showPoints) params.set('pts', '1');
@@ -238,7 +243,7 @@ export default function ExploreView({
     zoom,
     center.lat,
     center.lng,
-    selectedHexId,
+    activeSelectedHexId,
     locationQuery,
     imagesOnly,
     showPoints,
@@ -261,15 +266,15 @@ export default function ExploreView({
     );
   }, [locationCounts, locationQuery]);
 
-  const sidebarOpen = Boolean(selectedHexId);
+  const sidebarOpen = Boolean(activeSelectedHexId);
 
   return (
-    <div className="relative w-full h-full flex overflow-hidden">
+    <div className="explore-shell relative w-full h-full flex overflow-hidden">
       <div className="relative flex-1 min-w-0 h-full">
         <HoneycombMap
           hexes={hexes}
           backgroundHexes={backgroundHexes}
-          selectedHexId={selectedHexId}
+          selectedHexId={activeSelectedHexId}
           onSelectHex={setSelectedHexId}
           onZoomChange={setZoom}
           onViewChange={handleViewChange}

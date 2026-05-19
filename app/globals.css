@@ -45,12 +45,14 @@
 /* Base styles */
 html {
   scroll-behavior: smooth;
-  overflow: hidden;
 }
 
 body {
   background-color: var(--color-cream);
   color: var(--color-charcoal);
+}
+
+.explore-shell {
   height: 100dvh;
   overflow: hidden;
 }
@@ -144,9 +146,14 @@ h4 {
   }
 }
 .hex-selected {
-  animation: hex-pulse 1.6s ease-in-out infinite;
   transform-box: fill-box;
   transform-origin: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hex-selected {
+    animation: hex-pulse 1.6s ease-in-out infinite;
+  }
 }
 
 /* ---- Dog-ear / folded corner ---- */
