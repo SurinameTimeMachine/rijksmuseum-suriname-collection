@@ -23,7 +23,9 @@
     "pause": "Pause",
     "reset": "Reset",
     "from": "From year",
-    "to": "To year"
+    "to": "To year",
+    "searchLocations": "Search locations…",
+    "noMatchingPlaces": "No matching places in the current view."
   },
   "hexSidebar": {
     "approximateLocation": "Approximate area",

@@ -23,7 +23,9 @@
     "pause": "Pauze",
     "reset": "Herstel",
     "from": "Vanaf jaar",
-    "to": "Tot jaar"
+    "to": "Tot jaar",
+    "searchLocations": "Zoek locaties…",
+    "noMatchingPlaces": "Geen overeenkomende locaties in de huidige weergave."
   },
   "hexSidebar": {
     "approximateLocation": "Benaderend gebied",

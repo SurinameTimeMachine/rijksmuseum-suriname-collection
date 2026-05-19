@@ -24,6 +24,7 @@ interface HoneycombMapProps {
   selectedHexId: string | null;
   onSelectHex: (hexId: string | null) => void;
   onZoomChange: (zoom: number) => void;
+  focusTarget?: { lat: number; lng: number; zoom?: number; key: string } | null;
 }
 
 function ZoomTracker({ onZoom }: { onZoom: (zoom: number) => void }) {
@@ -37,12 +38,32 @@ function ZoomTracker({ onZoom }: { onZoom: (zoom: number) => void }) {
   return null;
 }
 
+function FocusController({
+  target,
+}: {
+  target: HoneycombMapProps['focusTarget'];
+}) {
+  const map = useMap();
+  useEffect(() => {
+    if (!target) return;
+    map.flyTo(
+      [target.lat, target.lng],
+      target.zoom ?? Math.max(map.getZoom(), 10),
+      {
+        duration: 0.8,
+      },
+    );
+  }, [map, target?.key]); // eslint-disable-line react-hooks/exhaustive-deps
+  return null;
+}
+
 export default function HoneycombMap({
   hexes,
   backgroundHexes,
   selectedHexId,
   onSelectHex,
   onZoomChange,
+  focusTarget,
 }: HoneycombMapProps) {
   const maxCount = Math.max(1, ...hexes.map((h) => h.count));
 
@@ -61,6 +82,7 @@ export default function HoneycombMap({
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <ZoomTracker onZoom={onZoomChange} />
+      <FocusController target={focusTarget ?? null} />
 
       {/* Background grid: empty neighbor hexes for structural honeycomb feel */}
       {backgroundHexes.map((hex) => (
