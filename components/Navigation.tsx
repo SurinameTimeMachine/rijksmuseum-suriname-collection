@@ -5,7 +5,13 @@ import { BarChart3, ChevronDown, Globe, Grid3X3, Menu, X } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 const navItems = [
   { href: '/gallery', labelKey: 'gallery' as const, icon: Grid3X3 },
@@ -19,12 +25,20 @@ export default function Navigation() {
   const locale = useLocale();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [navHidden, setNavHidden] = useState(false);
+  // timerFired tracks whether the auto-hide timer has elapsed on the explore page.
+  // navHidden is derived so navigating away from explore always shows the nav
+  // without needing setState inside an effect body.
+  const [timerFired, setTimerFired] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isExploreRef = useRef(false);
 
   const isExplore = pathname === `/${locale}` || pathname === `/${locale}/`;
-  isExploreRef.current = isExplore;
+  const navHidden = isExplore && timerFired;
+
+  // Keep ref in sync via useLayoutEffect to avoid writing a ref during render.
+  useLayoutEffect(() => {
+    isExploreRef.current = isExplore;
+  }, [isExplore]);
 
   const otherLocale = locale === 'en' ? 'nl' : 'en';
   const switchLocalePath = pathname.replace(`/${locale}`, `/${otherLocale}`);
@@ -40,25 +54,29 @@ export default function Navigation() {
     clearHideTimer();
     hideTimer.current = setTimeout(() => {
       setMobileOpen(false);
-      setNavHidden(true);
+      setTimerFired(true);
     }, 3000);
   }, [clearHideTimer]);
 
   const revealNav = useCallback(() => {
     clearHideTimer();
-    setNavHidden(false);
+    setTimerFired(false);
     if (isExploreRef.current) scheduleHide();
   }, [clearHideTimer, scheduleHide]);
 
-  // Auto-hide on explore page; always show on other pages
+  // Auto-hide on explore page; always show on other pages.
+  // Reset timerFired in the cleanup (runs when leaving explore) so re-entering
+  // the explore page always starts with the nav visible.
   useEffect(() => {
     if (!isExplore) {
       clearHideTimer();
-      setNavHidden(false);
       return;
     }
     scheduleHide();
-    return clearHideTimer;
+    return () => {
+      clearHideTimer();
+      setTimerFired(false);
+    };
   }, [isExplore, scheduleHide, clearHideTimer]);
 
   // Desktop: reveal when mouse approaches the very top (< 6 px)
@@ -78,7 +96,7 @@ export default function Navigation() {
 
   const openMobileMenu = () => {
     clearHideTimer();
-    setNavHidden(false);
+    setTimerFired(false);
     setMobileOpen(true);
   };
 
@@ -102,7 +120,7 @@ export default function Navigation() {
 
       {/* Fixed header — always overlays content, slides out on explore page */}
       <header
-        className="fixed top-0 left-0 right-0 z-[1001] h-16 bg-(--color-cream)/95 backdrop-blur-md border-b border-(--color-border) transition-transform duration-300 ease-in-out"
+        className="fixed top-0 left-0 right-0 z-1001 h-16 bg-(--color-cream)/95 backdrop-blur-md border-b border-(--color-border) transition-transform duration-300 ease-in-out"
         style={{ transform: navHidden ? 'translateY(-100%)' : 'translateY(0)' }}
         onTransitionEnd={onTransitionEnd}
       >
