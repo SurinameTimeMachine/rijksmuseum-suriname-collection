@@ -1,57 +1,25 @@
-import { getTranslations } from 'next-intl/server';
+import { useTranslations } from 'next-intl';
 
-export default async function Footer() {
-  const t = await getTranslations('metadata');
+export default function Footer() {
+  const t = useTranslations('footer');
 
   return (
-    <footer className="border-t border-(--color-border) bg-(--color-cream-dark)">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="text-center md:text-left">
-            <p className="font-serif font-bold text-lg text-(--color-charcoal)">
-              Rijksmuseum Suriname Collection
-            </p>
-            <p className="text-sm text-(--color-warm-gray) mt-1">
-              {t('description')}
-            </p>
-            <p className="text-xs text-(--color-warm-gray-light) mt-2">
-              {'Part of the '}
-              <a
-                href="https://surinametijdmachine.org"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-(--color-charcoal-light) hover:text-(--color-rijks-red) transition-colors"
-              >
-                Suriname Tijdmachine
-              </a>
-              {' project'}
-            </p>
-          </div>
-          <div className="flex flex-col items-center md:items-end gap-2 text-sm text-(--color-warm-gray)">
-            <p>
-              Data:{' '}
-              <a
-                href="https://data.rijksmuseum.nl"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-(--color-charcoal) transition-colors"
-              >
-                Rijksmuseum Open Data
-              </a>
-            </p>
-            <p>
-              Images:{' '}
-              <a
-                href="https://www.rijksmuseum.nl/en/research/image-requests"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-(--color-charcoal) transition-colors"
-              >
-                Rijksmuseum Image Policy
-              </a>
-              {' — mostly Public Domain (CC0)'}
-            </p>
-          </div>
+    <footer className="shrink-0 border-t border-slate-200 bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-10">
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] text-ink/65">
+          <span className="font-medium text-ink/85">{t('projectName')}</span>
+          <span className="text-ink/25" aria-hidden="true">
+            •
+          </span>
+          <span>{t('year')}</span>
+          <span className="text-ink/25" aria-hidden="true">
+            •
+          </span>
+          <span>{t('projectLead')}</span>
+          <span className="text-ink/25" aria-hidden="true">
+            •
+          </span>
+          <span>{t('funder')}</span>
         </div>
       </div>
     </footer>

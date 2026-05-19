@@ -9,7 +9,13 @@ import { getLicenseShortName } from '@/lib/utils';
 import type {
   CollectionObject,
   CollectionStats,
+  CurationStats,
   FilterOptions,
+  GeoKeywordDetail,
+  HoneycombBackgroundCell,
+  HoneycombBin,
+  HoneycombData,
+  MapTimelineObject,
   SortOption,
 } from '@/types/collection';
 import { cache } from 'react';
@@ -399,3 +405,482 @@ export async function getRelatedObjects(
 
   return scored.map((s) => s.object);
 }
+
+/* ============================================================
+ * Honeycomb / map-timeline helpers
+ * ============================================================ */
+
+const GENERIC_MAP_LABELS = new Set([
+  'suriname',
+  'suriname (zuid-amerika)',
+  'paramaribo',
+  'paramaribo (stad)',
+  'nickerie',
+]);
+
+/**
+ * Explicit broad-area fallbacks. We also derive broad-area status by rules
+ * in `isBroadAreaLabel` for Surinam/Paramaribo families.
+ */
+const BROAD_AREA_EXACT_LABELS: ReadonlySet<string> = new Set(
+  [
+    'Suriname',
+    'Surinam',
+    'Suriname (Zuid-Amerika)',
+    'Surinamerivier',
+    'Nickerie',
+  ].map((s) => normalizeMapLabelKey(s)),
+);
+
+const PARAMARIBO_STREET_HINT_RE =
+  /\b(straat|plein|weg|laan|kade|steeg|hof|erf|buurt|wijk)\b/;
+
+function isBroadAreaLabel(input: string | null | undefined): boolean {
+  const key = normalizeMapLabelKey(input);
+  if (!key) return false;
+
+  if (BROAD_AREA_EXACT_LABELS.has(key)) return true;
+
+  // Treat all Surinam-family labels as broad fallback labels.
+  if (key.includes('surinam')) return true;
+
+  // River-level labels are broad by nature.
+  if (key.includes('suriname rivier') || key.includes('surinamerivier')) {
+    return true;
+  }
+
+  // Paramaribo without clear street/address cues is considered broad.
+  if (key.includes('paramaribo')) {
+    const hasStreetHint = PARAMARIBO_STREET_HINT_RE.test(key);
+    const hasAddressNumber = /\b\d+\b/.test(key);
+    return !hasStreetHint && !hasAddressNumber;
+  }
+
+  return false;
+}
+
+/**
+ * Specific location labels we always exclude from the landing map because
+ * their coordinates fall at the extreme edge of Suriname or are otherwise
+ * unreliable. Values pre-normalized via normalizeMapLabelKey.
+ */
+const EXCLUDED_LOCATION_LABELS: ReadonlySet<string> = new Set(
+  ['Sipaliwini Savanna'].map((s) => normalizeMapLabelKey(s)),
+);
+
+/**
+ * Trailing thesaurus disambiguators (AAT-Ned style) that we strip for
+ * display: "Wolfenbüttel (instelling)" → "Wolfenbüttel".
+ */
+const DISPLAY_DISAMBIGUATOR_RE =
+  /\s*\((instelling|stad|plantage|district|gebied|landstreek|eiland|kreek|rivier|plaats)\)\s*$/i;
+
+export function prettifyLocationLabel(raw: string): string {
+  return raw.replace(DISPLAY_DISAMBIGUATOR_RE, '').trim() || raw;
+}
+
+function normalizeMapLabelKey(input: string | null | undefined): string {
+  return (input || '')
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function getDetailSpecificityScore(detail: GeoKeywordDetail): number {
+  const name = detail.matchedLabel?.trim() || detail.term;
+  const normalizedName = normalizeMapLabelKey(name);
+  const normalizedTerm = normalizeMapLabelKey(detail.term);
+  const isGeneric =
+    GENERIC_MAP_LABELS.has(normalizedName) ||
+    GENERIC_MAP_LABELS.has(normalizedTerm);
+
+  const resolutionScore =
+    detail.resolutionLevel === 'exact'
+      ? 40
+      : detail.resolutionLevel === 'city'
+        ? 20
+        : detail.resolutionLevel === 'broader'
+          ? 15
+          : detail.resolutionLevel === 'country'
+            ? 10
+            : 5;
+  const sourceScore = detail.source === 'edit' ? 15 : 0;
+  const stmScore = detail.stmGazetteerUrl ? 20 : 0;
+  const nonGenericScore = isGeneric ? 0 : 100;
+
+  return nonGenericScore + resolutionScore + sourceScore + stmScore;
+}
+
+/**
+ * Pick the most specific Suriname-region geo detail with valid coordinates.
+ * Excludes broad-area labels (Suriname / Paramaribo / Surinamerivier / …)
+ * and unreliable labels. Returns null when the object has no usable
+ * specific Suriname point.
+ */
+export function pickPrimarySurinameDetail(
+  obj: CollectionObject,
+): GeoKeywordDetail | null {
+  const mappable = obj.geoKeywordDetails.filter((d) => {
+    if (d.lat === null || d.lng === null) return false;
+    if (d.region !== 'suriname') return false;
+    // Exclude country-level fallback so the honeycomb is not swamped
+    // by a single point representing "Suriname" as a whole.
+    if (d.resolutionLevel === 'country') return false;
+    const key = normalizeMapLabelKey(d.matchedLabel || d.term);
+    if (EXCLUDED_LOCATION_LABELS.has(key)) return false;
+    if (isBroadAreaLabel(d.matchedLabel || d.term)) return false;
+    return true;
+  });
+  if (mappable.length === 0) return null;
+  return [...mappable].sort(
+    (a, b) => getDetailSpecificityScore(b) - getDetailSpecificityScore(a),
+  )[0];
+}
+
+/**
+ * Fallback picker: when an object has no specific Suriname detail, look
+ * for a broad-area label (Suriname, Paramaribo, Surinamerivier, Nickerie).
+ * Surfaced only when the user opts in via the "Show broad-area labels"
+ * toggle on the landing map.
+ */
+export function pickBroadAreaSurinameDetail(
+  obj: CollectionObject,
+): GeoKeywordDetail | null {
+  const mappable = obj.geoKeywordDetails.filter((d) => {
+    if (d.lat === null || d.lng === null) return false;
+    if (d.region !== 'suriname') return false;
+    if (d.resolutionLevel === 'country') return false;
+    const key = normalizeMapLabelKey(d.matchedLabel || d.term);
+    if (EXCLUDED_LOCATION_LABELS.has(key)) return false;
+    return isBroadAreaLabel(d.matchedLabel || d.term);
+  });
+  if (mappable.length === 0) return null;
+  return [...mappable].sort(
+    (a, b) => getDetailSpecificityScore(b) - getDetailSpecificityScore(a),
+  )[0];
+}
+
+/**
+ * Pick the most specific geo detail with valid coordinates in any region.
+ * Retained for the existing /map clustering logic.
+ */
+export function pickPrimaryMapDetail(
+  obj: CollectionObject,
+): GeoKeywordDetail | null {
+  const mappable = obj.geoKeywordDetails.filter(
+    (d) => d.lat !== null && d.lng !== null,
+  );
+  if (mappable.length === 0) return null;
+  return [...mappable].sort(
+    (a, b) => getDetailSpecificityScore(b) - getDetailSpecificityScore(a),
+  )[0];
+}
+
+/**
+ * Objects prepared for the honeycomb landing map. Includes every object
+ * with a year and a specific (non-country-level) point inside Suriname,
+ * regardless of public-domain / image status — the sidebar handles missing
+ * or copyrighted images via `ObjectImage`. Counts here are the source of
+ * truth for the map: matches the bucketing Thunnis used on the old `/map`
+ * page, including coordinate-precision bucketing and dominant-cluster
+ * outlier merging.
+ */
+export async function getMapTimelineObjects(): Promise<MapTimelineObject[]> {
+  const collection = await getCollection();
+  const raw: MapTimelineObject[] = [];
+
+  for (const obj of collection) {
+    if (obj.year === null) continue;
+
+    let detail = pickPrimarySurinameDetail(obj);
+    let isBroadArea = false;
+    if (!detail) {
+      detail = pickBroadAreaSurinameDetail(obj);
+      if (!detail) continue;
+      isBroadArea = true;
+    }
+    if (detail.lat === null || detail.lng === null) continue;
+
+    const rawLabel = detail.matchedLabel?.trim() || detail.term;
+    raw.push({
+      objectnummer: obj.objectnummer,
+      title: obj.titles[0] || obj.objectnummer,
+      year: obj.year,
+      creators: obj.creators,
+      objectTypes: obj.objectTypes,
+      thumbnailUrl: obj.thumbnailUrl,
+      imageUrl: obj.imageUrl,
+      isPublicDomain: obj.isPublicDomain,
+      lat: detail.lat,
+      lng: detail.lng,
+      locationLabel: prettifyLocationLabel(rawLabel),
+      resolutionLevel: detail.resolutionLevel ?? 'exact',
+      isBroadArea,
+    });
+  }
+
+  return dedupeMapObjects(raw);
+}
+
+/**
+ * Port of Thunnis's `/map` dedupe (commit `8ee333a`). Two passes:
+ *  1. Coordinate-precision bucketing: same label + region, coordinates that
+ *     round to within ~1e-5 degrees, collapse into a single point.
+ *  2. Dominant-cluster outlier merge: when multiple buckets share the same
+ *     label+region, small outlier clusters (≤ 25 objects, ≤ 20% the size of
+ *     the dominant cluster, ≤ 0.35° apart) snap to the dominant cluster's
+ *     coordinates. Skipped for the ambiguous "Suriname" label.
+ */
+const MAP_BUCKET_COORD_PRECISION = 5;
+const MAP_BUCKET_NEAR_COORD_THRESHOLD = 0.00005;
+const MAP_DOMINANT_MERGE_MAX_DISTANCE = 0.35;
+const MAP_DOMINANT_MERGE_MAX_SHARE = 0.2;
+const MAP_DOMINANT_MERGE_MAX_COUNT = 25;
+const AMBIGUOUS_DEDUPE_LABELS = new Set(['suriname']);
+
+function roundCoord(value: number): number {
+  return Number(value.toFixed(MAP_BUCKET_COORD_PRECISION));
+}
+
+function dedupeMapObjects(objects: MapTimelineObject[]): MapTimelineObject[] {
+  type Cluster = {
+    key: string;
+    labelKey: string;
+    /** Count of each raw display label seen in this cluster — used to
+     * pick a canonical label (most frequent wins, ties broken by length). */
+    labelCounts: Map<string, number>;
+    lat: number;
+    lng: number;
+    items: MapTimelineObject[];
+  };
+
+  const clusters = new Map<string, Cluster>();
+  const clustersByLabel = new Map<string, string[]>();
+
+  for (const obj of objects) {
+    const lat = roundCoord(obj.lat);
+    const lng = roundCoord(obj.lng);
+    // Group spelling/diacritic variants together via the normalized key
+    // (e.g. "Wolfenbüttel" / "Wolffenbuttel" → one cluster).
+    const labelKey = normalizeMapLabelKey(obj.locationLabel);
+
+    let clusterKey = `${labelKey}::${lat}::${lng}`;
+    const candidates = clustersByLabel.get(labelKey) ?? [];
+    for (const candidateKey of candidates) {
+      const existing = clusters.get(candidateKey);
+      if (!existing) continue;
+      if (
+        Math.abs(existing.lat - lat) <= MAP_BUCKET_NEAR_COORD_THRESHOLD &&
+        Math.abs(existing.lng - lng) <= MAP_BUCKET_NEAR_COORD_THRESHOLD
+      ) {
+        clusterKey = candidateKey;
+        break;
+      }
+    }
+
+    let cluster = clusters.get(clusterKey);
+    if (!cluster) {
+      cluster = {
+        key: clusterKey,
+        labelKey,
+        labelCounts: new Map(),
+        lat,
+        lng,
+        items: [],
+      };
+      clusters.set(clusterKey, cluster);
+      const keys = clustersByLabel.get(labelKey) ?? [];
+      keys.push(clusterKey);
+      clustersByLabel.set(labelKey, keys);
+    }
+    cluster.items.push(obj);
+    cluster.labelCounts.set(
+      obj.locationLabel,
+      (cluster.labelCounts.get(obj.locationLabel) || 0) + 1,
+    );
+  }
+
+  // Dominant-cluster outlier merge, scoped per label.
+  for (const [labelKey, keys] of clustersByLabel) {
+    if (AMBIGUOUS_DEDUPE_LABELS.has(labelKey.trim().toLowerCase())) continue;
+    if (keys.length < 2) continue;
+
+    const buckets = keys
+      .map((k) => clusters.get(k))
+      .filter((c): c is Cluster => Boolean(c) && c!.items.length > 0);
+    if (buckets.length < 2) continue;
+
+    const dominant = [...buckets].sort(
+      (a, b) => b.items.length - a.items.length,
+    )[0];
+    if (!dominant || dominant.items.length === 0) continue;
+
+    for (const candidate of buckets) {
+      if (candidate === dominant) continue;
+      if (candidate.items.length > MAP_DOMINANT_MERGE_MAX_COUNT) continue;
+      const share = candidate.items.length / dominant.items.length;
+      if (share > MAP_DOMINANT_MERGE_MAX_SHARE) continue;
+      const distance = Math.hypot(
+        candidate.lat - dominant.lat,
+        candidate.lng - dominant.lng,
+      );
+      if (distance > MAP_DOMINANT_MERGE_MAX_DISTANCE) continue;
+
+      dominant.items.push(...candidate.items);
+      for (const [lbl, n] of candidate.labelCounts) {
+        dominant.labelCounts.set(lbl, (dominant.labelCounts.get(lbl) || 0) + n);
+      }
+      candidate.items.length = 0;
+      candidate.labelCounts.clear();
+    }
+  }
+
+  const out: MapTimelineObject[] = [];
+  for (const cluster of clusters.values()) {
+    if (cluster.items.length === 0) continue;
+    // Canonical display label: most frequent in cluster; tie-break by
+    // longest (richer) string for determinism.
+    let canonical = '';
+    let bestCount = -1;
+    for (const [lbl, n] of cluster.labelCounts) {
+      if (n > bestCount || (n === bestCount && lbl.length > canonical.length)) {
+        canonical = lbl;
+        bestCount = n;
+      }
+    }
+    for (const obj of cluster.items) {
+      out.push({
+        ...obj,
+        lat: cluster.lat,
+        lng: cluster.lng,
+        locationLabel: canonical,
+      });
+    }
+  }
+  return out;
+}
+
+/**
+ * Counts that document each step of the curation pipeline:
+ * raw → resolved location → Suriname → Wikidata → Commons → public domain
+ * → showable on the landing map.
+ */
+export async function getCurationStats(): Promise<CurationStats> {
+  const collection = await getCollection();
+  let locationEditsApplied = 0;
+  let termDefaultsApplied = 0;
+
+  let withGeographicKeyword = 0;
+  let withResolvedLocation = 0;
+  let withSurinameLocation = 0;
+  let withSurinameSpecificLocation = 0;
+  let withWikidata = 0;
+  let withCommons = 0;
+  let withImage = 0;
+  let publicDomain = 0;
+  let showable = 0;
+
+  for (const obj of collection) {
+    for (const detail of obj.geoKeywordDetails) {
+      if (detail.source === 'edit') locationEditsApplied += 1;
+      if (detail.source === 'term-default') termDefaultsApplied += 1;
+    }
+
+    if (obj.geographicKeywords.length > 0) withGeographicKeyword += 1;
+
+    const resolved = obj.geoKeywordDetails.filter(
+      (d) => d.lat !== null && d.lng !== null,
+    );
+    if (resolved.length > 0) withResolvedLocation += 1;
+
+    const suriname = resolved.filter((d) => d.region === 'suriname');
+    if (suriname.length > 0) withSurinameLocation += 1;
+
+    if (suriname.some((d) => d.resolutionLevel !== 'country')) {
+      withSurinameSpecificLocation += 1;
+    }
+
+    if (obj.wikidataUrl) withWikidata += 1;
+    if (obj.wikimediaUrl) withCommons += 1;
+    if (obj.hasImage) withImage += 1;
+    if (obj.isPublicDomain && obj.hasImage) publicDomain += 1;
+
+    if (
+      obj.hasImage &&
+      obj.isPublicDomain &&
+      obj.imageUrl &&
+      obj.year !== null &&
+      pickPrimarySurinameDetail(obj) !== null
+    ) {
+      showable += 1;
+    }
+  }
+
+  return {
+    totalObjects: collection.length,
+    withGeographicKeyword,
+    withResolvedLocation,
+    withSurinameLocation,
+    withSurinameSpecificLocation,
+    withWikidata,
+    withCommons,
+    withImage,
+    publicDomain,
+    showable,
+    locationEditsApplied,
+    termDefaultsApplied,
+  };
+}
+
+/**
+ * Precompute hex bins at every resolution the landing map switches between.
+ * Done on the server so the heavy `h3-js` (emscripten) bundle never ships
+ * to the browser. Each bin lists the indices of the objects that fall into
+ * it; the client filters those indices by the active year range.
+ */
+export const getHoneycombData = cache(async (): Promise<HoneycombData> => {
+  const { cellToBoundary, gridDisk, latLngToCell } = await import('h3-js');
+  const objects = await getMapTimelineObjects();
+
+  const resolutions = [4, 5, 6, 7, 8];
+  const binsByResolution: Record<number, HoneycombBin[]> = {};
+  const backgroundByResolution: Record<number, HoneycombBackgroundCell[]> = {};
+
+  for (const resolution of resolutions) {
+    // Build data bins
+    const map = new Map<string, number[]>();
+    for (let i = 0; i < objects.length; i++) {
+      const obj = objects[i];
+      const id = latLngToCell(obj.lat, obj.lng, resolution);
+      const arr = map.get(id);
+      if (arr) arr.push(i);
+      else map.set(id, [i]);
+    }
+    binsByResolution[resolution] = Array.from(map.entries()).map(
+      ([id, indices]) => ({
+        id,
+        boundary: cellToBoundary(id) as [number, number][],
+        indices,
+      }),
+    );
+
+    // Build background hex grid: immediate neighbors of data hexes that
+    // are not themselves data hexes. Gives the honeycomb structural look.
+    const filledIds = new Set(map.keys());
+    const bgIds = new Set<string>();
+    for (const id of filledIds) {
+      for (const neighbor of gridDisk(id, 1)) {
+        if (!filledIds.has(neighbor)) bgIds.add(neighbor);
+      }
+    }
+    backgroundByResolution[resolution] = Array.from(bgIds).map((id) => ({
+      id,
+      boundary: cellToBoundary(id) as [number, number][],
+    }));
+  }
+
+  return { objects, binsByResolution, backgroundByResolution };
+});
