@@ -167,9 +167,11 @@ export interface CurationStats {
 }
 
 /**
- * A single object prepared for the honeycomb landing map: only records that
- * are showable (public-domain image + IIIF URL), have a year, and resolve to
- * a specific point in Suriname.
+ * A single object prepared for the honeycomb landing map. Includes any
+ * object that has a year and resolves to a specific point in Suriname,
+ * regardless of public-domain / image status. `thumbnailUrl` / `imageUrl`
+ * may be null and `isPublicDomain` may be false — the sidebar's
+ * `ObjectImage` renders a placeholder in those cases.
  */
 export interface MapTimelineObject {
   objectnummer: string;

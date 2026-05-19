@@ -513,24 +513,25 @@ export function pickPrimaryMapDetail(
 }
 
 /**
- * Objects prepared for the honeycomb landing map: showable (public-domain
- * image with a usable IIIF URL), with a year, and resolving to a specific
- * (non-country-level) point inside Suriname.
+ * Objects prepared for the honeycomb landing map. Includes every object
+ * with a year and a specific (non-country-level) point inside Suriname,
+ * regardless of public-domain / image status — the sidebar handles missing
+ * or copyrighted images via `ObjectImage`. Counts here are the source of
+ * truth for the map: matches the bucketing Thunnis used on the old `/map`
+ * page, including coordinate-precision bucketing and dominant-cluster
+ * outlier merging.
  */
 export async function getMapTimelineObjects(): Promise<MapTimelineObject[]> {
   const collection = await getCollection();
-  const out: MapTimelineObject[] = [];
+  const raw: MapTimelineObject[] = [];
 
   for (const obj of collection) {
-    if (!obj.hasImage) continue;
-    if (!obj.isPublicDomain) continue;
-    if (!obj.imageUrl) continue;
     if (obj.year === null) continue;
 
     const detail = pickPrimarySurinameDetail(obj);
     if (!detail || detail.lat === null || detail.lng === null) continue;
 
-    out.push({
+    raw.push({
       objectnummer: obj.objectnummer,
       title: obj.titles[0] || obj.objectnummer,
       year: obj.year,
@@ -546,6 +547,114 @@ export async function getMapTimelineObjects(): Promise<MapTimelineObject[]> {
     });
   }
 
+  return dedupeMapObjects(raw);
+}
+
+/**
+ * Port of Thunnis's `/map` dedupe (commit `8ee333a`). Two passes:
+ *  1. Coordinate-precision bucketing: same label + region, coordinates that
+ *     round to within ~1e-5 degrees, collapse into a single point.
+ *  2. Dominant-cluster outlier merge: when multiple buckets share the same
+ *     label+region, small outlier clusters (≤ 25 objects, ≤ 20% the size of
+ *     the dominant cluster, ≤ 0.35° apart) snap to the dominant cluster's
+ *     coordinates. Skipped for the ambiguous "Suriname" label.
+ */
+const MAP_BUCKET_COORD_PRECISION = 5;
+const MAP_BUCKET_NEAR_COORD_THRESHOLD = 0.00005;
+const MAP_DOMINANT_MERGE_MAX_DISTANCE = 0.35;
+const MAP_DOMINANT_MERGE_MAX_SHARE = 0.2;
+const MAP_DOMINANT_MERGE_MAX_COUNT = 25;
+const AMBIGUOUS_DEDUPE_LABELS = new Set(['suriname']);
+
+function roundCoord(value: number): number {
+  return Number(value.toFixed(MAP_BUCKET_COORD_PRECISION));
+}
+
+function dedupeMapObjects(objects: MapTimelineObject[]): MapTimelineObject[] {
+  type Cluster = {
+    key: string;
+    label: string;
+    lat: number;
+    lng: number;
+    items: MapTimelineObject[];
+  };
+
+  const clusters = new Map<string, Cluster>();
+  const clustersByLabel = new Map<string, string[]>();
+
+  for (const obj of objects) {
+    const label = obj.locationLabel;
+    const lat = roundCoord(obj.lat);
+    const lng = roundCoord(obj.lng);
+    const labelKey = label;
+
+    let clusterKey = `${label}::${lat}::${lng}`;
+    const candidates = clustersByLabel.get(labelKey) ?? [];
+    for (const candidateKey of candidates) {
+      const existing = clusters.get(candidateKey);
+      if (!existing) continue;
+      if (
+        Math.abs(existing.lat - lat) <= MAP_BUCKET_NEAR_COORD_THRESHOLD &&
+        Math.abs(existing.lng - lng) <= MAP_BUCKET_NEAR_COORD_THRESHOLD
+      ) {
+        clusterKey = candidateKey;
+        break;
+      }
+    }
+
+    let cluster = clusters.get(clusterKey);
+    if (!cluster) {
+      cluster = { key: clusterKey, label, lat, lng, items: [] };
+      clusters.set(clusterKey, cluster);
+      const keys = clustersByLabel.get(labelKey) ?? [];
+      keys.push(clusterKey);
+      clustersByLabel.set(labelKey, keys);
+    }
+    cluster.items.push(obj);
+  }
+
+  // Dominant-cluster outlier merge, scoped per label.
+  for (const [labelKey, keys] of clustersByLabel) {
+    if (AMBIGUOUS_DEDUPE_LABELS.has(labelKey.trim().toLowerCase())) continue;
+    if (keys.length < 2) continue;
+
+    const buckets = keys
+      .map((k) => clusters.get(k))
+      .filter((c): c is Cluster => Boolean(c) && c!.items.length > 0);
+    if (buckets.length < 2) continue;
+
+    const dominant = [...buckets].sort(
+      (a, b) => b.items.length - a.items.length,
+    )[0];
+    if (!dominant || dominant.items.length === 0) continue;
+
+    for (const candidate of buckets) {
+      if (candidate === dominant) continue;
+      if (candidate.items.length > MAP_DOMINANT_MERGE_MAX_COUNT) continue;
+      const share = candidate.items.length / dominant.items.length;
+      if (share > MAP_DOMINANT_MERGE_MAX_SHARE) continue;
+      const distance = Math.hypot(
+        candidate.lat - dominant.lat,
+        candidate.lng - dominant.lng,
+      );
+      if (distance > MAP_DOMINANT_MERGE_MAX_DISTANCE) continue;
+
+      dominant.items.push(...candidate.items);
+      candidate.items.length = 0;
+    }
+  }
+
+  const out: MapTimelineObject[] = [];
+  for (const cluster of clusters.values()) {
+    for (const obj of cluster.items) {
+      out.push({
+        ...obj,
+        lat: cluster.lat,
+        lng: cluster.lng,
+        locationLabel: cluster.label,
+      });
+    }
+  }
   return out;
 }
 
