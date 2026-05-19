@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css';
 import type { HoneycombBackgroundCell } from '@/types/collection';
 import { useEffect } from 'react';
 import {
+  CircleMarker,
   MapContainer,
   Polygon,
   TileLayer,
@@ -18,6 +19,13 @@ export interface HexCell {
   count: number;
 }
 
+export interface MapPoint {
+  label: string;
+  lat: number;
+  lng: number;
+  count: number;
+}
+
 interface HoneycombMapProps {
   hexes: HexCell[];
   backgroundHexes: HoneycombBackgroundCell[];
@@ -27,6 +35,8 @@ interface HoneycombMapProps {
   focusTarget?: { lat: number; lng: number; zoom?: number; key: string } | null;
   /** Anything that, when changed, should trigger Leaflet to re-measure (e.g. side panel open/close). */
   resizeSignal?: unknown;
+  /** Per-location point overlay; when null/undefined the layer is hidden. */
+  points?: MapPoint[] | null;
 }
 
 function ZoomTracker({ onZoom }: { onZoom: (zoom: number) => void }) {
@@ -77,8 +87,10 @@ export default function HoneycombMap({
   onZoomChange,
   focusTarget,
   resizeSignal,
+  points,
 }: HoneycombMapProps) {
   const maxCount = Math.max(1, ...hexes.map((h) => h.count));
+  const maxPointCount = Math.max(1, ...(points?.map((p) => p.count) ?? [1]));
 
   return (
     <MapContainer
@@ -139,6 +151,30 @@ export default function HoneycombMap({
               </span>
             </Tooltip>
           </Polygon>
+        );
+      })}
+
+      {/* Per-location point overlay (toggleable) */}
+      {points?.map((p) => {
+        const ratio = Math.log(1 + p.count) / Math.log(1 + maxPointCount);
+        const radius = 4 + ratio * 14;
+        return (
+          <CircleMarker
+            key={`pt-${p.label}-${p.lat}-${p.lng}`}
+            center={[p.lat, p.lng]}
+            radius={radius}
+            pathOptions={{
+              color: '#7a1d12',
+              weight: 1,
+              fillColor: '#c0503e',
+              fillOpacity: 0.75,
+            }}
+          >
+            <Tooltip direction="top" sticky>
+              <span className="font-semibold">{p.label}</span>
+              <span className="ml-1 text-(--color-warm-gray)">· {p.count}</span>
+            </Tooltip>
+          </CircleMarker>
         );
       })}
     </MapContainer>

@@ -4,7 +4,7 @@ import HexSidebar from '@/components/HexSidebar';
 import type { HexCell } from '@/components/HoneycombMap';
 import TimeSliderControl from '@/components/TimeSliderControl';
 import type { HoneycombData, MapTimelineObject } from '@/types/collection';
-import { Layers, Search } from 'lucide-react';
+import { ImageIcon, Layers, MapPin, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import { useMemo, useState } from 'react';
@@ -44,6 +44,8 @@ export default function ExploreView({
   const [selectedHexId, setSelectedHexId] = useState<string | null>(null);
   const [zoom, setZoom] = useState(7);
   const [locationQuery, setLocationQuery] = useState('');
+  const [imagesOnly, setImagesOnly] = useState(false);
+  const [showPoints, setShowPoints] = useState(false);
   const [focusTarget, setFocusTarget] = useState<{
     lat: number;
     lng: number;
@@ -77,6 +79,9 @@ export default function ExploreView({
       for (const idx of bin.indices) {
         const obj = objects[idx];
         if (obj.year >= fromYear && obj.year <= toYear) {
+          if (imagesOnly && (!obj.isPublicDomain || !obj.thumbnailUrl)) {
+            continue;
+          }
           count += 1;
           const existing = locations.get(obj.locationLabel);
           if (existing) {
@@ -114,6 +119,7 @@ export default function ExploreView({
     fromYear,
     toYear,
     selectedHexId,
+    imagesOnly,
   ]);
 
   const handleRangeChange = (from: number, to: number) => {
@@ -142,6 +148,7 @@ export default function ExploreView({
           onZoomChange={setZoom}
           focusTarget={focusTarget}
           resizeSignal={sidebarOpen}
+          points={showPoints ? locationCounts : null}
         />
 
         {/* Objects in view + location search */}
@@ -156,6 +163,56 @@ export default function ExploreView({
                 {t('objectsShown')}
               </span>
             </span>
+          </div>
+
+          <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
+            <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+              <ImageIcon size={12} className="text-(--color-charcoal-light)" />
+              {t('imagesOnly')}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={imagesOnly}
+              aria-label={t('imagesOnly')}
+              onClick={() => setImagesOnly((v) => !v)}
+              className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                imagesOnly
+                  ? 'bg-(--color-charcoal)'
+                  : 'bg-(--color-warm-gray-light)/60'
+              }`}
+            >
+              <span
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                  imagesOnly ? 'translate-x-3.5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
+            <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+              <MapPin size={12} className="text-(--color-charcoal-light)" />
+              {t('showPoints')}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showPoints}
+              aria-label={t('showPoints')}
+              onClick={() => setShowPoints((v) => !v)}
+              className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                showPoints
+                  ? 'bg-(--color-charcoal)'
+                  : 'bg-(--color-warm-gray-light)/60'
+              }`}
+            >
+              <span
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                  showPoints ? 'translate-x-3.5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
           </div>
 
           <div className="p-2 border-b border-(--color-border)">
