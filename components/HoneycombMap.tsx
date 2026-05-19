@@ -21,6 +21,7 @@ export interface HexCell {
 }
 
 export interface MapPoint {
+  id: string;
   label: string;
   lat: number;
   lng: number;
@@ -44,6 +45,10 @@ interface HoneycombMapProps {
   resizeSignal?: unknown;
   /** Per-location point overlay; when null/undefined the layer is hidden. */
   points?: MapPoint[] | null;
+  /** Currently selected point id. */
+  selectedPointId?: string | null;
+  /** Called when a point is clicked. */
+  onSelectPoint?: (pointId: string | null) => void;
   /** Initial viewport when restoring state from URL. */
   initialView?: { lat: number; lng: number; zoom?: number };
   /** Emits center+zoom after move/zoom interactions. */
@@ -228,6 +233,8 @@ export default function HoneycombMap({
   focusTarget,
   resizeSignal,
   points,
+  selectedPointId,
+  onSelectPoint,
   initialView,
   onViewChange,
   activeHistoricalMap = 'none',
@@ -306,17 +313,21 @@ export default function HoneycombMap({
       {/* Per-location point overlay (toggleable) */}
       {points?.map((p) => {
         const ratio = Math.log(1 + p.count) / Math.log(1 + maxPointCount);
-        const radius = 4 + ratio * 14;
+        const radius = 2.5 + ratio * 4.5;
+        const isSelected = selectedPointId === p.id;
         return (
           <CircleMarker
-            key={`pt-${p.label}-${p.lat}-${p.lng}`}
+            key={p.id}
             center={[p.lat, p.lng]}
             radius={radius}
             pathOptions={{
-              color: '#7a1d12',
-              weight: 1,
-              fillColor: '#c0503e',
-              fillOpacity: 0.75,
+              color: isSelected ? '#0e2d22' : '#1b4d3e',
+              weight: isSelected ? 1.8 : 1,
+              fillColor: isSelected ? '#165241' : '#2b6a57',
+              fillOpacity: isSelected ? 0.95 : 0.8,
+            }}
+            eventHandlers={{
+              click: () => onSelectPoint?.(isSelected ? null : p.id),
             }}
           >
             <Tooltip direction="top" sticky>

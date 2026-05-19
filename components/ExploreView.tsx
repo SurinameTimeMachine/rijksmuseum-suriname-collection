@@ -57,6 +57,19 @@ function parseBool(value: string | null, fallback = false) {
   return value === '1' || value === 'true';
 }
 
+function normalizeYearRange(
+  from: number,
+  to: number,
+  min: number,
+  max: number,
+): { from: number; to: number } {
+  const clampedFrom = Math.min(max, Math.max(min, Math.round(from)));
+  const clampedTo = Math.min(max, Math.max(min, Math.round(to)));
+  return clampedFrom <= clampedTo
+    ? { from: clampedFrom, to: clampedTo }
+    : { from: clampedTo, to: clampedFrom };
+}
+
 export default function ExploreView({
   data,
   minYear,
@@ -80,15 +93,24 @@ export default function ExploreView({
     minYear,
     maxYear,
   );
+  const initialRange = normalizeYearRange(
+    initialFrom,
+    initialTo,
+    minYear,
+    maxYear,
+  );
   const initialZoom = parseNumber(searchParams.get('z'), 7, 5, 13);
   const initialLat = parseNumber(searchParams.get('lat'), 4.5, -90, 90);
   const initialLng = parseNumber(searchParams.get('lng'), -55.5, -180, 180);
 
-  const [fromYear, setFromYear] = useState(initialFrom);
-  const [toYear, setToYear] = useState(initialTo);
+  const [fromYear, setFromYear] = useState(initialRange.from);
+  const [toYear, setToYear] = useState(initialRange.to);
   const [isPlaying, setIsPlaying] = useState(false);
   const [selectedHexId, setSelectedHexId] = useState<string | null>(
     searchParams.get('hex') || null,
+  );
+  const [selectedPointId, setSelectedPointId] = useState<string | null>(
+    searchParams.get('pt') || null,
   );
   const [zoom, setZoom] = useState(initialZoom);
   const [center, setCenter] = useState({ lat: initialLat, lng: initialLng });
@@ -136,6 +158,8 @@ export default function ExploreView({
   const {
     hexes,
     backgroundHexes,
+    points,
+    selectedPointObjects,
     selectedObjects,
     totalInView,
     locationCounts,
@@ -147,9 +171,10 @@ export default function ExploreView({
     const cells: HexCell[] = [];
     let total = 0;
     let selected: MapTimelineObject[] = [];
+    const selectedForPoint: MapTimelineObject[] = [];
     const locations = new Map<
       string,
-      { count: number; lat: number; lng: number }
+      { id: string; count: number; lat: number; lng: number; label: string }
     >();
 
     for (const bin of bins) {
@@ -163,17 +188,23 @@ export default function ExploreView({
             continue;
           }
           count += 1;
-          const existing = locations.get(obj.locationLabel);
+          const locationId = `${obj.locationLabel}::${obj.lat.toFixed(5)}::${obj.lng.toFixed(5)}`;
+          const existing = locations.get(locationId);
           if (existing) {
             existing.count += 1;
           } else {
-            locations.set(obj.locationLabel, {
+            locations.set(locationId, {
+              id: locationId,
               count: 1,
               lat: obj.lat,
               lng: obj.lng,
+              label: obj.locationLabel,
             });
           }
           if (selectedHexId === bin.id) matched.push(obj);
+          if (selectedPointId && locationId === selectedPointId) {
+            selectedForPoint.push(obj);
+          }
         }
       }
       if (count === 0) continue;
@@ -185,10 +216,20 @@ export default function ExploreView({
     return {
       hexes: cells,
       backgroundHexes: background,
+      points: [...locations.values()]
+        .map(({ id, label, count, lat, lng }) => ({
+          id,
+          label,
+          count,
+          lat,
+          lng,
+        }))
+        .sort((a, b) => b.count - a.count),
+      selectedPointObjects: selectedForPoint,
       selectedObjects: selected,
       totalInView: total,
-      locationCounts: [...locations.entries()]
-        .map(([label, { count, lat, lng }]) => ({ label, count, lat, lng }))
+      locationCounts: [...locations.values()]
+        .map(({ label, count, lat, lng }) => ({ label, count, lat, lng }))
         .sort((a, b) => b.count - a.count),
     };
   }, [
@@ -199,13 +240,15 @@ export default function ExploreView({
     fromYear,
     toYear,
     selectedHexId,
+    selectedPointId,
     imagesOnly,
     showBroadAreas,
   ]);
 
   const handleRangeChange = (from: number, to: number) => {
-    setFromYear(from);
-    setToYear(to);
+    const normalized = normalizeYearRange(from, to, minYear, maxYear);
+    setFromYear(normalized.from);
+    setToYear(normalized.to);
   };
 
   const handleViewChange = useCallback((view: { lat: number; lng: number }) => {
@@ -216,6 +259,23 @@ export default function ExploreView({
     selectedHexId && hexes.some((hex) => hex.id === selectedHexId)
       ? selectedHexId
       : null;
+  const activeSelectedPointId =
+    selectedPointId && points.some((point) => point.id === selectedPointId)
+      ? selectedPointId
+      : null;
+
+  const activeSidebarObjects =
+    activeSelectedHexId !== null
+      ? selectedObjects
+      : activeSelectedPointId !== null
+        ? selectedPointObjects
+        : [];
+
+  useEffect(() => {
+    const normalized = normalizeYearRange(fromYear, toYear, minYear, maxYear);
+    if (normalized.from !== fromYear) setFromYear(normalized.from);
+    if (normalized.to !== toYear) setToYear(normalized.to);
+  }, [fromYear, toYear, minYear, maxYear]);
 
   useEffect(() => {
     const params = new URLSearchParams();
@@ -227,6 +287,7 @@ export default function ExploreView({
     params.set('lng', center.lng.toFixed(4));
 
     if (activeSelectedHexId) params.set('hex', activeSelectedHexId);
+    if (activeSelectedPointId) params.set('pt', activeSelectedPointId);
     if (locationQuery.trim()) params.set('q', locationQuery.trim());
     if (imagesOnly) params.set('img', '1');
     if (showPoints) params.set('pts', '1');
@@ -252,6 +313,7 @@ export default function ExploreView({
     center.lat,
     center.lng,
     activeSelectedHexId,
+    activeSelectedPointId,
     locationQuery,
     imagesOnly,
     showPoints,
@@ -276,7 +338,57 @@ export default function ExploreView({
     );
   }, [locationCounts, locationQuery]);
 
-  const sidebarOpen = Boolean(activeSelectedHexId);
+  const availableYears = useMemo(() => {
+    const years = new Set<number>();
+    for (const obj of objects) {
+      if (!showBroadAreas && obj.isBroadArea) continue;
+      if (imagesOnly && (!obj.isPublicDomain || !obj.thumbnailUrl)) continue;
+      years.add(obj.year);
+    }
+    return Array.from(years).sort((a, b) => a - b);
+  }, [objects, showBroadAreas, imagesOnly]);
+
+  const nearestYearWithData = useMemo(() => {
+    if (fromYear !== toYear) return null;
+    if (totalInView > 0) return null;
+    if (availableYears.length === 0) return null;
+
+    let nearest = availableYears[0];
+    let bestDistance = Math.abs(availableYears[0] - fromYear);
+    for (let i = 1; i < availableYears.length; i++) {
+      const year = availableYears[i];
+      const distance = Math.abs(year - fromYear);
+      if (distance < bestDistance) {
+        nearest = year;
+        bestDistance = distance;
+      }
+    }
+    return nearest;
+  }, [fromYear, toYear, totalInView, availableYears]);
+
+  const broadAreaStats = useMemo(() => {
+    let total = 0;
+    let withImage = 0;
+    for (const obj of objects) {
+      if (obj.year < fromYear || obj.year > toYear) continue;
+      if (!obj.isBroadArea) continue;
+      total += 1;
+      if (obj.isPublicDomain && obj.thumbnailUrl) withImage += 1;
+    }
+    return { total, withImage };
+  }, [objects, fromYear, toYear]);
+
+  const handleSelectHex = useCallback((hexId: string | null) => {
+    setSelectedHexId(hexId);
+    if (hexId !== null) setSelectedPointId(null);
+  }, []);
+
+  const handleSelectPoint = useCallback((pointId: string | null) => {
+    setSelectedPointId(pointId);
+    if (pointId !== null) setSelectedHexId(null);
+  }, []);
+
+  const sidebarIsOpen = Boolean(activeSelectedHexId || activeSelectedPointId);
 
   return (
     <div className="explore-shell relative w-full h-full flex overflow-hidden">
@@ -285,13 +397,15 @@ export default function ExploreView({
           hexes={hexes}
           backgroundHexes={backgroundHexes}
           selectedHexId={activeSelectedHexId}
-          onSelectHex={setSelectedHexId}
+          onSelectHex={handleSelectHex}
           onZoomChange={setZoom}
           onViewChange={handleViewChange}
           initialView={{ lat: center.lat, lng: center.lng, zoom }}
           focusTarget={focusTarget}
-          resizeSignal={sidebarOpen}
-          points={showPoints ? locationCounts : null}
+          resizeSignal={sidebarIsOpen}
+          points={showPoints ? points : null}
+          selectedPointId={activeSelectedPointId}
+          onSelectPoint={handleSelectPoint}
           activeHistoricalMap={activeHistoricalMap}
           historicalMapOpacity={historicalMapOpacity}
         />
@@ -328,7 +442,7 @@ export default function ExploreView({
           </div>
 
           {!menuCollapsed && (
-            <div className="max-h-[calc(100%-2rem)] overflow-y-auto">
+            <div className="max-h-[calc(100%-2rem)] overflow-y-auto overflow-x-hidden">
               <div className="border-b border-(--color-border)">
                 <button
                   type="button"
@@ -387,7 +501,7 @@ export default function ExploreView({
                     </div>
 
                     <div className="px-2.5 py-1.5 border-t border-(--color-border) flex items-center justify-between gap-2 text-xs">
-                      <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+                      <span className="min-w-0 flex items-center gap-1.5 text-(--color-charcoal)">
                         <Globe2
                           size={12}
                           className="text-(--color-charcoal-light)"
@@ -415,6 +529,32 @@ export default function ExploreView({
                         />
                       </button>
                     </div>
+
+                    {showBroadAreas && (
+                      <div className="px-2.5 pb-1.5 text-[11px] text-(--color-warm-gray)">
+                        {broadAreaStats.total === 0 ? (
+                          <span>No broad-area records in this year range.</span>
+                        ) : imagesOnly && broadAreaStats.withImage === 0 ? (
+                          <div className="flex flex-col items-start gap-1">
+                            <span className="wrap-break-word">
+                              Broad-area records exist, but none has a public
+                              image for this range.
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setImagesOnly(false)}
+                              className="shrink-0 border border-(--color-border) bg-white px-2 py-0.5 text-[10px] font-medium text-(--color-charcoal) hover:bg-(--color-cream-dark)"
+                            >
+                              Show all
+                            </button>
+                          </div>
+                        ) : (
+                          <span>
+                            Broad-area matches: {broadAreaStats.total}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     <div className="px-2.5 py-1.5 border-t border-(--color-border) flex items-center justify-between gap-2 text-xs">
                       <span className="flex items-center gap-1.5 text-(--color-charcoal)">
@@ -588,6 +728,23 @@ export default function ExploreView({
 
         {/* Time slider */}
         <div className="absolute bottom-3 left-1/2 z-1000 w-[min(560px,calc(100%-1.5rem))] -translate-x-1/2">
+          {nearestYearWithData !== null && (
+            <div className="mb-2 border border-(--color-border) bg-(--color-card)/95 px-3 py-2 text-xs text-(--color-charcoal) shadow-md backdrop-blur-sm">
+              <span>
+                No objects found for {fromYear}. Nearest year with matches is{' '}
+                <strong>{nearestYearWithData}</strong>.
+              </span>
+              <button
+                type="button"
+                onClick={() =>
+                  handleRangeChange(nearestYearWithData, nearestYearWithData)
+                }
+                className="ml-2 border border-(--color-border) bg-white px-2 py-1 font-medium text-(--color-charcoal) hover:bg-(--color-cream-dark)"
+              >
+                Jump to {nearestYearWithData}
+              </button>
+            </div>
+          )}
           <TimeSliderControl
             minYear={minYear}
             maxYear={maxYear}
@@ -602,9 +759,12 @@ export default function ExploreView({
 
       {/* Sidebar — pushes the map instead of overlaying */}
       <HexSidebar
-        open={sidebarOpen}
-        objects={selectedObjects}
-        onClose={() => setSelectedHexId(null)}
+        open={sidebarIsOpen}
+        objects={activeSidebarObjects}
+        onClose={() => {
+          setSelectedHexId(null);
+          setSelectedPointId(null);
+        }}
       />
     </div>
   );

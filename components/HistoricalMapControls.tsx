@@ -1,8 +1,5 @@
 'use client';
 
-import { ChevronDown } from 'lucide-react';
-import { useState } from 'react';
-
 interface HistoricalMapControlsProps {
   activeMap: 'suriname' | 'paramaribo' | 'none';
   onActiveMapChange: (map: 'suriname' | 'paramaribo' | 'none') => void;
@@ -16,71 +13,88 @@ export default function HistoricalMapControls({
   opacity,
   onOpacityChange,
 }: HistoricalMapControlsProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const options: Array<{
+    value: 'none' | 'suriname' | 'paramaribo';
+    label: string;
+    detail: string;
+  }> = [
+    {
+      value: 'none',
+      label: 'Off',
+      detail: 'Modern basemap only',
+    },
+    {
+      value: 'suriname',
+      label: 'Suriname 1930',
+      detail: 'Leiden University map',
+    },
+    {
+      value: 'paramaribo',
+      label: 'Paramaribo Streets',
+      detail: 'Historic street overlay',
+    },
+  ];
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Historical Map Selector */}
-      <div className="relative">
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 flex items-center justify-between"
-        >
-          <span>
-            {activeMap === 'suriname'
-              ? '1930 Suriname Map'
-              : activeMap === 'paramaribo'
-                ? 'Historical Streets'
-                : 'No Historical Map'}
-          </span>
-          <ChevronDown
-            size={16}
-            className={`transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          />
-        </button>
+    <div className="flex flex-col gap-2">
+      <p className="text-[10px] uppercase tracking-[0.18em] text-(--color-warm-gray)">
+        Overlay
+      </p>
 
-        {isOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-10">
-            {[
-              { value: 'none', label: 'No Historical Map' },
-              { value: 'suriname', label: '1930 Suriname Map' },
-              { value: 'paramaribo', label: 'Historical Streets' },
-            ].map((option) => (
-              <button
-                key={option.value}
-                onClick={() => {
-                  onActiveMapChange(
-                    option.value as 'suriname' | 'paramaribo' | 'none',
-                  );
-                  setIsOpen(false);
-                }}
-                className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-100 ${
-                  activeMap === option.value
-                    ? 'bg-blue-50 text-blue-700 font-medium'
-                    : 'text-gray-700'
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        )}
+      <div className="grid grid-cols-1 gap-1.5">
+        {options.map((option) => {
+          const isActive = option.value === activeMap;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onActiveMapChange(option.value)}
+              className={`w-full border px-2.5 py-2 text-left transition-colors ${
+                isActive
+                  ? 'border-(--color-charcoal) bg-(--color-cream-dark)'
+                  : 'border-(--color-border) bg-white hover:bg-(--color-cream)'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-medium text-(--color-charcoal)">
+                  {option.label}
+                </span>
+                {isActive && (
+                  <span className="text-[10px] uppercase tracking-[0.14em] text-(--color-charcoal-light)">
+                    Active
+                  </span>
+                )}
+              </div>
+              <p className="mt-0.5 text-[11px] text-(--color-warm-gray)">
+                {option.detail}
+              </p>
+            </button>
+          );
+        })}
       </div>
 
-      {/* Opacity Slider - only show if a map is active */}
       {activeMap !== 'none' && (
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-medium text-gray-700">
-            Transparency: {Math.round(opacity * 100)}%
-          </label>
+        <div className="mt-1 border border-(--color-border) bg-white px-2.5 py-2">
+          <div className="mb-1.5 flex items-center justify-between">
+            <label
+              htmlFor="historical-opacity"
+              className="text-[11px] font-medium text-(--color-charcoal)"
+            >
+              Overlay opacity
+            </label>
+            <span className="text-[11px] tabular-nums text-(--color-warm-gray)">
+              {Math.round(opacity * 100)}%
+            </span>
+          </div>
           <input
+            id="historical-opacity"
             type="range"
             min="0"
             max="1"
             step="0.05"
             value={opacity}
             onChange={(e) => onOpacityChange(parseFloat(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            className="w-full accent-(--color-charcoal)"
           />
         </div>
       )}

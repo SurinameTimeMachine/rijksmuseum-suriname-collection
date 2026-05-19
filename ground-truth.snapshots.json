@@ -1,0 +1,10 @@
+{
+  "approvedCommitShas": ["8f9e138f5d51fe7504250a99d1e9b487e7615768"],
+  "canonicalFiles": [
+    "data/collection.json",
+    "data/Geo thesau Suriname.csv",
+    "data/location-edits.jsonl",
+    "data/term-wikidata-map.json"
+  ],
+  "locationEditsPath": "data/location-edits.jsonl"
+}

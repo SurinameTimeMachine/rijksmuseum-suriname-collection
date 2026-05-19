@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "next build",
+    "check:ground-truth": "npx tsx scripts/check-ground-truth.ts",
     "dev": "next dev",
     "enrich": "npx tsx scripts/enrich-data.ts",
     "export:collection": "npx tsx scripts/export-collection-csv.ts",

@@ -1,0 +1,37 @@
+name: Ground Truth Data Check
+
+on:
+  pull_request:
+    paths:
+      - data/**
+      - lib/collection.ts
+      - lib/location-curation.ts
+      - scripts/enrich-data.ts
+      - scripts/check-ground-truth.ts
+      - ground-truth.snapshots.json
+      - package.json
+      - .github/workflows/ground-truth.yml
+  push:
+    branches:
+      - main
+
+jobs:
+  ground-truth:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify canonical data snapshots
+        run: npm run check:ground-truth

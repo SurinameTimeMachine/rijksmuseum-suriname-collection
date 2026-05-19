@@ -22,8 +22,8 @@ redirect to the configured locale.
 ```bash
 pnpm enrich                    # rebuild data/collection.json from CSV sources
 pnpm sync:stm-gazetteer        # refresh data/places-gazetteer.jsonld
-pnpm build:street-aliases      # rebuild data/paramaribo-street-aliases.json
 pnpm report:locations          # produce data/reports/location-report.*
+pnpm check:ground-truth        # verify canonical data matches approved snapshots
 ```
 
 See `package.json` for the full list.
@@ -34,3 +34,7 @@ All site content is derived from the CSV/JSON files under `data/`. The
 production build reads `data/collection.json`, which is regenerated from the
 source CSVs via `pnpm enrich`. Curation overlays live in
 `data/location-edits.jsonl` and `data/term-wikidata-map.json`.
+
+Ground truth is enforced through `ground-truth.snapshots.json` and the
+`pnpm check:ground-truth` command. Canonical files must match one of the
+approved commit snapshots, otherwise verification fails.

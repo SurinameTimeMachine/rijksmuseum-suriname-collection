@@ -65,7 +65,10 @@ export default function TimeSliderControl({
         startFrom + windowYears + progress * (totalSpan - windowYears),
       );
       const lower = Math.round(upper - windowYears);
-      onChange(lower, upper);
+      onChange(
+        Math.max(minYear, Math.min(maxYear, lower)),
+        Math.max(minYear, Math.min(maxYear, upper)),
+      );
 
       if (progress < 1) {
         rafRef.current = requestAnimationFrame(tick);
@@ -85,11 +88,13 @@ export default function TimeSliderControl({
 
   const handleFromChange = (next: number) => {
     onPlayingChange(false);
-    onChange(Math.min(next, toYear), toYear);
+    const clamped = Math.max(minYear, Math.min(maxYear, next));
+    onChange(Math.min(clamped, toYear), toYear);
   };
   const handleToChange = (next: number) => {
     onPlayingChange(false);
-    onChange(fromYear, Math.max(next, fromYear));
+    const clamped = Math.max(minYear, Math.min(maxYear, next));
+    onChange(fromYear, Math.max(clamped, fromYear));
   };
 
   const reset = () => {
