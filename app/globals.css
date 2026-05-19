@@ -1,89 +1,75 @@
 @import 'tailwindcss';
 
-/*
- * Rijksmuseum Suriname Collection — Design System
- * Inspired by Suriname Tijdmachine: earthy, warm, editorial
- * Forest teal, terracotta accents, parchment textures
- */
-
 :root {
-  /* Parchment palette */
-  --color-cream: #f4eee4;
-  --color-cream-dark: #e9dfd1;
-  --color-charcoal: #1b3a35;
-  --color-charcoal-light: #2a5c52;
+  --background: #f4f8f7;
+  --foreground: #0e231f;
+  --ink: #0b3c34;
+  --teal-strong: #006d5b;
+  --teal-bright: #34d1b3;
+  --teal-soft: #b9f4e6;
+  --sand: #fff7e6;
+  --deep-teal: #003c34;
+  --cream: #fdf8f2;
 
-  /* Sage & muted greens */
-  --color-warm-gray: #7d8c80;
-  --color-warm-gray-light: #a5b0a4;
-
-  /* Accent colors — terracotta & amber */
-  --color-rijks-red: #c0503e;
-  --color-rijks-red-dark: #9a3e31;
-  --color-gold: #c99a2e;
-  --color-gold-light: #e4c560;
-
-  /* Semantic */
-  --color-background: var(--color-cream);
-  --color-foreground: var(--color-charcoal);
-  --color-muted: var(--color-warm-gray);
-  --color-muted-light: var(--color-warm-gray-light);
-  --color-border: #d2c8b8;
-  --color-card: #fdfaf5;
-  --color-card-hover: #f8f3ea;
-  --color-accent: var(--color-rijks-red);
-  --color-accent-hover: var(--color-rijks-red-dark);
+  /* Backward-compatible aliases used by existing components */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-charcoal: var(--ink);
+  --color-charcoal-light: color-mix(in srgb, var(--ink) 82%, white);
+  --color-cream: var(--background);
+  --color-cream-dark: color-mix(in srgb, var(--background) 84%, black);
+  --color-warm-gray: color-mix(in srgb, var(--ink) 42%, white);
+  --color-warm-gray-light: color-mix(in srgb, var(--ink) 28%, white);
+  --color-border: color-mix(in srgb, var(--ink) 16%, white);
+  --color-card: white;
+  --color-card-hover: var(--cream);
+  --color-accent: var(--teal-strong);
+  --color-accent-hover: color-mix(in srgb, var(--teal-strong) 84%, black);
 }
 
 @theme inline {
-  --color-background: var(--color-background);
-  --color-foreground: var(--color-foreground);
-  --font-sans: var(--font-nunito);
-  --font-serif: var(--font-lora);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
+  --color-teal-strong: var(--teal-strong);
+  --color-teal-bright: var(--teal-bright);
+  --color-teal-soft: var(--teal-soft);
+  --color-sand: var(--sand);
+  --color-deep-teal: var(--deep-teal);
+  --color-cream: var(--cream);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-geist-sans);
 }
 
-/* Base styles */
 html {
   scroll-behavior: smooth;
 }
 
 body {
-  background-color: var(--color-cream);
-  color: var(--color-charcoal);
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 .explore-shell {
-  height: 100dvh;
+  height: 100%;
   overflow: hidden;
 }
 
-/* Subtle parchment texture overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 9999;
-  opacity: 0.025;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 200px 200px;
-}
-
-/* Typography scale */
 h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-lora), Georgia, 'Times New Roman', serif;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0;
   line-height: 1.2;
-  color: var(--color-charcoal);
+  color: var(--ink);
 }
 
 h1 {
-  font-size: 2.5rem;
+  font-size: 2.25rem;
 }
 h2 {
   font-size: 1.875rem;
@@ -97,7 +83,7 @@ h4 {
 
 @media (min-width: 768px) {
   h1 {
-    font-size: 3.5rem;
+    font-size: 3rem;
   }
   h2 {
     font-size: 2.25rem;
@@ -107,24 +93,22 @@ h4 {
   }
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-cream-dark);
+  background: color-mix(in srgb, var(--background) 90%, black);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-warm-gray-light);
+  background: color-mix(in srgb, var(--ink) 24%, white);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-warm-gray);
+  background: color-mix(in srgb, var(--ink) 38%, white);
 }
 
-/* Leaflet overrides for museum feel */
 .leaflet-container {
-  font-family: var(--font-nunito), system-ui, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
   border-radius: 0;
 }
 
@@ -133,16 +117,46 @@ h4 {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
-/* Selected honeycomb cell — soft pulsing glow */
+.leaflet-control-zoom {
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, white) !important;
+  border-radius: 0 !important;
+  box-shadow: 0 15px 35px rgba(0, 30, 24, 0.08) !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom a {
+  width: 2rem !important;
+  height: 2rem !important;
+  line-height: 2rem !important;
+  background: white !important;
+  color: var(--ink) !important;
+  border: 0 !important;
+  font-size: 1rem !important;
+  font-weight: 600;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.leaflet-control-zoom a + a {
+  border-top: 1px solid color-mix(in srgb, var(--ink) 12%, white) !important;
+}
+
+.leaflet-control-zoom a:hover,
+.leaflet-control-zoom a:focus {
+  background: var(--sand) !important;
+  color: var(--teal-strong) !important;
+}
+
 @keyframes hex-pulse {
   0%,
   100% {
     stroke-width: 2.5;
-    filter: drop-shadow(0 0 2px rgba(192, 80, 62, 0.6));
+    filter: drop-shadow(0 0 2px rgba(0, 109, 91, 0.5));
   }
   50% {
     stroke-width: 4;
-    filter: drop-shadow(0 0 10px rgba(192, 80, 62, 0.95));
+    filter: drop-shadow(0 0 10px rgba(0, 109, 91, 0.9));
   }
 }
 .hex-selected {
@@ -156,13 +170,11 @@ h4 {
   }
 }
 
-/* ---- Dog-ear / folded corner ---- */
 .corner-fold {
   --fold-size: 14px;
-  --fold-bg: var(--color-cream);
+  --fold-bg: var(--background);
   position: relative;
 }
-/* Triangle mask: parent bg color covering the top-left corner */
 .corner-fold::before {
   content: '';
   position: absolute;
@@ -178,7 +190,6 @@ h4 {
   z-index: 10;
   pointer-events: none;
 }
-/* Fold triangle: the "underside" of the page */
 .corner-fold::after {
   content: '';
   position: absolute;
@@ -189,15 +200,14 @@ h4 {
   background: linear-gradient(
     to bottom right,
     transparent 50%,
-    var(--color-cream-dark) 50%
+    color-mix(in srgb, var(--background) 88%, black) 50%
   );
   z-index: 10;
   pointer-events: none;
-  filter: drop-shadow(-1px 1px 1px rgba(27, 58, 53, 0.08));
+  filter: drop-shadow(-1px 1px 1px rgba(0, 30, 24, 0.08));
 }
-/* Variant for cards sitting on cream-dark backgrounds */
 .corner-fold-alt {
-  --fold-bg: var(--color-cream-dark);
+  --fold-bg: color-mix(in srgb, var(--background) 88%, black);
 }
 .corner-fold-alt::before {
   content: '';
@@ -208,7 +218,7 @@ h4 {
   height: calc(14px + 2px);
   background: linear-gradient(
     to bottom right,
-    var(--color-cream-dark) 50%,
+    color-mix(in srgb, var(--background) 88%, black) 50%,
     transparent 50%
   );
   z-index: 10;
@@ -224,14 +234,13 @@ h4 {
   background: linear-gradient(
     to bottom right,
     transparent 50%,
-    var(--color-border) 50%
+    color-mix(in srgb, var(--ink) 18%, white) 50%
   );
   z-index: 10;
   pointer-events: none;
-  filter: drop-shadow(-1px 1px 1px rgba(27, 58, 53, 0.08));
+  filter: drop-shadow(-1px 1px 1px rgba(0, 30, 24, 0.08));
 }
 
-/* ---- Scroll-reveal animations ---- */
 .scroll-reveal {
   opacity: 0;
   transform: translateY(24px);
@@ -243,7 +252,6 @@ h4 {
   opacity: 1;
   transform: translateY(0);
 }
-/* Stagger children */
 .scroll-reveal-stagger > .scroll-reveal:nth-child(2) {
   transition-delay: 0.08s;
 }
@@ -262,12 +270,12 @@ h4 {
 
 /* Section number badge */
 .section-number {
-  font-family: var(--font-lora), Georgia, serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: var(--color-warm-gray);
+  color: color-mix(in srgb, var(--ink) 52%, white);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -277,5 +285,141 @@ h4 {
   display: inline-block;
   width: 1.5rem;
   height: 1px;
-  background: var(--color-warm-gray-light);
+  background: color-mix(in srgb, var(--ink) 28%, white);
+}
+
+.flag-label {
+  position: relative;
+  padding-left: 1.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+.flag-label::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0.75rem;
+  height: 0.75rem;
+  background: var(--teal-bright);
+  transform: translateY(-50%) skewX(-20deg);
+}
+
+.hero-surface {
+  background: linear-gradient(
+    135deg,
+    var(--deep-teal),
+    #004f43 55%,
+    var(--teal-strong)
+  );
+  color: white;
+  overflow: hidden;
+  position: relative;
+}
+
+.hero-surface::before,
+.hero-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-surface::before {
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.12),
+    transparent 60%
+  );
+}
+
+.hero-surface::after {
+  background: linear-gradient(
+    135deg,
+    transparent,
+    rgba(52, 209, 179, 0.2) 45%,
+    rgba(255, 247, 230, 0.18) 70%
+  );
+  clip-path: polygon(55% 0, 100% 0, 100% 55%, 35% 100%, 0 100%, 0 35%);
+}
+
+.angled-card {
+  position: relative;
+  background: white;
+  box-shadow: 0 30px 60px rgba(0, 30, 24, 0.08);
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - 30px),
+    calc(100% - 30px) 100%,
+    0 100%
+  );
+  border: 1px solid rgba(11, 60, 52, 0.12);
+}
+
+.angled-card::after {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 30px;
+  right: 30px;
+  bottom: 0;
+  background: var(--cream);
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+.cut-corner {
+  clip-path: polygon(2.25rem 0, 100% 0, 100% 100%, 0 100%, 0 2.25rem);
+  box-shadow: 0 28px 60px rgba(0, 30, 24, 0.09);
+  position: relative;
+  overflow: hidden;
+}
+
+.cut-corner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3.25rem;
+  height: 3.25rem;
+  background: linear-gradient(135deg, var(--teal-soft), rgba(255, 255, 255, 0));
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.expand-icon {
+  position: relative;
+  width: 1rem;
+  height: 1rem;
+}
+
+.expand-icon::before,
+.expand-icon::after {
+  content: '';
+  position: absolute;
+  background: color-mix(in srgb, var(--ink) 55%, white);
+  transition: background-color 0.2s ease;
+}
+
+.expand-icon::before {
+  width: 0.5rem;
+  height: 1px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.expand-icon::after {
+  width: 1px;
+  height: 0.5rem;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+button:hover .expand-icon::before,
+button:hover .expand-icon::after {
+  background: var(--teal-strong);
 }

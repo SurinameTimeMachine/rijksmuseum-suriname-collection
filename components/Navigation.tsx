@@ -1,205 +1,146 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { BarChart3, ChevronDown, Globe, Grid3X3, Menu, X } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  type TransitionEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useState } from 'react';
 
 const navItems = [
-  { href: '/gallery', labelKey: 'gallery' as const, icon: Grid3X3 },
-  { href: '/statistics', labelKey: 'statistics' as const, icon: BarChart3 },
+  { href: '/gallery', labelKey: 'gallery' as const },
+  { href: '/statistics', labelKey: 'statistics' as const },
 ];
-
-const NAV_H = 64; // px — must match h-16
 
 export default function Navigation() {
   const t = useTranslations('nav');
   const locale = useLocale();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  // timerFired tracks whether the auto-hide timer has elapsed on the explore page.
-  // navHidden is derived so navigating away from explore always shows the nav
-  // without needing setState inside an effect body.
-  const [timerFired, setTimerFired] = useState(false);
-  const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isExplore = pathname === `/${locale}` || pathname === `/${locale}/`;
-  const navHidden = isExplore && timerFired;
 
   const otherLocale = locale === 'en' ? 'nl' : 'en';
   const switchLocalePath = pathname.replace(`/${locale}`, `/${otherLocale}`);
 
-  const clearHideTimer = useCallback(() => {
-    if (hideTimer.current) {
-      clearTimeout(hideTimer.current);
-      hideTimer.current = null;
-    }
-  }, []);
-
-  const scheduleHide = useCallback(() => {
-    clearHideTimer();
-    hideTimer.current = setTimeout(() => {
-      setMobileOpen(false);
-      setTimerFired(true);
-    }, 3000);
-  }, [clearHideTimer]);
-
-  const revealNav = useCallback(() => {
-    clearHideTimer();
-    setTimerFired(false);
-    if (isExplore) scheduleHide();
-  }, [clearHideTimer, scheduleHide, isExplore]);
-
-  // Auto-hide on explore page; always show on other pages.
-  // Reset timerFired in the cleanup (runs when leaving explore) so re-entering
-  // the explore page always starts with the nav visible.
-  useEffect(() => {
-    if (!isExplore) {
-      clearHideTimer();
-      return;
-    }
-    scheduleHide();
-    return () => {
-      clearHideTimer();
-      setTimerFired(false);
-    };
-  }, [isExplore, scheduleHide, clearHideTimer]);
-
-  // Desktop: reveal when mouse approaches the very top (< 6 px)
-  useEffect(() => {
-    if (!isExplore) return;
-    const onMouseMove = (e: MouseEvent) => {
-      if (e.clientY < 6 && navHidden) revealNav();
-    };
-    window.addEventListener('mousemove', onMouseMove, { passive: true });
-    return () => window.removeEventListener('mousemove', onMouseMove);
-  }, [isExplore, navHidden, revealNav]);
-
-  // Fire a synthetic resize so Leaflet calls invalidateSize() after transition
-  const onTransitionEnd = (e: TransitionEvent<HTMLElement>) => {
-    if (e.target !== e.currentTarget || e.propertyName !== 'transform') return;
-    window.dispatchEvent(new Event('resize'));
-  };
-
   const openMobileMenu = () => {
-    clearHideTimer();
-    setTimerFired(false);
     setMobileOpen(true);
   };
 
   const closeMobileMenu = () => {
     setMobileOpen(false);
-    if (isExplore) scheduleHide();
   };
 
   return (
-    <>
-      {/*
-        Spacer: reserves 64 px in the flex column on non-explore pages so
-        content starts below the fixed header. On the explore page it collapses
-        to 0 so the map fills the full viewport and the header overlays it.
-      */}
-      <div
-        className="shrink-0 transition-[height] duration-300 ease-in-out"
-        style={{ height: isExplore ? 0 : NAV_H }}
-        aria-hidden="true"
-      />
-
-      {/* Fixed header — always overlays content, slides out on explore page */}
-      <header
-        className="fixed top-0 left-0 right-0 z-1001 h-16 bg-(--color-cream)/95 backdrop-blur-md border-b border-(--color-border) transition-transform duration-300 ease-in-out"
-        style={{ transform: navHidden ? 'translateY(-100%)' : 'translateY(0)' }}
-        onTransitionEnd={onTransitionEnd}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+    <header className="relative z-40 h-16 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10">
+        <div className="flex items-center justify-between h-16">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
             <Link
               href={`/${locale}`}
-              className="flex items-center gap-3 group shrink-0"
+              className="flex shrink-0 items-center gap-2"
             >
-              <div className="w-9 h-9 bg-(--color-charcoal) flex items-center justify-center">
-                <span className="text-white font-serif font-bold text-sm">
-                  SC
-                </span>
-              </div>
-              <div className="hidden sm:block">
-                <span className="font-serif font-bold text-lg text-(--color-charcoal) group-hover:text-(--color-rijks-red) transition-colors">
-                  Suriname Collection
-                </span>
-              </div>
+              <div className="h-3 w-3 -skew-x-12 bg-teal-strong" aria-hidden />
+              <span className="text-xs font-semibold uppercase tracking-[0.35em] text-ink">
+                STM
+              </span>
             </Link>
 
-            {/* Desktop nav */}
-            <nav className="hidden md:flex items-center gap-1">
-              {navItems.map((item) => {
-                const href = `/${locale}${item.href}`;
-                const isActive = pathname.startsWith(href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={href}
-                    className={cn(
-                      'flex items-center gap-2 px-3.5 py-2 text-sm font-medium transition-colors',
-                      isActive
-                        ? 'bg-(--color-charcoal) text-white'
-                        : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark) hover:text-(--color-charcoal)',
-                    )}
-                  >
-                    <item.icon size={16} />
-                    {t(item.labelKey)}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            {/* Language toggle + mobile menu button */}
-            <div className="flex items-center gap-2">
+            <nav className="hidden min-w-0 items-center gap-2 whitespace-nowrap text-sm sm:flex">
+              <a
+                href="https://surinametijdmachine.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink/60 transition-colors hover:text-ink"
+              >
+                Citizen Science
+              </a>
+              <span className="text-ink/20" aria-hidden="true">
+                •
+              </span>
               <Link
-                href={switchLocalePath}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
-                title={t('language')}
+                href={`/${locale}`}
+                className={cn(
+                  'transition-colors',
+                  isExplore
+                    ? 'font-semibold text-ink'
+                    : 'text-ink/60 hover:text-ink',
+                )}
               >
-                <Globe size={16} />
-                <span className="uppercase font-semibold">{otherLocale}</span>
+                Images
               </Link>
-
-              <button
-                onClick={mobileOpen ? closeMobileMenu : openMobileMenu}
-                className="md:hidden p-2 text-(--color-charcoal-light) hover:bg-(--color-cream-dark)"
-                aria-label="Toggle menu"
+              <span className="text-ink/20" aria-hidden="true">
+                •
+              </span>
+              <a
+                href="https://data.surinametijdmachine.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-ink/60 transition-colors hover:text-ink"
               >
-                {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-              </button>
-            </div>
+                Data
+              </a>
+            </nav>
+          </div>
+
+          <nav className="hidden min-w-0 flex-1 items-center justify-center gap-4 text-xs uppercase tracking-[0.2em] md:flex lg:gap-6">
+            {navItems.map((item) => {
+              const href = `/${locale}${item.href}`;
+              const isActive = pathname.startsWith(href);
+              return (
+                <Link
+                  key={item.href}
+                  href={href}
+                  className={cn(
+                    'px-1.5 py-1 font-medium transition-colors',
+                    isActive ? 'text-ink' : 'text-ink/60 hover:text-ink',
+                  )}
+                >
+                  <span>{t(item.labelKey)}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Language toggle + mobile menu button */}
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href={switchLocalePath}
+              className="px-2 py-1 text-xs font-medium uppercase tracking-[0.25em] text-ink/45 transition-colors hover:text-ink"
+              title={t('language')}
+            >
+              {otherLocale}
+            </Link>
+
+            <button
+              onClick={mobileOpen ? closeMobileMenu : openMobileMenu}
+              className="p-2 text-ink/60 transition-colors hover:bg-teal-strong/10 hover:text-teal-strong md:hidden"
+              aria-label="Toggle menu"
+            >
+              <span className="text-xs font-semibold uppercase tracking-[0.2em]">
+                {mobileOpen ? 'Close' : 'Menu'}
+              </span>
+            </button>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Reveal tab — appears at top centre when nav is hidden on explore page */}
-      {isExplore && navHidden && (
-        <button
-          onClick={revealNav}
-          className="fixed top-0 left-1/2 -translate-x-1/2 z-60 flex items-center gap-1 bg-(--color-cream)/90 backdrop-blur-sm border border-(--color-border) border-t-0 px-4 py-1 text-xs text-(--color-charcoal-light) hover:text-(--color-charcoal) transition-colors rounded-b-md shadow-sm"
-          aria-label={t('showNav')}
-        >
-          <ChevronDown size={13} />
-          <span className="sr-only">{t('showNav')}</span>
-        </button>
-      )}
-
-      {/* Mobile dropdown — fixed, drops below the header */}
+      {/* Mobile dropdown */}
       {mobileOpen && (
-        <div className="fixed top-16 left-0 right-0 z-55 bg-(--color-cream)/98 backdrop-blur-md border-b border-(--color-border) shadow-lg md:hidden">
-          <nav className="max-w-7xl mx-auto px-4 py-3 space-y-1">
+        <div className="absolute left-0 right-0 top-16 z-55 border-b border-slate-200 bg-white/98 shadow-lg backdrop-blur-sm md:hidden">
+          <nav className="mx-auto max-w-6xl space-y-1 px-4 py-3 sm:px-6">
+            <a
+              href={`/${locale}`}
+              onClick={closeMobileMenu}
+              className={cn(
+                'flex items-center gap-3 rounded px-3 py-3 text-sm font-medium transition-colors',
+                isExplore
+                  ? 'bg-teal-strong text-white'
+                  : 'text-ink/70 hover:bg-sand',
+              )}
+            >
+              Images
+            </a>
+
             {navItems.map((item) => {
               const href = `/${locale}${item.href}`;
               const isActive = pathname.startsWith(href);
@@ -209,32 +150,49 @@ export default function Navigation() {
                   href={href}
                   onClick={closeMobileMenu}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-3 text-sm font-medium transition-colors rounded',
+                    'flex items-center gap-3 rounded px-3 py-3 text-sm font-medium transition-colors',
                     isActive
-                      ? 'bg-(--color-charcoal) text-white'
-                      : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)',
+                      ? 'bg-teal-strong text-white'
+                      : 'text-ink/70 hover:bg-sand',
                   )}
                 >
-                  <item.icon size={18} />
                   {t(item.labelKey)}
                 </Link>
               );
             })}
-            {/* Language toggle in mobile menu too */}
+
+            <div className="my-2 border-t border-slate-200" />
+
+            <a
+              href="https://surinametijdmachine.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded px-3 py-3 text-sm font-medium text-ink/70 transition-colors hover:bg-sand"
+            >
+              Citizen Science
+            </a>
+            <a
+              href="https://data.surinametijdmachine.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded px-3 py-3 text-sm font-medium text-ink/70 transition-colors hover:bg-sand"
+            >
+              Data
+            </a>
+
             <Link
               href={switchLocalePath}
               onClick={closeMobileMenu}
-              className="flex items-center gap-3 px-3 py-3 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors rounded"
+              className="flex items-center gap-3 rounded px-3 py-3 text-sm font-medium text-ink/70 transition-colors hover:bg-sand"
             >
-              <Globe size={18} />
               <span>
-                {t('language')} —{' '}
+                {t('language')} -{' '}
                 <span className="uppercase font-semibold">{otherLocale}</span>
               </span>
             </Link>
           </nav>
         </div>
       )}
-    </>
+    </header>
   );
 }

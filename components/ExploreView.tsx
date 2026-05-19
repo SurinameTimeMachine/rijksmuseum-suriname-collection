@@ -108,10 +108,16 @@ export default function ExploreView({
     parseBool(searchParams.get('mc')),
   );
   const [searchCollapsed, setSearchCollapsed] = useState(
-    parseBool(searchParams.get('sc')),
+    parseBool(searchParams.get('sc'), true),
   );
   const [placesCollapsed, setPlacesCollapsed] = useState(
-    parseBool(searchParams.get('pc')),
+    parseBool(searchParams.get('pc'), true),
+  );
+  const [filtersCollapsed, setFiltersCollapsed] = useState(
+    parseBool(searchParams.get('fc'), true),
+  );
+  const [historicalCollapsed, setHistoricalCollapsed] = useState(
+    parseBool(searchParams.get('hc'), true),
   );
   const [focusTarget, setFocusTarget] = useState<{
     lat: number;
@@ -228,6 +234,8 @@ export default function ExploreView({
     if (menuCollapsed) params.set('mc', '1');
     if (searchCollapsed) params.set('sc', '1');
     if (placesCollapsed) params.set('pc', '1');
+    if (filtersCollapsed) params.set('fc', '1');
+    if (historicalCollapsed) params.set('hc', '1');
     if (activeHistoricalMap !== 'none') params.set('hm', activeHistoricalMap);
     if (historicalMapOpacity !== 0.6)
       params.set('hmo', historicalMapOpacity.toFixed(2));
@@ -251,6 +259,8 @@ export default function ExploreView({
     menuCollapsed,
     searchCollapsed,
     placesCollapsed,
+    filtersCollapsed,
+    historicalCollapsed,
     activeHistoricalMap,
     historicalMapOpacity,
     searchParams,
@@ -287,7 +297,7 @@ export default function ExploreView({
         />
 
         {/* Objects in view + location search */}
-        <div className="absolute top-4 right-4 z-1000 w-[min(18rem,calc(100%-2rem))] bg-(--color-card)/95 backdrop-blur-md border border-(--color-border) shadow-md">
+        <div className="absolute top-4 right-4 z-1000 w-[min(15rem,calc(100%-2rem))] max-h-[calc(100%-9rem)] overflow-hidden border border-(--color-border) bg-(--color-card)/95 shadow-md backdrop-blur-md">
           <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
             <span className="flex items-center gap-2 text-(--color-charcoal)">
               <Layers size={12} className="text-(--color-charcoal-light)" />
@@ -318,94 +328,155 @@ export default function ExploreView({
           </div>
 
           {!menuCollapsed && (
-            <>
-              <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
-                <span className="flex items-center gap-1.5 text-(--color-charcoal)">
-                  <ImageIcon
-                    size={12}
-                    className="text-(--color-charcoal-light)"
-                  />
-                  {t('imagesOnly')}
-                </span>
+            <div className="max-h-[calc(100%-2rem)] overflow-y-auto">
+              <div className="border-b border-(--color-border)">
                 <button
                   type="button"
-                  role="switch"
-                  aria-checked={imagesOnly}
-                  aria-label={t('imagesOnly')}
-                  onClick={() => setImagesOnly((v) => !v)}
-                  className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
-                    imagesOnly
-                      ? 'bg-(--color-charcoal)'
-                      : 'bg-(--color-warm-gray-light)/60'
-                  }`}
+                  aria-expanded={!filtersCollapsed}
+                  onClick={() => setFiltersCollapsed((v) => !v)}
+                  className="w-full px-2.5 py-1.5 flex items-center justify-between gap-2 text-xs text-(--color-charcoal) hover:bg-(--color-cream-dark) transition-colors"
                 >
-                  <span
-                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                      imagesOnly ? 'translate-x-3.5' : 'translate-x-0.5'
-                    }`}
-                  />
+                  <span className="flex items-center gap-1.5">
+                    <Layers
+                      size={12}
+                      className="text-(--color-charcoal-light)"
+                    />
+                    Filters
+                  </span>
+                  {filtersCollapsed ? (
+                    <ChevronDown
+                      size={14}
+                      className="text-(--color-charcoal-light)"
+                    />
+                  ) : (
+                    <ChevronUp
+                      size={14}
+                      className="text-(--color-charcoal-light)"
+                    />
+                  )}
                 </button>
-              </div>
 
-              <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
-                <span className="flex items-center gap-1.5 text-(--color-charcoal)">
-                  <Globe2 size={12} className="text-(--color-charcoal-light)" />
-                  {t('showBroadAreas')}
-                </span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={showBroadAreas}
-                  aria-label={t('showBroadAreas')}
-                  onClick={() => setShowBroadAreas((v) => !v)}
-                  className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
-                    showBroadAreas
-                      ? 'bg-(--color-charcoal)'
-                      : 'bg-(--color-warm-gray-light)/60'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                      showBroadAreas ? 'translate-x-3.5' : 'translate-x-0.5'
-                    }`}
-                  />
-                </button>
-              </div>
+                {!filtersCollapsed && (
+                  <div className="border-t border-(--color-border)">
+                    <div className="px-2.5 py-1.5 flex items-center justify-between gap-2 text-xs">
+                      <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+                        <ImageIcon
+                          size={12}
+                          className="text-(--color-charcoal-light)"
+                        />
+                        {t('imagesOnly')}
+                      </span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={imagesOnly}
+                        aria-label={t('imagesOnly')}
+                        onClick={() => setImagesOnly((v) => !v)}
+                        className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                          imagesOnly
+                            ? 'bg-(--color-charcoal)'
+                            : 'bg-(--color-warm-gray-light)/60'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                            imagesOnly ? 'translate-x-3.5' : 'translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
 
-              <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
-                <span className="flex items-center gap-1.5 text-(--color-charcoal)">
-                  <MapPin size={12} className="text-(--color-charcoal-light)" />
-                  {t('showPoints')}
-                </span>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={showPoints}
-                  aria-label={t('showPoints')}
-                  onClick={() => setShowPoints((v) => !v)}
-                  className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
-                    showPoints
-                      ? 'bg-(--color-charcoal)'
-                      : 'bg-(--color-warm-gray-light)/60'
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
-                      showPoints ? 'translate-x-3.5' : 'translate-x-0.5'
-                    }`}
-                  />
-                </button>
+                    <div className="px-2.5 py-1.5 border-t border-(--color-border) flex items-center justify-between gap-2 text-xs">
+                      <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+                        <Globe2
+                          size={12}
+                          className="text-(--color-charcoal-light)"
+                        />
+                        {t('showBroadAreas')}
+                      </span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={showBroadAreas}
+                        aria-label={t('showBroadAreas')}
+                        onClick={() => setShowBroadAreas((v) => !v)}
+                        className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                          showBroadAreas
+                            ? 'bg-(--color-charcoal)'
+                            : 'bg-(--color-warm-gray-light)/60'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                            showBroadAreas
+                              ? 'translate-x-3.5'
+                              : 'translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="px-2.5 py-1.5 border-t border-(--color-border) flex items-center justify-between gap-2 text-xs">
+                      <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+                        <MapPin
+                          size={12}
+                          className="text-(--color-charcoal-light)"
+                        />
+                        {t('showPoints')}
+                      </span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={showPoints}
+                        aria-label={t('showPoints')}
+                        onClick={() => setShowPoints((v) => !v)}
+                        className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                          showPoints
+                            ? 'bg-(--color-charcoal)'
+                            : 'bg-(--color-warm-gray-light)/60'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                            showPoints ? 'translate-x-3.5' : 'translate-x-0.5'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="border-b border-(--color-border)">
-                <div className="px-2.5 py-2">
-                  <HistoricalMapControls
-                    activeMap={activeHistoricalMap}
-                    onActiveMapChange={setActiveHistoricalMap}
-                    opacity={historicalMapOpacity}
-                    onOpacityChange={setHistoricalMapOpacity}
-                  />
-                </div>
+                <button
+                  type="button"
+                  aria-expanded={!historicalCollapsed}
+                  onClick={() => setHistoricalCollapsed((v) => !v)}
+                  className="w-full px-2.5 py-1.5 flex items-center justify-between gap-2 text-xs text-(--color-charcoal) hover:bg-(--color-cream-dark) transition-colors"
+                >
+                  <span>Historical map</span>
+                  {historicalCollapsed ? (
+                    <ChevronDown
+                      size={14}
+                      className="text-(--color-charcoal-light)"
+                    />
+                  ) : (
+                    <ChevronUp
+                      size={14}
+                      className="text-(--color-charcoal-light)"
+                    />
+                  )}
+                </button>
+                {!historicalCollapsed && (
+                  <div className="border-t border-(--color-border) px-2.5 py-2">
+                    <HistoricalMapControls
+                      activeMap={activeHistoricalMap}
+                      onActiveMapChange={setActiveHistoricalMap}
+                      opacity={historicalMapOpacity}
+                      onOpacityChange={setHistoricalMapOpacity}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="border-b border-(--color-border)">
@@ -511,12 +582,12 @@ export default function ExploreView({
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
         </div>
 
         {/* Time slider */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-1000 w-[min(640px,calc(100%-2rem))]">
+        <div className="absolute bottom-3 left-1/2 z-1000 w-[min(560px,calc(100%-1.5rem))] -translate-x-1/2">
           <TimeSliderControl
             minYear={minYear}
             maxYear={maxYear}

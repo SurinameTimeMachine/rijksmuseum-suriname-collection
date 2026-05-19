@@ -50,7 +50,7 @@ export default function HexSidebar({
 
   return (
     <aside
-      className={`relative shrink-0 h-full bg-(--color-card) border-l border-(--color-border) shadow-2xl overflow-hidden transition-[width] duration-300 ease-out ${
+      className={`relative h-full shrink-0 overflow-hidden border-l border-slate-200 bg-white shadow-[0_15px_35px_rgba(0,30,24,0.08)] transition-[width] duration-300 ease-out ${
         open ? 'w-full sm:w-96' : 'w-0 pointer-events-none'
       }`}
       aria-hidden={!open}
@@ -58,22 +58,22 @@ export default function HexSidebar({
     >
       {open ? (
         <div className="w-full sm:w-96 h-full flex flex-col">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-(--color-border)">
+          <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
             <div className="min-w-0">
-              <p className="text-xs uppercase tracking-wider text-(--color-warm-gray-light)">
+              <p className="text-xs uppercase tracking-[0.3em] text-ink/50">
                 {t('approximateLocation')}
               </p>
-              <h3 className="font-serif text-lg font-bold text-(--color-charcoal) truncate">
+              <h3 className="truncate text-lg font-semibold text-ink">
                 {label || t('untitledArea')}
               </h3>
-              <p className="text-xs text-(--color-warm-gray) mt-0.5">
+              <p className="mt-0.5 text-xs text-ink/60">
                 {t('objectsHere', { count: objects.length })}
               </p>
             </div>
             <button
               onClick={onClose}
               aria-label={t('close')}
-              className="p-1.5 text-(--color-warm-gray) hover:text-(--color-charcoal) hover:bg-(--color-cream-dark) transition-colors shrink-0"
+              className="shrink-0 p-1.5 text-ink/55 transition-colors hover:bg-sand hover:text-ink"
             >
               <X size={18} />
             </button>
@@ -81,7 +81,7 @@ export default function HexSidebar({
 
           <div className="overflow-y-auto flex-1 p-4 space-y-3">
             {objects.length === 0 ? (
-              <p className="text-sm text-(--color-warm-gray) text-center py-8">
+              <p className="py-8 text-center text-sm text-ink/60">
                 {t('emptyHex')}
               </p>
             ) : (
@@ -89,9 +89,9 @@ export default function HexSidebar({
                 <Link
                   key={obj.objectnummer}
                   href={`/${locale}/object/${encodeURIComponent(obj.objectnummer)}?${new URLSearchParams({ from: currentHref }).toString()}`}
-                  className="flex gap-3 p-2 border border-(--color-border) hover:shadow-md hover:border-(--color-warm-gray-light) transition-all bg-white"
+                  className="flex gap-3 border border-slate-200 bg-white p-2 transition-all hover:border-teal-strong/35 hover:shadow-[0_15px_35px_rgba(0,30,24,0.08)]"
                 >
-                  <div className="relative w-20 h-20 shrink-0 bg-(--color-cream-dark) overflow-hidden">
+                  <div className="relative h-20 w-20 shrink-0 overflow-hidden bg-slate-100">
                     <ObjectImage
                       src={obj.thumbnailUrl}
                       alt={obj.title}
@@ -101,19 +101,17 @@ export default function HexSidebar({
                     />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-(--color-charcoal) line-clamp-2 leading-tight">
+                    <p className="line-clamp-2 text-sm font-medium leading-tight text-ink">
                       {obj.title}
                     </p>
-                    <p className="text-xs text-(--color-warm-gray) mt-1">
-                      {obj.year}
-                    </p>
+                    <p className="mt-1 text-xs text-ink/65">{obj.year}</p>
                     {obj.creators.length > 0 &&
                       obj.creators[0] !== 'anoniem' && (
-                        <p className="text-xs text-(--color-warm-gray-light) truncate">
+                        <p className="truncate text-xs text-ink/50">
                           {obj.creators[0]}
                         </p>
                       )}
-                    <p className="text-xs text-(--color-warm-gray-light) truncate italic">
+                    <p className="truncate text-xs italic text-ink/50">
                       {obj.locationLabel}
                     </p>
                   </div>

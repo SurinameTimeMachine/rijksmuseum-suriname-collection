@@ -1,15 +1,15 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import { Nunito, Lora } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 
-const nunito = Nunito({
-  variable: '--font-nunito',
+const geistSans = Geist({
+  variable: '--font-geist-sans',
   subsets: ['latin'],
   display: 'swap',
 });
 
-const lora = Lora({
-  variable: '--font-lora',
+const geistMono = Geist_Mono({
+  variable: '--font-geist-mono',
   subsets: ['latin'],
   display: 'swap',
 });
@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html suppressHydrationWarning>
       <body
-        className={`${nunito.variable} ${lora.variable} font-sans antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
         {children}
       </body>

@@ -4,29 +4,22 @@ export default function Footer() {
   const t = useTranslations('footer');
 
   return (
-    <footer className="border-t border-(--color-border) bg-(--color-cream-dark) shrink-0">
-      <div className="px-4 py-2 flex items-center justify-between gap-4 text-xs text-(--color-warm-gray)">
-        <span className="font-serif text-(--color-charcoal-light) font-medium truncate">
-          {t('title')}
-        </span>
-        <div className="flex items-center gap-3 shrink-0">
-          <a
-            href="https://data.rijksmuseum.nl"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-(--color-charcoal) transition-colors underline"
-          >
-            {t('rijksmuseumOpenData')}
-          </a>
-          <span aria-hidden="true">·</span>
-          <a
-            href="https://surinametijdmachine.org"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:text-(--color-charcoal) transition-colors underline"
-          >
-            {t('tijdmachine')}
-          </a>
+    <footer className="shrink-0 border-t border-slate-200 bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6 lg:px-10">
+        <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] text-ink/65">
+          <span className="font-medium text-ink/85">{t('projectName')}</span>
+          <span className="text-ink/25" aria-hidden="true">
+            •
+          </span>
+          <span>{t('year')}</span>
+          <span className="text-ink/25" aria-hidden="true">
+            •
+          </span>
+          <span>{t('projectLead')}</span>
+          <span className="text-ink/25" aria-hidden="true">
+            •
+          </span>
+          <span>{t('funder')}</span>
         </div>
       </div>
     </footer>

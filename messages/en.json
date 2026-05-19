@@ -41,9 +41,12 @@
     "close": "Close"
   },
   "footer": {
-    "title": "Suriname Collection",
-    "rijksmuseumOpenData": "Rijksmuseum Open Data",
-    "tijdmachine": "Tijdmachine"
+    "projectName": "Suriname Time Machine",
+    "year": "2026",
+    "projectLead": "Project lead: Thunnis van Oort",
+    "funder": "Funder: Stichting Pica",
+    "partners": "Partners",
+    "dataSourcesComingSoon": "Data sources (coming soon)"
   },
   "gallery": {
     "title": "Gallery",

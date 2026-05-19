@@ -54,13 +54,13 @@ export default function Pagination({
       {currentPage > 1 ? (
         <Link
           href={buildHref(currentPage - 1)}
-          className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
+          className="flex items-center gap-1 border border-slate-200 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.25em] text-ink/70 transition-colors hover:border-teal-strong/40 hover:text-teal-strong"
         >
           <ChevronLeft size={16} />
           {tc('previous')}
         </Link>
       ) : (
-        <span className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-warm-gray-light) cursor-not-allowed">
+        <span className="flex cursor-not-allowed items-center gap-1 border border-slate-200 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.25em] text-ink/35">
           <ChevronLeft size={16} />
           {tc('previous')}
         </span>
@@ -71,7 +71,7 @@ export default function Pagination({
         page === 'ellipsis' ? (
           <span
             key={`ellipsis-${idx}`}
-            className="px-2 py-2 text-sm text-(--color-warm-gray-light)"
+            className="px-2 py-2 text-sm text-ink/35"
           >
             …
           </span>
@@ -80,10 +80,10 @@ export default function Pagination({
             key={page}
             href={buildHref(page)}
             className={cn(
-              'px-3.5 py-2.5 text-sm font-medium transition-colors',
+              'px-3 py-1.5 text-xs font-medium uppercase tracking-[0.25em] transition-colors border',
               page === currentPage
-                ? 'bg-(--color-charcoal) text-white'
-                : 'text-(--color-charcoal-light) hover:bg-(--color-cream-dark)',
+                ? 'border-teal-strong bg-teal-strong text-white'
+                : 'border-slate-200 text-ink/70 hover:border-teal-strong/40 hover:text-teal-strong',
             )}
           >
             {page}
@@ -95,20 +95,20 @@ export default function Pagination({
       {currentPage < totalPages ? (
         <Link
           href={buildHref(currentPage + 1)}
-          className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-charcoal-light) hover:bg-(--color-cream-dark) transition-colors"
+          className="flex items-center gap-1 border border-slate-200 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.25em] text-ink/70 transition-colors hover:border-teal-strong/40 hover:text-teal-strong"
         >
           {tc('next')}
           <ChevronRight size={16} />
         </Link>
       ) : (
-        <span className="flex items-center gap-1 px-3.5 py-2.5 text-sm font-medium text-(--color-warm-gray-light) cursor-not-allowed">
+        <span className="flex cursor-not-allowed items-center gap-1 border border-slate-200 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.25em] text-ink/35">
           {tc('next')}
           <ChevronRight size={16} />
         </span>
       )}
 
       {/* Page info */}
-      <span className="ml-4 text-xs text-(--color-warm-gray)">
+      <span className="ml-4 text-xs uppercase tracking-[0.2em] text-ink/55">
         {t('page', { current: currentPage, total: totalPages })}
       </span>
     </div>

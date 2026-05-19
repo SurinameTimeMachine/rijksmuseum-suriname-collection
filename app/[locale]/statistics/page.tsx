@@ -30,11 +30,12 @@ export default async function StatisticsPage({
   ]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 lg:px-10">
       <ScrollReveal>
         <div className="mb-12 max-w-3xl">
-          <h1>{t('title')}</h1>
-          <p className="mt-3 text-(--color-warm-gray) leading-relaxed">
+          <p className="flag-label mb-4 text-ink/60">Data Narrative</p>
+          <h1 className="text-4xl font-semibold sm:text-5xl">{t('title')}</h1>
+          <p className="mt-4 text-lg leading-relaxed text-ink/75">
             {t('subtitle')}
           </p>
         </div>

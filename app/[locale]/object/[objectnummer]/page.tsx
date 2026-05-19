@@ -86,11 +86,11 @@ export default async function ObjectPage({
   const rijksUrl = `https://www.rijksmuseum.nl/nl/collectie/${obj.objectnummer}`;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-10">
       {/* Back link */}
       <Link
         href={backHref}
-        className="inline-flex items-center gap-1.5 text-sm text-(--color-warm-gray) hover:text-(--color-charcoal) transition-colors mb-6"
+        className="mb-6 inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.25em] text-ink/55 transition-colors hover:text-teal-strong"
       >
         <ArrowLeft size={16} />
         {t('back')}
@@ -99,7 +99,7 @@ export default async function ObjectPage({
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
         {/* Image */}
         <div className="lg:col-span-3">
-          <div className="relative aspect-4/3 overflow-hidden bg-(--color-cream-dark) border border-(--color-border) corner-fold">
+          <div className="corner-fold relative aspect-4/3 overflow-hidden border border-slate-200 bg-slate-100 shadow-[0_15px_35px_rgba(0,30,24,0.08)]">
             <ObjectImage
               src={obj.imageUrl || obj.thumbnailUrl}
               alt={title}
@@ -111,12 +111,12 @@ export default async function ObjectPage({
             />
             {!obj.hasImage && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-(--color-warm-gray)">{t('noImage')}</p>
+                <p className="text-ink/55">{t('noImage')}</p>
               </div>
             )}
             {obj.hasImage && !obj.isPublicDomain && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-(--color-warm-gray) text-sm text-center px-4">
+                <p className="px-4 text-center text-sm text-ink/55">
                   {t('imageRestricted')}
                 </p>
               </div>
@@ -131,10 +131,7 @@ export default async function ObjectPage({
             {alternativeTitles.length > 0 && (
               <div className="mt-2 space-y-1">
                 {alternativeTitles.map((alt, i) => (
-                  <p
-                    key={i}
-                    className="text-sm italic text-(--color-warm-gray)"
-                  >
+                  <p key={i} className="text-sm italic text-ink/60">
                     {alt}
                   </p>
                 ))}
@@ -144,37 +141,35 @@ export default async function ObjectPage({
 
           {/* Creator & date */}
           <div className="flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center gap-1.5 text-(--color-charcoal)">
-              <Users size={14} className="text-(--color-warm-gray)" />
+            <div className="flex items-center gap-1.5 text-ink">
+              <Users size={14} className="text-ink/55" />
               {creator}
             </div>
             {dateDisplay && (
-              <div className="flex items-center gap-1.5 text-(--color-charcoal)">
-                <Calendar size={14} className="text-(--color-warm-gray)" />
+              <div className="flex items-center gap-1.5 text-ink">
+                <Calendar size={14} className="text-ink/55" />
                 {dateDisplay}
               </div>
             )}
           </div>
 
           {/* Object number */}
-          <p className="text-xs text-(--color-warm-gray-light) font-mono">
-            {obj.objectnummer}
-          </p>
+          <p className="font-mono text-xs text-ink/45">{obj.objectnummer}</p>
 
           {/* Description */}
           {obj.description && (
             <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-2">
+              <h4 className="mb-2 text-xs font-semibold uppercase tracking-[0.3em] text-ink/60">
                 {t('description')}
               </h4>
-              <p className="text-sm text-(--color-charcoal-light) leading-relaxed whitespace-pre-line">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-ink/80">
                 {obj.description.split('$')[0]}
               </p>
             </div>
           )}
 
           {/* Metadata tags */}
-          <div className="space-y-4 border-t border-(--color-border) pt-4">
+          <div className="space-y-4 border-t border-slate-200 pt-4">
             {obj.objectTypes.length > 0 && (
               <MetadataRow
                 icon={<Layers size={14} />}
@@ -191,7 +186,7 @@ export default async function ObjectPage({
             )}
             {obj.geoKeywordDetails.length > 0 && (
               <div>
-                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-1.5">
+                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-ink/60">
                   <MapPin size={14} />
                   {t('locations')}
                 </div>
@@ -200,24 +195,24 @@ export default async function ObjectPage({
                     return (
                       <div
                         key={`${detail.term}-${detail.source}`}
-                        className="px-3 py-2 bg-(--color-cream-dark) text-xs"
+                        className="border border-slate-200 bg-white px-3 py-2 text-xs"
                       >
-                        <span className="text-(--color-charcoal-light) font-medium">
+                        <span className="font-medium text-ink/80">
                           {detail.term}
                         </span>
                         {detail?.broaderTerm && (
-                          <span className="text-(--color-warm-gray)">
+                          <span className="text-ink/55">
                             {' '}
                             — {detail.broaderTerm}
                           </span>
                         )}
                         <div className="mt-1">
-                          <span className="inline-flex items-center px-2 py-0.5 border border-(--color-border) text-(--color-warm-gray) text-[10px] uppercase tracking-wider">
+                          <span className="inline-flex items-center border border-slate-200 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-ink/55">
                             {t(`locationSource.${detail.source}`)}
                           </span>
                         </div>
                         {detail.lat !== null && detail.lng !== null && (
-                          <div className="text-(--color-warm-gray) mt-1">
+                          <div className="mt-1 text-ink/55">
                             {detail.lat.toFixed(4)}, {detail.lng.toFixed(4)}
                           </div>
                         )}
@@ -232,7 +227,7 @@ export default async function ObjectPage({
                           </div>
                         )}
                         {detail.provenance && (
-                          <div className="text-(--color-warm-gray) mt-1">
+                          <div className="mt-1 text-ink/55">
                             {detail.provenance.author} ·{' '}
                             {detail.provenance.timestamp}
                             {detail.provenance.remark
@@ -251,7 +246,7 @@ export default async function ObjectPage({
                                   href={detail.stmGazetteerUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-0.5 text-blue-700 hover:underline"
+                                  className="inline-flex items-center gap-0.5 text-teal-strong hover:underline"
                                 >
                                   STM
                                   <ExternalLink size={9} />
@@ -262,7 +257,7 @@ export default async function ObjectPage({
                                   href={detail.wikidataUri}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-0.5 text-blue-700 hover:underline"
+                                  className="inline-flex items-center gap-0.5 text-teal-strong hover:underline"
                                 >
                                   Wikidata
                                   <ExternalLink size={9} />
@@ -273,7 +268,7 @@ export default async function ObjectPage({
                                   href={detail.gettyUri}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-0.5 text-blue-700 hover:underline"
+                                  className="inline-flex items-center gap-0.5 text-teal-strong hover:underline"
                                 >
                                   Getty TGN
                                   <ExternalLink size={9} />
@@ -284,7 +279,7 @@ export default async function ObjectPage({
                                   href={detail.geonamesUri}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-0.5 text-blue-700 hover:underline"
+                                  className="inline-flex items-center gap-0.5 text-teal-strong hover:underline"
                                 >
                                   GeoNames
                                   <ExternalLink size={9} />
@@ -300,11 +295,11 @@ export default async function ObjectPage({
             )}
             {mapLocation && (
               <div>
-                <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-1.5">
+                <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-ink/60">
                   <Globe size={14} />
                   {t('locationMap')}
                 </div>
-                <div className="border border-(--color-border) bg-(--color-cream-dark)">
+                <div className="border border-slate-200 bg-slate-100">
                   <iframe
                     title={`${title} map`}
                     className="w-full h-52"
@@ -317,7 +312,7 @@ export default async function ObjectPage({
                   href={`https://www.openstreetmap.org/?mlat=${mapLocation.lat}&mlon=${mapLocation.lng}#map=10/${mapLocation.lat}/${mapLocation.lng}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-xs text-blue-700 hover:underline mt-1"
+                  className="mt-1 inline-flex items-center gap-1 text-xs text-teal-strong hover:underline"
                 >
                   {t('openInMap')}
                   <ExternalLink size={10} />
@@ -400,7 +395,7 @@ export default async function ObjectPage({
               href={rijksUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-5 py-3 bg-(--color-charcoal) text-white text-sm font-semibold hover:bg-(--color-charcoal-light) transition-colors"
+              className="inline-flex items-center gap-2 border border-ink/20 bg-deep-teal px-5 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-white transition-colors hover:border-teal-strong hover:bg-teal-strong"
             >
               <ExternalLink size={14} />
               {t('viewOnRijksmuseum')}
@@ -410,7 +405,7 @@ export default async function ObjectPage({
                 href={obj.wikidataUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-3 border border-(--color-border) text-(--color-charcoal) text-sm font-semibold hover:bg-(--color-cream-dark) transition-colors"
+                className="inline-flex items-center gap-2 border border-slate-200 px-5 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-ink/70 transition-colors hover:border-teal-strong/40 hover:text-teal-strong"
               >
                 <Globe size={14} />
                 Wikidata
@@ -421,7 +416,7 @@ export default async function ObjectPage({
                 href={obj.wikimediaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-5 py-3 border border-(--color-border) text-(--color-charcoal) text-sm font-semibold hover:bg-(--color-cream-dark) transition-colors"
+                className="inline-flex items-center gap-2 border border-slate-200 px-5 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-ink/70 transition-colors hover:border-teal-strong/40 hover:text-teal-strong"
               >
                 <Globe size={14} />
                 Wikimedia Commons
@@ -433,7 +428,7 @@ export default async function ObjectPage({
 
       {/* Related objects */}
       {related.length > 0 && (
-        <section className="mt-16 border-t border-(--color-border) pt-12">
+        <section className="mt-16 border-t border-slate-200 pt-12">
           <h2 className="mb-6">{t('relatedObjects')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {related.map((obj) => (
@@ -457,7 +452,7 @@ function MetadataRow({
 }) {
   return (
     <div>
-      <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-(--color-warm-gray) mb-1.5">
+      <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.3em] text-ink/60">
         {icon}
         {label}
       </div>
@@ -465,7 +460,7 @@ function MetadataRow({
         {values.map((v) => (
           <span
             key={v}
-            className="inline-block px-3 py-1.5 bg-(--color-cream-dark) text-xs text-(--color-charcoal-light)"
+            className="inline-block border border-slate-200 bg-white px-3 py-1.5 text-xs text-ink/75"
           >
             {v}
           </span>

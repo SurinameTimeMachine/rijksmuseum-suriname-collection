@@ -41,9 +41,12 @@
     "close": "Sluiten"
   },
   "footer": {
-    "title": "Suriname Collectie",
-    "rijksmuseumOpenData": "Rijksmuseum Open Data",
-    "tijdmachine": "Tijdmachine"
+    "projectName": "Suriname Time Machine",
+    "year": "2026",
+    "projectLead": "Projectleider: Thunnis",
+    "funder": "Financier: Stichting Pica",
+    "partners": "Partners",
+    "dataSourcesComingSoon": "Databronnen (binnenkort)"
   },
   "gallery": {
     "title": "Galerij",

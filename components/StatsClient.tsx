@@ -25,14 +25,14 @@ interface StatsClientProps {
 }
 
 const C = {
-  border: '#d2c8b8',
-  sage: '#7d8c80',
-  teal: '#1b3a35',
-  tealLight: '#2a5c52',
-  terracotta: '#c0503e',
-  gold: '#c99a2e',
-  mutedBar: '#9a8e7a',
-  mutedAxis: '#a89c88',
+  border: '#c5dad5',
+  axis: '#54726b',
+  ink: '#0b3c34',
+  teal: '#006d5b',
+  bright: '#34d1b3',
+  deep: '#003c34',
+  mutedBar: '#7da69d',
+  mutedAxis: '#7c9b94',
 } as const;
 
 export default function StatsClient({
@@ -97,13 +97,13 @@ export default function StatsClient({
     curation.totalObjects - curation.withSurinameSpecificLocation;
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-14">
       {/* A. THE SOURCE */}
       <NarrativeSection
         eyebrow={t('eyebrows.source')}
         title={t('sectionSource.title')}
       >
-        <div className="prose prose-stone max-w-3xl text-(--color-charcoal-light) leading-relaxed">
+        <div className="max-w-3xl space-y-4 text-ink/80 leading-relaxed">
           <p>{t('sectionSource.lead')}</p>
           <p>{t('sectionSource.body')}</p>
         </div>
@@ -212,16 +212,14 @@ export default function StatsClient({
           </ChartSection>
 
           <ChartSection title={t('rawTopGeographicKeywords')} muted>
-            <ul className="text-sm divide-y divide-(--color-border)/60">
+            <ul className="divide-y divide-slate-200/70 text-sm">
               {rawStats.topGeographicKeywords.slice(0, 12).map((item) => (
                 <li
                   key={item.name}
                   className="flex items-center justify-between py-2"
                 >
-                  <span className="text-(--color-charcoal-light) truncate">
-                    {item.name}
-                  </span>
-                  <span className="text-(--color-warm-gray) tabular-nums ml-2 shrink-0">
+                  <span className="truncate text-ink/80">{item.name}</span>
+                  <span className="ml-2 shrink-0 tabular-nums text-ink/55">
                     {item.count}
                   </span>
                 </li>
@@ -237,26 +235,26 @@ export default function StatsClient({
         title={t('sectionDeltas.title')}
         subtitle={t('sectionDeltas.subtitle')}
       >
-        <div className="prose prose-stone max-w-3xl text-(--color-charcoal-light) leading-relaxed mb-6">
+        <div className="mb-6 max-w-3xl text-ink/80 leading-relaxed">
           <p>{t('sectionDeltas.body')}</p>
         </div>
 
-        <div className="bg-(--color-card) border border-(--color-border) p-6 corner-fold">
+        <div className="corner-fold border border-slate-200 bg-white p-6 shadow-[0_15px_35px_rgba(0,30,24,0.08)]">
           <div className="space-y-2">
             {funnel.map((step) => {
               const pct = (step.count / funnelMax) * 100;
               return (
                 <div key={step.label} className="flex items-center gap-3">
-                  <span className="w-64 shrink-0 text-sm text-(--color-charcoal-light)">
+                  <span className="w-64 shrink-0 text-sm text-ink/80">
                     {step.label}
                   </span>
-                  <div className="flex-1 h-7 bg-(--color-cream-dark) relative overflow-hidden">
+                  <div className="relative h-7 flex-1 overflow-hidden bg-slate-100">
                     <div
-                      className="absolute inset-y-0 left-0 bg-(--color-rijks-red)/80"
+                      className="absolute inset-y-0 left-0 bg-teal-strong/85"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <span className="w-16 text-right text-sm font-semibold text-(--color-charcoal) tabular-nums">
+                  <span className="w-16 text-right text-sm font-semibold text-ink tabular-nums">
                     {step.count.toLocaleString()}
                   </span>
                 </div>
@@ -316,11 +314,11 @@ export default function StatsClient({
               <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
               <XAxis
                 dataKey="decade"
-                tick={{ fontSize: 11, fill: C.sage }}
+                tick={{ fontSize: 11, fill: C.axis }}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: C.sage }}
+                tick={{ fontSize: 11, fill: C.axis }}
                 tickLine={false}
                 axisLine={false}
               />
@@ -334,9 +332,9 @@ export default function StatsClient({
               <Area
                 type="monotone"
                 dataKey="count"
-                stroke={C.terracotta}
-                fill={C.terracotta}
-                fillOpacity={0.12}
+                stroke={C.teal}
+                fill={C.teal}
+                fillOpacity={0.16}
                 strokeWidth={2}
               />
             </AreaChart>
@@ -359,11 +357,11 @@ export default function StatsClient({
                   stroke={C.border}
                   horizontal={false}
                 />
-                <XAxis type="number" tick={{ fontSize: 11, fill: C.sage }} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: C.axis }} />
                 <YAxis
                   dataKey="name"
                   type="category"
-                  tick={{ fontSize: 11, fill: C.tealLight }}
+                  tick={{ fontSize: 11, fill: C.ink }}
                   tickLine={false}
                   axisLine={false}
                   width={120}
@@ -375,7 +373,7 @@ export default function StatsClient({
                     fontSize: '13px',
                   }}
                 />
-                <Bar dataKey="count" fill={C.teal} />
+                <Bar dataKey="count" fill={C.deep} />
               </BarChart>
             </ResponsiveContainer>
           </ChartSection>
@@ -395,11 +393,11 @@ export default function StatsClient({
                   stroke={C.border}
                   horizontal={false}
                 />
-                <XAxis type="number" tick={{ fontSize: 11, fill: C.sage }} />
+                <XAxis type="number" tick={{ fontSize: 11, fill: C.axis }} />
                 <YAxis
                   dataKey="name"
                   type="category"
-                  tick={{ fontSize: 11, fill: C.tealLight }}
+                  tick={{ fontSize: 11, fill: C.ink }}
                   tickLine={false}
                   axisLine={false}
                   width={150}
@@ -411,7 +409,7 @@ export default function StatsClient({
                     fontSize: '13px',
                   }}
                 />
-                <Bar dataKey="count" fill={C.gold} />
+                <Bar dataKey="count" fill={C.bright} />
               </BarChart>
             </ResponsiveContainer>
           </ChartSection>
@@ -422,12 +420,10 @@ export default function StatsClient({
             {stats.topLocations.map((loc) => (
               <div
                 key={loc.name}
-                className="flex items-center justify-between px-3 py-2 bg-(--color-cream-dark)"
+                className="flex items-center justify-between border border-slate-200 bg-white px-3 py-2"
               >
-                <span className="text-sm text-(--color-charcoal) truncate">
-                  {loc.name}
-                </span>
-                <span className="text-sm font-medium text-(--color-charcoal) ml-2 shrink-0 tabular-nums">
+                <span className="truncate text-sm text-ink">{loc.name}</span>
+                <span className="ml-2 shrink-0 tabular-nums text-sm font-medium text-ink">
                   {loc.count}
                 </span>
               </div>
@@ -441,9 +437,9 @@ export default function StatsClient({
         eyebrow={t('eyebrows.missing')}
         title={t('sectionMissing.title')}
       >
-        <div className="prose prose-stone max-w-3xl text-(--color-charcoal-light) leading-relaxed">
+        <div className="max-w-3xl text-ink/80 leading-relaxed">
           <p>{t('sectionMissing.body')}</p>
-          <ul>
+          <ul className="mt-4 list-disc space-y-2 pl-5 marker:text-teal-strong">
             <li>
               {t('sectionMissing.bullet1', {
                 count: rawStats.anonymousCount.toLocaleString(),
@@ -483,15 +479,11 @@ function NarrativeSection({
   return (
     <section className="space-y-5">
       <div>
-        <p className="text-xs uppercase tracking-[0.2em] font-semibold text-(--color-rijks-red) mb-2">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-[0.35em] text-ink/60">
           {eyebrow}
         </p>
-        <h2 className="font-serif text-2xl md:text-3xl font-bold text-(--color-charcoal)">
-          {title}
-        </h2>
-        {subtitle && (
-          <p className="mt-1 text-sm text-(--color-warm-gray)">{subtitle}</p>
-        )}
+        <h2 className="text-3xl font-semibold text-ink">{title}</h2>
+        {subtitle && <p className="mt-1 text-sm text-ink/60">{subtitle}</p>}
       </div>
       <div className="space-y-6">{children}</div>
     </section>
@@ -509,20 +501,18 @@ function SummaryCard({
 }) {
   return (
     <div
-      className={`border p-5 text-center shadow-sm corner-fold ${
-        muted
-          ? 'bg-(--color-cream-dark) border-(--color-border)/70'
-          : 'bg-(--color-card) border-(--color-border)'
+      className={`corner-fold border p-5 text-center shadow-[0_15px_35px_rgba(0,30,24,0.08)] ${
+        muted ? 'border-slate-200 bg-slate-50' : 'border-slate-200 bg-white'
       }`}
     >
       <p
-        className={`font-serif text-2xl md:text-3xl font-bold ${
-          muted ? 'text-(--color-warm-gray)' : 'text-(--color-charcoal)'
+        className={`text-2xl font-bold md:text-3xl ${
+          muted ? 'text-ink/70' : 'text-ink'
         }`}
       >
         {value}
       </p>
-      <p className="text-xs text-(--color-warm-gray) mt-1 leading-snug">
+      <p className="mt-1 text-xs uppercase tracking-[0.2em] text-ink/55 leading-snug">
         {label}
       </p>
     </div>
@@ -540,15 +530,11 @@ function ChartSection({
 }) {
   return (
     <div
-      className={`border p-6 shadow-sm corner-fold ${
-        muted
-          ? 'bg-(--color-cream-dark) border-(--color-border)/70'
-          : 'bg-(--color-card) border-(--color-border)'
+      className={`corner-fold border p-6 shadow-[0_15px_35px_rgba(0,30,24,0.08)] ${
+        muted ? 'border-slate-200 bg-slate-50' : 'border-slate-200 bg-white'
       }`}
     >
-      <h3 className="font-serif text-lg font-bold text-(--color-charcoal) mb-5">
-        {title}
-      </h3>
+      <h3 className="mb-5 text-lg font-semibold text-ink">{title}</h3>
       {children}
     </div>
   );
