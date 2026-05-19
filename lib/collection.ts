@@ -419,24 +419,45 @@ const GENERIC_MAP_LABELS = new Set([
 ]);
 
 /**
- * Broad-area labels whose coordinates represent a whole district, city
- * centroid, or river — useful only as a fallback when no more-specific
- * Suriname detail exists. The landing UI hides these by default behind a
- * "Show broad-area labels" toggle.
- *
- * Values are stored pre-normalized via normalizeMapLabelKey.
+ * Explicit broad-area fallbacks. We also derive broad-area status by rules
+ * in `isBroadAreaLabel` for Surinam/Paramaribo families.
  */
-const BROAD_AREA_LABELS: ReadonlySet<string> = new Set(
+const BROAD_AREA_EXACT_LABELS: ReadonlySet<string> = new Set(
   [
     'Suriname',
     'Surinam',
     'Suriname (Zuid-Amerika)',
-    'Paramaribo',
-    'Paramaribo (stad)',
     'Surinamerivier',
     'Nickerie',
   ].map((s) => normalizeMapLabelKey(s)),
 );
+
+const PARAMARIBO_STREET_HINT_RE =
+  /\b(straat|plein|weg|laan|kade|steeg|hof|erf|buurt|wijk)\b/;
+
+function isBroadAreaLabel(input: string | null | undefined): boolean {
+  const key = normalizeMapLabelKey(input);
+  if (!key) return false;
+
+  if (BROAD_AREA_EXACT_LABELS.has(key)) return true;
+
+  // Treat all Surinam-family labels as broad fallback labels.
+  if (key.includes('surinam')) return true;
+
+  // River-level labels are broad by nature.
+  if (key.includes('suriname rivier') || key.includes('surinamerivier')) {
+    return true;
+  }
+
+  // Paramaribo without clear street/address cues is considered broad.
+  if (key.includes('paramaribo')) {
+    const hasStreetHint = PARAMARIBO_STREET_HINT_RE.test(key);
+    const hasAddressNumber = /\b\d+\b/.test(key);
+    return !hasStreetHint && !hasAddressNumber;
+  }
+
+  return false;
+}
 
 /**
  * Specific location labels we always exclude from the landing map because
@@ -510,7 +531,7 @@ export function pickPrimarySurinameDetail(
     if (d.resolutionLevel === 'country') return false;
     const key = normalizeMapLabelKey(d.matchedLabel || d.term);
     if (EXCLUDED_LOCATION_LABELS.has(key)) return false;
-    if (BROAD_AREA_LABELS.has(key)) return false;
+    if (isBroadAreaLabel(d.matchedLabel || d.term)) return false;
     return true;
   });
   if (mappable.length === 0) return null;
@@ -534,7 +555,7 @@ export function pickBroadAreaSurinameDetail(
     if (d.resolutionLevel === 'country') return false;
     const key = normalizeMapLabelKey(d.matchedLabel || d.term);
     if (EXCLUDED_LOCATION_LABELS.has(key)) return false;
-    return BROAD_AREA_LABELS.has(key);
+    return isBroadAreaLabel(d.matchedLabel || d.term);
   });
   if (mappable.length === 0) return null;
   return [...mappable].sort(
@@ -710,10 +731,7 @@ function dedupeMapObjects(objects: MapTimelineObject[]): MapTimelineObject[] {
 
       dominant.items.push(...candidate.items);
       for (const [lbl, n] of candidate.labelCounts) {
-        dominant.labelCounts.set(
-          lbl,
-          (dominant.labelCounts.get(lbl) || 0) + n,
-        );
+        dominant.labelCounts.set(lbl, (dominant.labelCounts.get(lbl) || 0) + n);
       }
       candidate.items.length = 0;
       candidate.labelCounts.clear();
