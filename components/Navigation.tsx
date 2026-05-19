@@ -52,7 +52,7 @@ export default function Navigation() {
                 rel="noopener noreferrer"
                 className="text-ink/60 transition-colors hover:text-ink"
               >
-                Citizen Science
+                About
               </a>
               <span className="text-ink/20" aria-hidden="true">
                 •
@@ -169,7 +169,7 @@ export default function Navigation() {
               rel="noopener noreferrer"
               className="flex items-center gap-3 rounded px-3 py-3 text-sm font-medium text-ink/70 transition-colors hover:bg-sand"
             >
-              Citizen Science
+              About
             </a>
             <a
               href="https://data.surinametijdmachine.org"
