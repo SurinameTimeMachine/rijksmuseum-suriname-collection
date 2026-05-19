@@ -1,14 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import {
-  BarChart3,
-  ChevronDown,
-  Globe,
-  Grid3X3,
-  Menu,
-  X,
-} from 'lucide-react';
+import { BarChart3, ChevronDown, Globe, Grid3X3, Menu, X } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -30,8 +23,7 @@ export default function Navigation() {
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isExploreRef = useRef(false);
 
-  const isExplore =
-    pathname === `/${locale}` || pathname === `/${locale}/`;
+  const isExplore = pathname === `/${locale}` || pathname === `/${locale}/`;
   isExploreRef.current = isExplore;
 
   const otherLocale = locale === 'en' ? 'nl' : 'en';
@@ -110,7 +102,7 @@ export default function Navigation() {
 
       {/* Fixed header — always overlays content, slides out on explore page */}
       <header
-        className="fixed top-0 left-0 right-0 z-[50] h-16 bg-(--color-cream)/95 backdrop-blur-md border-b border-(--color-border) transition-transform duration-300 ease-in-out"
+        className="fixed top-0 left-0 right-0 z-[1001] h-16 bg-(--color-cream)/95 backdrop-blur-md border-b border-(--color-border) transition-transform duration-300 ease-in-out"
         style={{ transform: navHidden ? 'translateY(-100%)' : 'translateY(0)' }}
         onTransitionEnd={onTransitionEnd}
       >
@@ -183,7 +175,7 @@ export default function Navigation() {
       {isExplore && navHidden && (
         <button
           onClick={revealNav}
-          className="fixed top-0 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1 bg-(--color-cream)/90 backdrop-blur-sm border border-(--color-border) border-t-0 px-4 py-1 text-xs text-(--color-charcoal-light) hover:text-(--color-charcoal) transition-colors rounded-b-md shadow-sm"
+          className="fixed top-0 left-1/2 -translate-x-1/2 z-60 flex items-center gap-1 bg-(--color-cream)/90 backdrop-blur-sm border border-(--color-border) border-t-0 px-4 py-1 text-xs text-(--color-charcoal-light) hover:text-(--color-charcoal) transition-colors rounded-b-md shadow-sm"
           aria-label={t('showNav')}
         >
           <ChevronDown size={13} />
@@ -193,7 +185,7 @@ export default function Navigation() {
 
       {/* Mobile dropdown — fixed, drops below the header */}
       {mobileOpen && (
-        <div className="fixed top-16 left-0 right-0 z-[55] bg-(--color-cream)/98 backdrop-blur-md border-b border-(--color-border) shadow-lg md:hidden">
+        <div className="fixed top-16 left-0 right-0 z-55 bg-(--color-cream)/98 backdrop-blur-md border-b border-(--color-border) shadow-lg md:hidden">
           <nav className="max-w-7xl mx-auto px-4 py-3 space-y-1">
             {navItems.map((item) => {
               const href = `/${locale}${item.href}`;
