@@ -186,6 +186,12 @@ export interface MapTimelineObject {
   lng: number;
   locationLabel: string;
   resolutionLevel: LocationResolutionLevel;
+  /**
+   * True when this object's primary point is a broad-area label
+   * (e.g. Suriname, Paramaribo, Surinamerivier, Nickerie) — meaning the
+   * object has no more-specific Suriname detail. Off by default in the UI.
+   */
+  isBroadArea: boolean;
 }
 
 /**

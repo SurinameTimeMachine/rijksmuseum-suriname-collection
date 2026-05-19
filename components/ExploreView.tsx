@@ -4,7 +4,7 @@ import HexSidebar from '@/components/HexSidebar';
 import type { HexCell } from '@/components/HoneycombMap';
 import TimeSliderControl from '@/components/TimeSliderControl';
 import type { HoneycombData, MapTimelineObject } from '@/types/collection';
-import { ImageIcon, Layers, MapPin, Search } from 'lucide-react';
+import { Globe2, ImageIcon, Layers, MapPin, Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import dynamic from 'next/dynamic';
 import { useMemo, useState } from 'react';
@@ -46,6 +46,7 @@ export default function ExploreView({
   const [locationQuery, setLocationQuery] = useState('');
   const [imagesOnly, setImagesOnly] = useState(false);
   const [showPoints, setShowPoints] = useState(false);
+  const [showBroadAreas, setShowBroadAreas] = useState(false);
   const [focusTarget, setFocusTarget] = useState<{
     lat: number;
     lng: number;
@@ -79,6 +80,7 @@ export default function ExploreView({
       for (const idx of bin.indices) {
         const obj = objects[idx];
         if (obj.year >= fromYear && obj.year <= toYear) {
+          if (!showBroadAreas && obj.isBroadArea) continue;
           if (imagesOnly && (!obj.isPublicDomain || !obj.thumbnailUrl)) {
             continue;
           }
@@ -120,6 +122,7 @@ export default function ExploreView({
     toYear,
     selectedHexId,
     imagesOnly,
+    showBroadAreas,
   ]);
 
   const handleRangeChange = (from: number, to: number) => {
@@ -185,6 +188,31 @@ export default function ExploreView({
               <span
                 className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
                   imagesOnly ? 'translate-x-3.5' : 'translate-x-0.5'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="px-2.5 py-1.5 border-b border-(--color-border) flex items-center justify-between gap-2 text-xs">
+            <span className="flex items-center gap-1.5 text-(--color-charcoal)">
+              <Globe2 size={12} className="text-(--color-charcoal-light)" />
+              {t('showBroadAreas')}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={showBroadAreas}
+              aria-label={t('showBroadAreas')}
+              onClick={() => setShowBroadAreas((v) => !v)}
+              className={`relative inline-flex h-4 w-7 shrink-0 items-center rounded-full transition-colors ${
+                showBroadAreas
+                  ? 'bg-(--color-charcoal)'
+                  : 'bg-(--color-warm-gray-light)/60'
+              }`}
+            >
+              <span
+                className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                  showBroadAreas ? 'translate-x-3.5' : 'translate-x-0.5'
                 }`}
               />
             </button>

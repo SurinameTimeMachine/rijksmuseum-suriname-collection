@@ -419,21 +419,44 @@ const GENERIC_MAP_LABELS = new Set([
 ]);
 
 /**
- * Specific location labels we exclude from the landing map because their
- * coordinates fall at the extreme edge of Suriname or are otherwise unreliable,
- * or they represent the country as a whole rather than a specific place.
+ * Broad-area labels whose coordinates represent a whole district, city
+ * centroid, or river — useful only as a fallback when no more-specific
+ * Suriname detail exists. The landing UI hides these by default behind a
+ * "Show broad-area labels" toggle.
+ *
  * Values are stored pre-normalized via normalizeMapLabelKey.
  */
-const EXCLUDED_LOCATION_LABELS: ReadonlySet<string> = new Set(
+const BROAD_AREA_LABELS: ReadonlySet<string> = new Set(
   [
-    'Sipaliwini Savanna',
-    // Generic country-level terms — objects only tagged with "Suriname" as a
-    // whole are not useful in the map (no specific location information).
     'Suriname',
-    'Surinam', // English form of 'Suriname (Zuid-Amerika)' that slips through
+    'Surinam',
     'Suriname (Zuid-Amerika)',
-  ].map(normalizeMapLabelKey),
+    'Paramaribo',
+    'Paramaribo (stad)',
+    'Surinamerivier',
+    'Nickerie',
+  ].map((s) => normalizeMapLabelKey(s)),
 );
+
+/**
+ * Specific location labels we always exclude from the landing map because
+ * their coordinates fall at the extreme edge of Suriname or are otherwise
+ * unreliable. Values pre-normalized via normalizeMapLabelKey.
+ */
+const EXCLUDED_LOCATION_LABELS: ReadonlySet<string> = new Set(
+  ['Sipaliwini Savanna'].map((s) => normalizeMapLabelKey(s)),
+);
+
+/**
+ * Trailing thesaurus disambiguators (AAT-Ned style) that we strip for
+ * display: "Wolfenbüttel (instelling)" → "Wolfenbüttel".
+ */
+const DISPLAY_DISAMBIGUATOR_RE =
+  /\s*\((instelling|stad|plantage|district|gebied|landstreek|eiland|kreek|rivier|plaats)\)\s*$/i;
+
+export function prettifyLocationLabel(raw: string): string {
+  return raw.replace(DISPLAY_DISAMBIGUATOR_RE, '').trim() || raw;
+}
 
 function normalizeMapLabelKey(input: string | null | undefined): string {
   return (input || '')
@@ -472,24 +495,47 @@ function getDetailSpecificityScore(detail: GeoKeywordDetail): number {
 
 /**
  * Pick the most specific Suriname-region geo detail with valid coordinates.
- * Returns null when the object has no usable Suriname point.
+ * Excludes broad-area labels (Suriname / Paramaribo / Surinamerivier / …)
+ * and unreliable labels. Returns null when the object has no usable
+ * specific Suriname point.
  */
 export function pickPrimarySurinameDetail(
   obj: CollectionObject,
 ): GeoKeywordDetail | null {
-  const mappable = obj.geoKeywordDetails.filter(
-    (d) =>
-      d.lat !== null &&
-      d.lng !== null &&
-      d.region === 'suriname' &&
-      // Exclude country-level fallback so the honeycomb is not swamped
-      // by a single point representing "Suriname" as a whole.
-      d.resolutionLevel !== 'country' &&
-      // Exclude specific labels with unreliable / edge-case coordinates.
-      !EXCLUDED_LOCATION_LABELS.has(
-        normalizeMapLabelKey(d.matchedLabel || d.term),
-      ),
-  );
+  const mappable = obj.geoKeywordDetails.filter((d) => {
+    if (d.lat === null || d.lng === null) return false;
+    if (d.region !== 'suriname') return false;
+    // Exclude country-level fallback so the honeycomb is not swamped
+    // by a single point representing "Suriname" as a whole.
+    if (d.resolutionLevel === 'country') return false;
+    const key = normalizeMapLabelKey(d.matchedLabel || d.term);
+    if (EXCLUDED_LOCATION_LABELS.has(key)) return false;
+    if (BROAD_AREA_LABELS.has(key)) return false;
+    return true;
+  });
+  if (mappable.length === 0) return null;
+  return [...mappable].sort(
+    (a, b) => getDetailSpecificityScore(b) - getDetailSpecificityScore(a),
+  )[0];
+}
+
+/**
+ * Fallback picker: when an object has no specific Suriname detail, look
+ * for a broad-area label (Suriname, Paramaribo, Surinamerivier, Nickerie).
+ * Surfaced only when the user opts in via the "Show broad-area labels"
+ * toggle on the landing map.
+ */
+export function pickBroadAreaSurinameDetail(
+  obj: CollectionObject,
+): GeoKeywordDetail | null {
+  const mappable = obj.geoKeywordDetails.filter((d) => {
+    if (d.lat === null || d.lng === null) return false;
+    if (d.region !== 'suriname') return false;
+    if (d.resolutionLevel === 'country') return false;
+    const key = normalizeMapLabelKey(d.matchedLabel || d.term);
+    if (EXCLUDED_LOCATION_LABELS.has(key)) return false;
+    return BROAD_AREA_LABELS.has(key);
+  });
   if (mappable.length === 0) return null;
   return [...mappable].sort(
     (a, b) => getDetailSpecificityScore(b) - getDetailSpecificityScore(a),
@@ -528,9 +574,16 @@ export async function getMapTimelineObjects(): Promise<MapTimelineObject[]> {
   for (const obj of collection) {
     if (obj.year === null) continue;
 
-    const detail = pickPrimarySurinameDetail(obj);
-    if (!detail || detail.lat === null || detail.lng === null) continue;
+    let detail = pickPrimarySurinameDetail(obj);
+    let isBroadArea = false;
+    if (!detail) {
+      detail = pickBroadAreaSurinameDetail(obj);
+      if (!detail) continue;
+      isBroadArea = true;
+    }
+    if (detail.lat === null || detail.lng === null) continue;
 
+    const rawLabel = detail.matchedLabel?.trim() || detail.term;
     raw.push({
       objectnummer: obj.objectnummer,
       title: obj.titles[0] || obj.objectnummer,
@@ -542,8 +595,9 @@ export async function getMapTimelineObjects(): Promise<MapTimelineObject[]> {
       isPublicDomain: obj.isPublicDomain,
       lat: detail.lat,
       lng: detail.lng,
-      locationLabel: detail.matchedLabel?.trim() || detail.term,
+      locationLabel: prettifyLocationLabel(rawLabel),
       resolutionLevel: detail.resolutionLevel ?? 'exact',
+      isBroadArea,
     });
   }
 
@@ -573,7 +627,10 @@ function roundCoord(value: number): number {
 function dedupeMapObjects(objects: MapTimelineObject[]): MapTimelineObject[] {
   type Cluster = {
     key: string;
-    label: string;
+    labelKey: string;
+    /** Count of each raw display label seen in this cluster — used to
+     * pick a canonical label (most frequent wins, ties broken by length). */
+    labelCounts: Map<string, number>;
     lat: number;
     lng: number;
     items: MapTimelineObject[];
@@ -583,12 +640,13 @@ function dedupeMapObjects(objects: MapTimelineObject[]): MapTimelineObject[] {
   const clustersByLabel = new Map<string, string[]>();
 
   for (const obj of objects) {
-    const label = obj.locationLabel;
     const lat = roundCoord(obj.lat);
     const lng = roundCoord(obj.lng);
-    const labelKey = label;
+    // Group spelling/diacritic variants together via the normalized key
+    // (e.g. "Wolfenbüttel" / "Wolffenbuttel" → one cluster).
+    const labelKey = normalizeMapLabelKey(obj.locationLabel);
 
-    let clusterKey = `${label}::${lat}::${lng}`;
+    let clusterKey = `${labelKey}::${lat}::${lng}`;
     const candidates = clustersByLabel.get(labelKey) ?? [];
     for (const candidateKey of candidates) {
       const existing = clusters.get(candidateKey);
@@ -604,13 +662,24 @@ function dedupeMapObjects(objects: MapTimelineObject[]): MapTimelineObject[] {
 
     let cluster = clusters.get(clusterKey);
     if (!cluster) {
-      cluster = { key: clusterKey, label, lat, lng, items: [] };
+      cluster = {
+        key: clusterKey,
+        labelKey,
+        labelCounts: new Map(),
+        lat,
+        lng,
+        items: [],
+      };
       clusters.set(clusterKey, cluster);
       const keys = clustersByLabel.get(labelKey) ?? [];
       keys.push(clusterKey);
       clustersByLabel.set(labelKey, keys);
     }
     cluster.items.push(obj);
+    cluster.labelCounts.set(
+      obj.locationLabel,
+      (cluster.labelCounts.get(obj.locationLabel) || 0) + 1,
+    );
   }
 
   // Dominant-cluster outlier merge, scoped per label.
@@ -640,18 +709,36 @@ function dedupeMapObjects(objects: MapTimelineObject[]): MapTimelineObject[] {
       if (distance > MAP_DOMINANT_MERGE_MAX_DISTANCE) continue;
 
       dominant.items.push(...candidate.items);
+      for (const [lbl, n] of candidate.labelCounts) {
+        dominant.labelCounts.set(
+          lbl,
+          (dominant.labelCounts.get(lbl) || 0) + n,
+        );
+      }
       candidate.items.length = 0;
+      candidate.labelCounts.clear();
     }
   }
 
   const out: MapTimelineObject[] = [];
   for (const cluster of clusters.values()) {
+    if (cluster.items.length === 0) continue;
+    // Canonical display label: most frequent in cluster; tie-break by
+    // longest (richer) string for determinism.
+    let canonical = '';
+    let bestCount = -1;
+    for (const [lbl, n] of cluster.labelCounts) {
+      if (n > bestCount || (n === bestCount && lbl.length > canonical.length)) {
+        canonical = lbl;
+        bestCount = n;
+      }
+    }
     for (const obj of cluster.items) {
       out.push({
         ...obj,
         lat: cluster.lat,
         lng: cluster.lng,
-        locationLabel: cluster.label,
+        locationLabel: canonical,
       });
     }
   }

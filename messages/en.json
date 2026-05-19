@@ -27,7 +27,8 @@
     "searchLocations": "Search locations…",
     "noMatchingPlaces": "No matching places in the current view.",
     "imagesOnly": "Only with image",
-    "showPoints": "Show points"
+    "showPoints": "Show points",
+    "showBroadAreas": "Include broad-area labels"
   },
   "hexSidebar": {
     "approximateLocation": "Approximate area",
