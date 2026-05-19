@@ -1,6 +1,7 @@
 'use client';
 
 import HexSidebar from '@/components/HexSidebar';
+import HistoricalMapControls from '@/components/HistoricalMapControls';
 import type { HexCell } from '@/components/HoneycombMap';
 import TimeSliderControl from '@/components/TimeSliderControl';
 import type { HoneycombData, MapTimelineObject } from '@/types/collection';
@@ -118,6 +119,12 @@ export default function ExploreView({
     zoom?: number;
     key: string;
   } | null>(null);
+  const [activeHistoricalMap, setActiveHistoricalMap] = useState<
+    'suriname' | 'paramaribo' | 'none'
+  >((searchParams.get('hm') as 'suriname' | 'paramaribo' | 'none') || 'none');
+  const [historicalMapOpacity, setHistoricalMapOpacity] = useState(
+    parseNumber(searchParams.get('hmo'), 0.6, 0, 1),
+  );
 
   // Build a per-cell view that respects the active year range.
   const {
@@ -216,6 +223,9 @@ export default function ExploreView({
     if (menuCollapsed) params.set('mc', '1');
     if (searchCollapsed) params.set('sc', '1');
     if (placesCollapsed) params.set('pc', '1');
+    if (activeHistoricalMap !== 'none') params.set('hm', activeHistoricalMap);
+    if (historicalMapOpacity !== 0.6)
+      params.set('hmo', historicalMapOpacity.toFixed(2));
 
     const next = params.toString();
     const current = searchParams.toString();
@@ -236,6 +246,8 @@ export default function ExploreView({
     menuCollapsed,
     searchCollapsed,
     placesCollapsed,
+    activeHistoricalMap,
+    historicalMapOpacity,
     searchParams,
     router,
     pathname,
@@ -265,6 +277,8 @@ export default function ExploreView({
           focusTarget={focusTarget}
           resizeSignal={sidebarOpen}
           points={showPoints ? locationCounts : null}
+          activeHistoricalMap={activeHistoricalMap}
+          historicalMapOpacity={historicalMapOpacity}
         />
 
         {/* Objects in view + location search */}
@@ -376,6 +390,17 @@ export default function ExploreView({
                     }`}
                   />
                 </button>
+              </div>
+
+              <div className="border-b border-(--color-border)">
+                <div className="px-2.5 py-2">
+                  <HistoricalMapControls
+                    activeMap={activeHistoricalMap}
+                    onActiveMapChange={setActiveHistoricalMap}
+                    opacity={historicalMapOpacity}
+                    onOpacityChange={setHistoricalMapOpacity}
+                  />
+                </div>
               </div>
 
               <div className="border-b border-(--color-border)">

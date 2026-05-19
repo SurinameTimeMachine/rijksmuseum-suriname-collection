@@ -2,7 +2,7 @@
 
 import 'leaflet/dist/leaflet.css';
 import type { HoneycombBackgroundCell } from '@/types/collection';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   CircleMarker,
   MapContainer,
@@ -47,6 +47,14 @@ interface HoneycombMapProps {
   initialView?: { lat: number; lng: number; zoom?: number };
   /** Emits center+zoom after move/zoom interactions. */
   onViewChange?: (view: MapViewState) => void;
+  /** Current active historical map overlay ('suriname', 'paramaribo', or 'none'). */
+  activeHistoricalMap?: 'suriname' | 'paramaribo' | 'none';
+  /** Called when active historical map changes. */
+  onHistoricalMapChange?: (map: 'suriname' | 'paramaribo' | 'none') => void;
+  /** Opacity for the historical map overlays (0-1). */
+  historicalMapOpacity?: number;
+  /** Called when opacity of historical maps changes. */
+  onHistoricalMapOpacityChange?: (opacity: number) => void;
 }
 
 function ZoomTracker({ onZoom }: { onZoom: (zoom: number) => void }) {
@@ -97,6 +105,84 @@ function ViewTracker({
   return null;
 }
 
+function HistoricalMapOverlay({
+  activeMap,
+  opacity,
+}: {
+  activeMap: 'suriname' | 'paramaribo' | 'none';
+  opacity: number;
+}) {
+  const map = useMap();
+  const layersRef = useRef<Record<string, any>>({});
+
+  useEffect(() => {
+    if (!map || !map._container) return;
+
+    let mounted = true;
+
+    (async () => {
+      try {
+        const allmaps = await import('@allmaps/leaflet');
+        if (!mounted) return;
+
+        const WarpedMapLayer = (allmaps as any).WarpedMapLayer;
+
+        // Suriname layer
+        const surinameLayer = new WarpedMapLayer();
+        await surinameLayer.addGeoreferenceAnnotationByUrl(
+          'https://annotations.allmaps.org/manifests/5178b46e14dc211e',
+        );
+        surinameLayer.setOpacity(opacity);
+        layersRef.current['suriname'] = surinameLayer;
+
+        // Paramaribo layer
+        const paramariboLayer = new WarpedMapLayer();
+        await paramariboLayer.addGeoreferenceAnnotationByUrl(
+          'https://annotations.allmaps.org/maps/a8b80690c8e2e4cb',
+        );
+        paramariboLayer.setOpacity(opacity);
+        layersRef.current['paramaribo'] = paramariboLayer;
+
+        if (mounted) {
+          // Show/hide layers based on activeMap
+          if (activeMap === 'suriname' && !map.hasLayer(surinameLayer)) {
+            surinameLayer.addTo(map);
+          } else if (activeMap !== 'suriname' && map.hasLayer(surinameLayer)) {
+            map.removeLayer(surinameLayer);
+          }
+
+          if (activeMap === 'paramaribo' && !map.hasLayer(paramariboLayer)) {
+            paramariboLayer.addTo(map);
+          } else if (
+            activeMap !== 'paramaribo' &&
+            map.hasLayer(paramariboLayer)
+          ) {
+            map.removeLayer(paramariboLayer);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to load historical map layers:', err);
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [map, activeMap]);
+
+  // Update opacity when it changes
+  useEffect(() => {
+    if (layersRef.current['suriname']) {
+      layersRef.current['suriname'].setOpacity(opacity);
+    }
+    if (layersRef.current['paramaribo']) {
+      layersRef.current['paramaribo'].setOpacity(opacity);
+    }
+  }, [opacity]);
+
+  return null;
+}
+
 function FocusController({
   target,
 }: {
@@ -137,6 +223,8 @@ export default function HoneycombMap({
   points,
   initialView,
   onViewChange,
+  activeHistoricalMap = 'none',
+  historicalMapOpacity = 0.6,
 }: HoneycombMapProps) {
   const maxCount = Math.max(1, ...hexes.map((h) => h.count));
   const maxPointCount = Math.max(1, ...(points?.map((p) => p.count) ?? [1]));
@@ -153,6 +241,11 @@ export default function HoneycombMap({
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        name="Modern (OSM)"
+      />
+      <HistoricalMapOverlay
+        activeMap={activeHistoricalMap}
+        opacity={historicalMapOpacity}
       />
       <ZoomTracker onZoom={onZoomChange} />
       <ViewTracker onViewChange={onViewChange} />
