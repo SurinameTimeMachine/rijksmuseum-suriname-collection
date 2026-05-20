@@ -1,20 +1,20 @@
 import { getLicenseShortName } from '@/lib/utils';
 import type { CollectionObject } from '@/types/collection';
 import { AlertTriangle } from 'lucide-react';
-import { getLocale } from 'next-intl/server';
 import Link from 'next/link';
 import ObjectImage from './ObjectImage';
 
 interface ObjectCardProps {
   object: CollectionObject;
+  locale: string;
   returnHref?: string;
 }
 
 export default async function ObjectCard({
   object,
+  locale,
   returnHref,
 }: ObjectCardProps) {
-  const locale = await getLocale();
   const title = object.titles[0] || 'Untitled';
   const creator =
     object.creators.filter((c) => c !== 'anoniem').join(', ') || 'Anonymous';

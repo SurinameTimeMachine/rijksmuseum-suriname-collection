@@ -25,6 +25,7 @@ export function generateStaticParams() {
   return [];
 }
 
+export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
 
 export async function generateMetadata({
@@ -432,7 +433,7 @@ export default async function ObjectPage({
           <h2 className="mb-6">{t('relatedObjects')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {related.map((obj) => (
-              <ObjectCard key={obj.objectnummer} object={obj} />
+              <ObjectCard key={obj.objectnummer} object={obj} locale={locale} />
             ))}
           </div>
         </section>

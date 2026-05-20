@@ -123,6 +123,7 @@ export default async function GalleryPage({
                   <ObjectCard
                     key={obj.objectnummer}
                     object={obj}
+                    locale={locale}
                     returnHref={returnHref}
                   />
                 ))}
