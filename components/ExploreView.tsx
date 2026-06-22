@@ -156,6 +156,13 @@ export default function ExploreView({
     parseNumber(searchParams.get('hmo'), 0.6, 0, 1),
   );
 
+  const normalizedRange = useMemo(
+    () => normalizeYearRange(fromYear, toYear, minYear, maxYear),
+    [fromYear, toYear, minYear, maxYear],
+  );
+  const effectiveFromYear = normalizedRange.from;
+  const effectiveToYear = normalizedRange.to;
+
   // Build a per-cell view that respects the active year range.
   const {
     hexes,
@@ -184,7 +191,7 @@ export default function ExploreView({
       const matched: MapTimelineObject[] = [];
       for (const idx of bin.indices) {
         const obj = objects[idx];
-        if (obj.year >= fromYear && obj.year <= toYear) {
+        if (obj.year >= effectiveFromYear && obj.year <= effectiveToYear) {
           if (!showBroadAreas && obj.isBroadArea) continue;
           if (imagesOnly && (!obj.isPublicDomain || !obj.thumbnailUrl)) {
             continue;
@@ -239,8 +246,8 @@ export default function ExploreView({
     data.backgroundByResolution,
     objects,
     zoom,
-    fromYear,
-    toYear,
+    effectiveFromYear,
+    effectiveToYear,
     selectedHexId,
     selectedPointId,
     imagesOnly,
@@ -274,16 +281,10 @@ export default function ExploreView({
         : [];
 
   useEffect(() => {
-    const normalized = normalizeYearRange(fromYear, toYear, minYear, maxYear);
-    if (normalized.from !== fromYear) setFromYear(normalized.from);
-    if (normalized.to !== toYear) setToYear(normalized.to);
-  }, [fromYear, toYear, minYear, maxYear]);
-
-  useEffect(() => {
     const params = new URLSearchParams();
 
-    params.set('from', String(fromYear));
-    params.set('to', String(toYear));
+    params.set('from', String(effectiveFromYear));
+    params.set('to', String(effectiveToYear));
     params.set('z', String(Math.round(zoom)));
     params.set('lat', center.lat.toFixed(4));
     params.set('lng', center.lng.toFixed(4));
@@ -309,8 +310,8 @@ export default function ExploreView({
       router.replace(`${pathname}?${next}`, { scroll: false });
     }
   }, [
-    fromYear,
-    toYear,
+    effectiveFromYear,
+    effectiveToYear,
     zoom,
     center.lat,
     center.lng,
@@ -351,34 +352,34 @@ export default function ExploreView({
   }, [objects, showBroadAreas, imagesOnly]);
 
   const nearestYearWithData = useMemo(() => {
-    if (fromYear !== toYear) return null;
+    if (effectiveFromYear !== effectiveToYear) return null;
     if (totalInView > 0) return null;
     if (availableYears.length === 0) return null;
 
     let nearest = availableYears[0];
-    let bestDistance = Math.abs(availableYears[0] - fromYear);
+    let bestDistance = Math.abs(availableYears[0] - effectiveFromYear);
     for (let i = 1; i < availableYears.length; i++) {
       const year = availableYears[i];
-      const distance = Math.abs(year - fromYear);
+      const distance = Math.abs(year - effectiveFromYear);
       if (distance < bestDistance) {
         nearest = year;
         bestDistance = distance;
       }
     }
     return nearest;
-  }, [fromYear, toYear, totalInView, availableYears]);
+  }, [effectiveFromYear, effectiveToYear, totalInView, availableYears]);
 
   const broadAreaStats = useMemo(() => {
     let total = 0;
     let withImage = 0;
     for (const obj of objects) {
-      if (obj.year < fromYear || obj.year > toYear) continue;
+      if (obj.year < effectiveFromYear || obj.year > effectiveToYear) continue;
       if (!obj.isBroadArea) continue;
       total += 1;
       if (obj.isPublicDomain && obj.thumbnailUrl) withImage += 1;
     }
     return { total, withImage };
-  }, [objects, fromYear, toYear]);
+  }, [objects, effectiveFromYear, effectiveToYear]);
 
   const handleSelectHex = useCallback((hexId: string | null) => {
     setSelectedHexId(hexId);
@@ -733,8 +734,8 @@ export default function ExploreView({
           {nearestYearWithData !== null && (
             <div className="mb-2 border border-(--color-border) bg-(--color-card)/95 px-3 py-2 text-xs text-(--color-charcoal) shadow-md backdrop-blur-sm">
               <span>
-                No objects found for {fromYear}. Nearest year with matches is{' '}
-                <strong>{nearestYearWithData}</strong>.
+                No objects found for {effectiveFromYear}. Nearest year with
+                matches is <strong>{nearestYearWithData}</strong>.
               </span>
               <button
                 type="button"
@@ -750,8 +751,8 @@ export default function ExploreView({
           <TimeSliderControl
             minYear={minYear}
             maxYear={maxYear}
-            fromYear={fromYear}
-            toYear={toYear}
+            fromYear={effectiveFromYear}
+            toYear={effectiveToYear}
             onChange={handleRangeChange}
             isPlaying={isPlaying}
             onPlayingChange={setIsPlaying}
