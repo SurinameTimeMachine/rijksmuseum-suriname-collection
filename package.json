@@ -2,8 +2,8 @@
   "name": "rijksmuseum-suriname-collection",
   "version": "0.1.0",
   "private": true,
-  "packageManager": "pnpm@10.19.0",
   "scripts": {
+    "bench:routes": "npx tsx scripts/benchmark-routes.ts",
     "build": "next build",
     "check:ground-truth": "npx tsx scripts/check-ground-truth.ts",
     "dev": "next dev",
@@ -44,6 +44,7 @@
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
   },
+  "packageManager": "pnpm@10.19.0",
   "pnpm": {
     "overrides": {
       "postcss": "^8.5.15"
