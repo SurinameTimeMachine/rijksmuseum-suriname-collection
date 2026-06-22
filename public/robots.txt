@@ -1,0 +1,22 @@
+# Allow search engines, but rate-limit aggressive crawlers
+User-agent: *
+Allow: /
+Crawl-delay: 2
+Request-rate: 1/5s
+
+# Disallow bot traffic from hitting dynamic object pages at high volume
+User-agent: AhrefsBot
+Disallow: /*/object/*
+
+User-agent: SemrushBot
+Disallow: /*/object/*
+
+User-agent: DotBot
+Disallow: /*/object/*
+
+User-agent: MJ12bot
+Disallow: /*/object/*
+
+# Standard aggressive crawlers
+User-agent: Googlebot-Image
+Disallow: /*/object/*/
