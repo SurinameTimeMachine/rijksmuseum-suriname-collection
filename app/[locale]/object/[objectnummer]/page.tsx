@@ -5,7 +5,6 @@ import { getObjectByNumber, getRelatedObjects } from '@/lib/collection';
 import { getLicenseShortName } from '@/lib/utils';
 import {
   AlertTriangle,
-  ArrowLeft,
   Calendar,
   ExternalLink,
   Globe,
@@ -17,9 +16,7 @@ import {
   Users,
 } from 'lucide-react';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
 
 // Generate no object pages at build time. Next will statically render and cache
 // each valid object page on its first request, avoiding a function render on
@@ -78,19 +75,7 @@ export default async function ObjectPage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-10">
       {/* Back link */}
-      <Suspense
-        fallback={
-          <Link
-            href={`/${locale}/gallery`}
-            className="mb-6 inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.25em] text-ink/55 transition-colors hover:text-teal-strong"
-          >
-            <ArrowLeft size={16} />
-            {t('back')}
-          </Link>
-        }
-      >
-        <ObjectBackLink locale={locale} label={t('back')} />
-      </Suspense>
+      <ObjectBackLink locale={locale} label={t('back')} />
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
         {/* Image */}

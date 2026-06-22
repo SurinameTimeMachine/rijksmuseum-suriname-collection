@@ -55,20 +55,6 @@ export default async function GalleryPage({
     typeof sp.sort === 'string' ? sp.sort : 'date-desc'
   ) as SortOption;
   const page = typeof sp.page === 'string' ? parseInt(sp.page, 10) : 1;
-  const galleryParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(sp)) {
-    if (typeof value === 'string') {
-      galleryParams.set(key, value);
-    } else if (Array.isArray(value)) {
-      for (const v of value) {
-        galleryParams.append(key, v);
-      }
-    }
-  }
-  const returnHref = galleryParams.toString()
-    ? `/${locale}/gallery?${galleryParams.toString()}`
-    : `/${locale}/gallery`;
-
   const [{ objects, total, totalPages }, facets] = await Promise.all([
     getFilteredObjects(
       {
@@ -124,7 +110,6 @@ export default async function GalleryPage({
                     key={obj.objectnummer}
                     object={obj}
                     locale={locale}
-                    returnHref={returnHref}
                   />
                 ))}
               </div>

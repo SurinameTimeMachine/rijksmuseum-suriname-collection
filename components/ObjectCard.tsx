@@ -7,13 +7,11 @@ import ObjectImage from './ObjectImage';
 interface ObjectCardProps {
   object: CollectionObject;
   locale: string;
-  returnHref?: string;
 }
 
 export default async function ObjectCard({
   object,
   locale,
-  returnHref,
 }: ObjectCardProps) {
   const title = object.titles[0] || 'Untitled';
   const creator =
@@ -21,13 +19,10 @@ export default async function ObjectCard({
   const dateDisplay = object.year || 'n.d.';
   const licenseInfo = getLicenseShortName(object.license, object.licenseLabel);
   const objectHref = `/${locale}/object/${encodeURIComponent(object.objectnummer)}`;
-  const href = returnHref
-    ? `${objectHref}?${new URLSearchParams({ from: returnHref }).toString()}`
-    : objectHref;
 
   return (
     <Link
-      href={href}
+      href={objectHref}
       className="group block bg-(--color-card) overflow-hidden border border-(--color-border) shadow-sm hover:border-(--color-warm-gray-light) hover:shadow-lg transition-all duration-300 corner-fold"
     >
       {/* Image */}
