@@ -1,4 +1,5 @@
 import ObjectCard from '@/components/ObjectCard';
+import ObjectBackLink from '@/components/ObjectBackLink';
 import ObjectImage from '@/components/ObjectImage';
 import { getObjectByNumber, getRelatedObjects } from '@/lib/collection';
 import { getLicenseShortName } from '@/lib/utils';
@@ -18,14 +19,15 @@ import {
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 
-// Return empty array so pages are rendered on-demand instead of at build time,
-// avoiding excessive build output for ~7 300+ objects × 2 locales.
+// Generate no object pages at build time. Next will statically render and cache
+// each valid object page on its first request, avoiding a function render on
+// later visits without producing ~7,300 pages during every deployment.
 export function generateStaticParams() {
   return [];
 }
 
-export const dynamic = 'force-dynamic';
 export const dynamicParams = true;
 
 export async function generateMetadata({
@@ -44,13 +46,10 @@ export async function generateMetadata({
 
 export default async function ObjectPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ locale: string; objectnummer: string }>;
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale, objectnummer } = await params;
-  const sp = await searchParams;
   setRequestLocale(locale);
 
   const obj = await getObjectByNumber(decodeURIComponent(objectnummer));
@@ -73,29 +72,25 @@ export default async function ObjectPage({
   const mapLocation = mappableDetail
     ? { lat: mappableDetail.lat as number, lng: mappableDetail.lng as number }
     : null;
-  const from = typeof sp.from === 'string' ? sp.from : null;
-  const localePrefix = `/${locale}`;
-  const isSafeLocalePath =
-    !!from &&
-    from.startsWith(localePrefix) &&
-    (from.length === localePrefix.length ||
-      from[localePrefix.length] === '/' ||
-      from[localePrefix.length] === '?');
-  const backHref = isSafeLocalePath ? from : `/${locale}/gallery`;
-
   // Rijksmuseum website link
   const rijksUrl = `https://www.rijksmuseum.nl/nl/collectie/${obj.objectnummer}`;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6 lg:px-10">
       {/* Back link */}
-      <Link
-        href={backHref}
-        className="mb-6 inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.25em] text-ink/55 transition-colors hover:text-teal-strong"
+      <Suspense
+        fallback={
+          <Link
+            href={`/${locale}/gallery`}
+            className="mb-6 inline-flex items-center gap-1.5 text-xs uppercase tracking-[0.25em] text-ink/55 transition-colors hover:text-teal-strong"
+          >
+            <ArrowLeft size={16} />
+            {t('back')}
+          </Link>
+        }
       >
-        <ArrowLeft size={16} />
-        {t('back')}
-      </Link>
+        <ObjectBackLink locale={locale} label={t('back')} />
+      </Suspense>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-10">
         {/* Image */}

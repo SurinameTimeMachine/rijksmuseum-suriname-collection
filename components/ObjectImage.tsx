@@ -51,7 +51,6 @@ export default function ObjectImage({
         className={cn('object-cover', className)}
         priority={priority}
         sizes={sizes}
-        unoptimized
       />
     );
   }
@@ -65,7 +64,6 @@ export default function ObjectImage({
       className={className}
       priority={priority}
       sizes={sizes}
-      unoptimized
     />
   );
 }
