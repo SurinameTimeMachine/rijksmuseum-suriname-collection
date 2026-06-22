@@ -20,6 +20,38 @@ import type {
 } from '@/types/collection';
 import { cache } from 'react';
 
+type PreparedCollectionData = {
+  collection: CollectionObject[];
+  byObjectNumber: Map<string, CollectionObject>;
+};
+
+let preparedCollectionPromise: Promise<PreparedCollectionData> | null = null;
+
+async function getPreparedCollectionData(): Promise<PreparedCollectionData> {
+  if (!preparedCollectionPromise) {
+    preparedCollectionPromise = (async () => {
+      const data = await import('@/data/collection.json');
+      const collection = data.default as CollectionObject[];
+      const latestLocationEdits =
+        buildLatestLocationEditMap(loadLocationEdits());
+      const termDefaults = loadTermDefaults();
+
+      const curated = collection
+        .map((obj) => applyLocationEditsToObject(obj, latestLocationEdits))
+        .map((obj) => applyTermDefaultsToObject(obj, termDefaults));
+
+      return {
+        collection: curated,
+        byObjectNumber: new Map(
+          curated.map((obj) => [obj.objectnummer, obj] as const),
+        ),
+      };
+    })();
+  }
+
+  return preparedCollectionPromise;
+}
+
 function getObjectLicenseStatus(
   obj: CollectionObject,
 ): 'public-domain' | 'copyrighted' | 'unknown' {
@@ -33,15 +65,8 @@ function getObjectLicenseStatus(
  * Uses React cache() so repeated calls within a single request are deduplicated.
  */
 export const getCollection = cache(async (): Promise<CollectionObject[]> => {
-  // Dynamic import to read the JSON at build/request time
-  const data = await import('@/data/collection.json');
-  const collection = data.default as CollectionObject[];
-  const latestLocationEdits = buildLatestLocationEditMap(loadLocationEdits());
-  const termDefaults = loadTermDefaults();
-
-  return collection
-    .map((obj) => applyLocationEditsToObject(obj, latestLocationEdits))
-    .map((obj) => applyTermDefaultsToObject(obj, termDefaults));
+  const prepared = await getPreparedCollectionData();
+  return prepared.collection;
 });
 
 /**
@@ -50,8 +75,8 @@ export const getCollection = cache(async (): Promise<CollectionObject[]> => {
 export async function getObjectByNumber(
   objectnummer: string,
 ): Promise<CollectionObject | undefined> {
-  const collection = await getCollection();
-  return collection.find((obj) => obj.objectnummer === objectnummer);
+  const prepared = await getPreparedCollectionData();
+  return prepared.byObjectNumber.get(objectnummer);
 }
 
 /**
@@ -376,34 +401,39 @@ export async function getRelatedObjects(
 ): Promise<CollectionObject[]> {
   const collection = await getCollection();
 
-  const scored = collection
-    .filter((o) => o.objectnummer !== obj.objectnummer)
-    .map((candidate) => {
-      let score = 0;
-      // Shared geographic keywords
-      for (const g of candidate.geographicKeywords) {
-        if (
-          obj.geographicKeywords.includes(g) &&
-          g !== 'Suriname (Zuid-Amerika)'
-        ) {
-          score += 3;
-        }
-      }
-      // Shared creators
-      for (const c of candidate.creators) {
-        if (obj.creators.includes(c) && c !== 'anoniem') score += 2;
-      }
-      // Shared subjects
-      for (const s of candidate.subjects) {
-        if (obj.subjects.includes(s)) score += 1;
-      }
-      return { object: candidate, score };
-    })
-    .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score)
-    .slice(0, limit);
+  const targetGeo = new Set(
+    obj.geographicKeywords.filter((g) => g !== 'Suriname (Zuid-Amerika)'),
+  );
+  const targetCreators = new Set(obj.creators.filter((c) => c !== 'anoniem'));
+  const targetSubjects = new Set(obj.subjects);
 
-  return scored.map((s) => s.object);
+  const scored: Array<{ object: CollectionObject; score: number }> = [];
+
+  for (const candidate of collection) {
+    if (candidate.objectnummer === obj.objectnummer) continue;
+
+    let score = 0;
+
+    for (const g of candidate.geographicKeywords) {
+      if (targetGeo.has(g)) score += 3;
+    }
+
+    for (const c of candidate.creators) {
+      if (targetCreators.has(c)) score += 2;
+    }
+
+    for (const s of candidate.subjects) {
+      if (targetSubjects.has(s)) score += 1;
+    }
+
+    if (score > 0) {
+      scored.push({ object: candidate, score });
+    }
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+
+  return scored.slice(0, limit).map((s) => s.object);
 }
 
 /* ============================================================
