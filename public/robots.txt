@@ -4,7 +4,8 @@ Allow: /
 Crawl-delay: 2
 Request-rate: 1/5s
 
-# Disallow bot traffic from hitting dynamic object pages at high volume
+# Disallow aggressive crawlers from object pages. This is also enforced by
+# proxy.ts, because robots.txt alone is voluntary.
 User-agent: AhrefsBot
 Disallow: /*/object/*
 
@@ -19,4 +20,4 @@ Disallow: /*/object/*
 
 # Standard aggressive crawlers
 User-agent: Googlebot-Image
-Disallow: /*/object/*/
+Disallow: /*/object/*
